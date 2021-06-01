@@ -1,0 +1,67 @@
+QoS weights: 4 1 
+Sum weights = 5
+QoS ratio: 0.2 0.8 
+Use dynamic load.
+Avg load to achieve = 0.8
+burst size (# of RPCs) in the dynamic load setting: 1
+burst load = 1.2
+Init cwnd: 2
+Max cwnd: 30
+Num Hosts: 33
+Num total RPCs to run: 1000000
+traffic pattern: all-to-all
+Swift Delay target: 10 us
+Retransmission Timeout: 450 us
+num_hosts = 33
+burst lambda: 445262.407979102
+burst lambda_per_host: 13914.4502493469
+I'm generating the first couple of flows
+End of generating the first couple of flows. count = 1056
+## 1.01009845015257 NumPacketOutstanding 3790 MaxPacketOutstanding 23460 NumUnfinishedFlows 346 StartedFlows 100000 StartedPkts 2300000
+## 1.02026986132988 NumPacketOutstanding 3472 MaxPacketOutstanding 23460 NumUnfinishedFlows 297 StartedFlows 200000 StartedPkts 4600000
+## 1.03052189804674 NumPacketOutstanding 3406 MaxPacketOutstanding 23460 NumUnfinishedFlows 306 StartedFlows 300000 StartedPkts 6900000
+## 1.04072219382444 NumPacketOutstanding 3500 MaxPacketOutstanding 23460 NumUnfinishedFlows 292 StartedFlows 400000 StartedPkts 9200000
+## 1.05093086792366 NumPacketOutstanding 3296 MaxPacketOutstanding 23460 NumUnfinishedFlows 291 StartedFlows 500000 StartedPkts 11500000
+## 1.06118341957926 NumPacketOutstanding 2682 MaxPacketOutstanding 23460 NumUnfinishedFlows 249 StartedFlows 600000 StartedPkts 13800000
+## 1.07142022260587 NumPacketOutstanding 3062 MaxPacketOutstanding 23460 NumUnfinishedFlows 259 StartedFlows 700000 StartedPkts 16100000
+## 1.08168944057461 NumPacketOutstanding 2884 MaxPacketOutstanding 23460 NumUnfinishedFlows 248 StartedFlows 800000 StartedPkts 18400000
+## 1.09193277213191 NumPacketOutstanding 3276 MaxPacketOutstanding 23460 NumUnfinishedFlows 300 StartedFlows 900000 StartedPkts 20700000
+## 1.10215984008365 NumPacketOutstanding 3487 MaxPacketOutstanding 23460 NumUnfinishedFlows 328 StartedFlows 1000000 StartedPkts 23000000
+Unfinished Flows: 0
+Priority 0: (200149 Flows, Finished/Unf: 200149/0)
+FCT (in us) (100% RPCs) (Median, 99th, 99.9th) = 3.98, 10.44, 28.46
+FCT (in us) (mid 50% RPCs) (Median, 99th, 99.9th) = 3.90, 9.69, 12.80
+FCT (in us) (first 50% RPCs) (Median, 99th, 99.9th) = 4.11, 10.99, 34.24
+FCT (in us) (last 50% RPCs) (Median, 99th, 99.9th) = 3.90, 9.78, 13.14
+99.9th (out of 100% RPCs) RPC is RPC[674], completion time = 28.46; total queuing time = 48.97
+Priority 1: (799851 Flows, Finished/Unf: 799851/0)
+FCT (in us) (100% RPCs) (Median, 99th, 99.9th) = 30.02, 143.17, 297.22
+FCT (in us) (mid 50% RPCs) (Median, 99th, 99.9th) = 29.15, 125.73, 278.70
+FCT (in us) (first 50% RPCs) (Median, 99th, 99.9th) = 31.32, 156.56, 313.95
+FCT (in us) (last 50% RPCs) (Median, 99th, 99.9th) = 28.80, 126.47, 275.18
+99.9th (out of 100% RPCs) RPC is RPC[884215], completion time = 297.22; total queuing time = 362.55
+Per pkt queuing delay:
+Priority[0] (100% packets) (tot pkts: 4603466) (Median, 99th, 99.9th) (us) = 1.70, 6.08, 8.32
+Priority[1] (100% packets) (tot pkts: 18397099) (Median, 99th, 99.9th) (us) = 10.94, 42.05, 55.62
+Priority[0] (mid 50% packets) (tot pkts: 2301733) (Median, 99th, 99.9th) (us) = 1.76, 6.12, 8.35
+Priority[1] (mid 50% packets) (tot pkts: 9198549) (Median, 99th, 99.9th) (us) = 11.29, 42.86, 56.64
+Per pkt RTT:
+Priority[0] (100% packets) (tot pkts: 4603369) (Median, 99th, 99.9th, Max) (us) = 2.97, 8.02, 10.50, 18.05
+Priority[1] (100% packets) (tot pkts: 18395996) (Median, 99th, 99.9th, Max) (us) = 22.55, 60.60, 76.56, 122.31
+Priority[0] (mid 50% packets) (tot pkts: 2301684) (Median, 99th, 99.9th) (us) = 3.03, 8.11, 10.57
+Priority[1] (mid 50% packets) (tot pkts: 9197998) (Median, 99th, 99.9th) (us) = 23.27, 61.77, 77.59
+Cwnd (1th, median) = 10, 30
+Priority[0] throughput = 513.57 Gbps
+Priority[1] throughput = 2051.78 Gbps
+At switch queue[37]: # Pkt drop = 113
+At switch queue[39]: # Pkt drop = 17
+At switch queue[41]: # Pkt drop = 5
+At switch queue[53]: # Pkt drop = 103
+At switch queue[54]: # Pkt drop = 63
+At switch queue[59]: # Pkt drop = 43
+At switch queue[65]: # Pkt drop = 21
+num timeouts: 147
+sum completion time of all finished RPCs = 30.84 sec
+avg sending period (busy + idle) = 108.00 us
+2020-04-21.02:00:44 Simulator ended. Program execution time: 333.0000 seconds
+Simulation event duration: 0.1026 seconds

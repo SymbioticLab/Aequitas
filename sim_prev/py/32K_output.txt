@@ -1,0 +1,38 @@
+QoS weights: 4 1 
+Sum weights = 5
+QoS ratio: 0.5 0.5 
+Use dynamic load.
+Dynamic load: 1.2 0.4 
+load change frequency: 1
+num_hosts = 33
+lambda: 296841.605319402
+lambda_per_host: 9276.3001662313
+## 1.44896125839104 NumPacketOutstanding 131 MaxPacketOutstanding 748 NumUnfinishedFlows 6 StartedFlows 100000 StartedPkts 2300000
+## 1.89632311971716 NumPacketOutstanding 105 MaxPacketOutstanding 748 NumUnfinishedFlows 6 StartedFlows 200000 StartedPkts 4600000
+## 2.34753844098729 NumPacketOutstanding 22 MaxPacketOutstanding 748 NumUnfinishedFlows 0 StartedFlows 300000 StartedPkts 6900000
+## 2.79653676354396 NumPacketOutstanding 44 MaxPacketOutstanding 748 NumUnfinishedFlows 2 StartedFlows 400000 StartedPkts 9200000
+## 3.24543303040839 NumPacketOutstanding 40 MaxPacketOutstanding 748 NumUnfinishedFlows 1 StartedFlows 500000 StartedPkts 11500000
+## 3.69648563952046 NumPacketOutstanding 33 MaxPacketOutstanding 748 NumUnfinishedFlows 2 StartedFlows 600000 StartedPkts 13800000
+## 4.14705734464341 NumPacketOutstanding 22 MaxPacketOutstanding 748 NumUnfinishedFlows 0 StartedFlows 700000 StartedPkts 16100000
+## 4.59745436810804 NumPacketOutstanding 22 MaxPacketOutstanding 748 NumUnfinishedFlows 0 StartedFlows 800000 StartedPkts 18400000
+## 5.04798462279999 NumPacketOutstanding 48 MaxPacketOutstanding 748 NumUnfinishedFlows 2 StartedFlows 900000 StartedPkts 20700000
+## 5.49788030565815 NumPacketOutstanding 81 MaxPacketOutstanding 748 NumUnfinishedFlows 6 StartedFlows 1000000 StartedPkts 23000000
+Unfinished Flows: 0
+Priority 0: last finish time = 5.49789121744584
+Priority 1: last finish time = 5.49789448304584
+Current time = 5.49834442800584
+Priority 0: (500237 Flows, Finished/Unf: 500237/0)
+FCT (in us) (100% RPCs) (Median, 99th, 99.9th) = 10.46, 19.69, 369.51
+FCT (in us) (mid 50% RPCs) (Median, 99th, 99.9th) = 10.51, 19.79, 417.64
+Avg Pkt Queuing Delay = 0.12
+Priority 1: (499763 Flows, Finished/Unf: 499763/0)
+FCT (in us) (100% RPCs) (Median, 99th, 99.9th) = 10.71, 43.47, 387.10
+FCT (in us) (mid 50% RPCs) (Median, 99th, 99.9th) = 10.74, 43.46, 382.43
+Avg Pkt Queuing Delay = 0.44
+QoS_H vs QoS_L ratio = 3.61
+Priority 0 throughput = 29.15Gbps
+Priority 1 throughput = 29.13Gbps
+At switch queue[65]: # Pkt drop = 40
+num timeouts: 0
+2020-03-24.10:31:01 Simulator ended. Program execution time: 70.0000 seconds
+Simulation event duration: 4.4983 seconds

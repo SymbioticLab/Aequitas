@@ -1,0 +1,61 @@
+QoS weights: 4 1 
+Sum weights = 5
+QoS ratio: 0.8 0.2 
+Use dynamic load.
+Avg load to achieve = 0.8
+burst size (# of RPCs) in the dynamic load setting: 1
+burst load = 1.2
+Init cwnd: 2
+Max cwnd: 30
+Num Hosts: 33
+Num total RPCs to run: 1000000
+traffic pattern: incast
+Swift Delay target: 10 us
+Retransmission Timeout: 450 us
+num_hosts = 33
+burst lambda: 445262.407979102
+burst lambda_per_host: 13914.4502493469
+I'm generating the first couple of flows
+End of generating the first couple of flows. count = 32
+## 1.33673394448991 NumPacketOutstanding 99 MaxPacketOutstanding 759 NumUnfinishedFlows 5 StartedFlows 100000 StartedPkts 2300000
+## 1.67242429650517 NumPacketOutstanding 199 MaxPacketOutstanding 759 NumUnfinishedFlows 12 StartedFlows 200000 StartedPkts 4600000
+## 2.01078814994114 NumPacketOutstanding 68 MaxPacketOutstanding 759 NumUnfinishedFlows 4 StartedFlows 300000 StartedPkts 6900000
+## 2.34737714162198 NumPacketOutstanding 63 MaxPacketOutstanding 759 NumUnfinishedFlows 2 StartedFlows 400000 StartedPkts 9200000
+## 2.68436019796705 NumPacketOutstanding 39 MaxPacketOutstanding 759 NumUnfinishedFlows 2 StartedFlows 500000 StartedPkts 11500000
+## 3.02242295037569 NumPacketOutstanding 44 MaxPacketOutstanding 759 NumUnfinishedFlows 1 StartedFlows 600000 StartedPkts 13800000
+## 3.36037074969492 NumPacketOutstanding 115 MaxPacketOutstanding 759 NumUnfinishedFlows 9 StartedFlows 700000 StartedPkts 16100000
+## 3.69923908981576 NumPacketOutstanding 54 MaxPacketOutstanding 759 NumUnfinishedFlows 2 StartedFlows 800000 StartedPkts 18400000
+## 4.03727027260439 NumPacketOutstanding 125 MaxPacketOutstanding 759 NumUnfinishedFlows 7 StartedFlows 900000 StartedPkts 20700000
+## 4.3747845640666 NumPacketOutstanding 152 MaxPacketOutstanding 759 NumUnfinishedFlows 9 StartedFlows 1000000 StartedPkts 23000000
+Unfinished Flows: 0
+Priority 0: (800303 Flows, Finished/Unf: 800303/0)
+FCT (in us) (100% RPCs) (Median, 99th, 99.9th) = 6.80, 43.74, 99.26
+FCT (in us) (mid 50% RPCs) (Median, 99th, 99.9th) = 6.84, 44.46, 101.40
+FCT (in us) (first 50% RPCs) (Median, 99th, 99.9th) = 6.82, 44.34, 100.52
+FCT (in us) (last 50% RPCs) (Median, 99th, 99.9th) = 6.77, 43.17, 97.16
+99.9th (out of 100% RPCs) RPC is RPC[98018], completion time = 99.26; total queuing time = 293.87
+Priority 1: (199697 Flows, Finished/Unf: 199697/0)
+FCT (in us) (100% RPCs) (Median, 99th, 99.9th) = 12.95, 82.46, 154.25
+FCT (in us) (mid 50% RPCs) (Median, 99th, 99.9th) = 12.82, 77.91, 137.20
+FCT (in us) (first 50% RPCs) (Median, 99th, 99.9th) = 13.07, 84.27, 157.78
+FCT (in us) (last 50% RPCs) (Median, 99th, 99.9th) = 12.84, 80.16, 148.93
+99.9th (out of 100% RPCs) RPC is RPC[271791], completion time = 154.25; total queuing time = 1666.39
+Per pkt queuing delay:
+Priority[0] (100% packets) (tot pkts: 18407075) (Median, 99th, 99.9th) (us) = 3.03, 21.48, 31.35
+Priority[1] (100% packets) (tot pkts: 4593061) (Median, 99th, 99.9th) (us) = 6.68, 61.11, 93.69
+Priority[0] (mid 50% packets) (tot pkts: 9203537) (Median, 99th, 99.9th) (us) = 3.02, 21.22, 31.52
+Priority[1] (mid 50% packets) (tot pkts: 2296530) (Median, 99th, 99.9th) (us) = 6.78, 60.82, 94.12
+Per pkt RTT:
+Priority[0] (100% packets) (tot pkts: 18406583) (Median, 99th, 99.9th, Max) (us) = 3.96, 22.40, 32.24, 52.40
+Priority[1] (100% packets) (tot pkts: 4592949) (Median, 99th, 99.9th, Max) (us) = 7.61, 62.02, 94.50, 149.40
+Priority[0] (mid 50% packets) (tot pkts: 9203291) (Median, 99th, 99.9th) (us) = 3.95, 22.14, 32.40
+Priority[1] (mid 50% packets) (tot pkts: 2296474) (Median, 99th, 99.9th) (us) = 7.71, 61.74, 95.05
+Cwnd (1th, median) = 30, 30
+Priority[0] throughput = 62.16 Gbps
+Priority[1] throughput = 15.51 Gbps
+At switch queue[65]: # Pkt drop = 420
+num timeouts: 70
+sum completion time of all finished RPCs = 11.07 sec
+avg sending period (busy + idle) = 108.00 us
+2020-04-21.01:53:36 Simulator ended. Program execution time: 193.0000 seconds
+Simulation event duration: 3.3753 seconds

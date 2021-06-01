@@ -1,0 +1,273 @@
+QoS weights: 4 1 
+Sum weights = 5
+QoS ratio: 0.6 0.4 
+Use dynamic load.
+Avg load to achieve = 0.8
+burst size (# of RPCs) in the dynamic load setting: 1
+burst load = 1.2
+Init cwnd: 2
+Max cwnd: 30
+Num Hosts: 33
+Num total RPCs to run: 1000000
+traffic pattern: all-to-all
+Swift Delay target: 10 us
+Retransmission Timeout: 450 us
+num_hosts = 33
+burst lambda: 445262.407979102
+burst lambda_per_host: 13914.4502493469
+I'm generating the first couple of flows
+End of generating the first couple of flows. count = 1056
+## 1.01009845015257 NumPacketOutstanding 5540 MaxPacketOutstanding 23609 NumUnfinishedFlows 511 StartedFlows 100000 StartedPkts 2300000
+## 1.02026986132988 NumPacketOutstanding 4456 MaxPacketOutstanding 23609 NumUnfinishedFlows 427 StartedFlows 200000 StartedPkts 4600000
+## 1.03052189804674 NumPacketOutstanding 3806 MaxPacketOutstanding 23609 NumUnfinishedFlows 387 StartedFlows 300000 StartedPkts 6900000
+## 1.04072219382444 NumPacketOutstanding 3641 MaxPacketOutstanding 23609 NumUnfinishedFlows 331 StartedFlows 400000 StartedPkts 9200000
+## 1.05093086792366 NumPacketOutstanding 3364 MaxPacketOutstanding 23609 NumUnfinishedFlows 315 StartedFlows 500000 StartedPkts 11500000
+## 1.06118341957926 NumPacketOutstanding 2914 MaxPacketOutstanding 23609 NumUnfinishedFlows 265 StartedFlows 600000 StartedPkts 13800000
+## 1.07142022260587 NumPacketOutstanding 3021 MaxPacketOutstanding 23609 NumUnfinishedFlows 259 StartedFlows 700000 StartedPkts 16100000
+## 1.08168944057461 NumPacketOutstanding 4227 MaxPacketOutstanding 23609 NumUnfinishedFlows 307 StartedFlows 800000 StartedPkts 18400000
+## 1.09193277213191 NumPacketOutstanding 6194 MaxPacketOutstanding 23609 NumUnfinishedFlows 427 StartedFlows 900000 StartedPkts 20700000
+## 1.10215984008365 NumPacketOutstanding 7914 MaxPacketOutstanding 23609 NumUnfinishedFlows 530 StartedFlows 1000000 StartedPkts 23000000
+unfinished flow size:32768 id:692258 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:695850 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:698707 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:699792 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:700702 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:702608 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:703016 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:703529 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:705443 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:707046 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:707483 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:707750 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:709270 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:709762 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:710641 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:711748 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:713188 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:713431 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:713642 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:715195 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:716741 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:719488 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:721750 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:721787 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:723532 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:727801 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:732273 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:732590 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:733861 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:736513 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:737599 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:738536 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:739204 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:741018 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:742083 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:743345 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:745424 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:745519 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:745898 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:747736 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:750619 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:750631 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:753044 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:756822 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:760568 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:760964 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:764801 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:769398 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:769421 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:769923 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:772750 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:775068 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:776180 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:778073 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:780106 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:780958 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:782704 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:785878 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:789531 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:789667 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:790945 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:791401 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:793584 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:796763 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:797220 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:797705 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:798339 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:798443 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:798880 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:799047 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:801348 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:802412 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:804768 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:806313 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:806688 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:807041 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:809088 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:809403 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:810442 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:811599 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:814555 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:814984 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:815678 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:820661 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:822668 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:823803 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:824060 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:826931 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:827804 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:829229 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:829831 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:832408 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:833071 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:834117 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:834129 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:838185 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:838285 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:839276 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:839688 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:839789 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:839986 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:840100 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:840458 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:842205 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:842981 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:843511 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:844676 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:845845 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:845953 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:850350 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:850905 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:855391 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:855469 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:855575 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:856104 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:860443 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:860689 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:862288 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:863277 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:865705 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:865854 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:874177 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:875978 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:876745 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:878844 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:882701 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:883626 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:885359 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:886191 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:889930 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:890454 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:891440 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:892072 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:893201 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:895216 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:895518 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:896472 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:896676 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:897022 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:897502 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:898652 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:899729 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:899903 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:901590 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:904993 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:906318 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:907675 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:910120 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:910208 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:911353 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:914078 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:916501 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:919895 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:921240 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:921245 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:921349 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:921402 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:922793 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:923161 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:924800 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:929239 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:930802 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:933131 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:933596 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:938001 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:940064 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:940671 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:941008 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:942906 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:943181 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:943479 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:944120 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:946422 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:950378 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:951190 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:951487 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:952100 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:952190 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:952662 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:952973 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:954155 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:957916 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:959318 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:960129 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:961078 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:966088 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:968611 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:970729 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:973190 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:973713 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:976983 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:979934 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:979947 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:981453 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:985944 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:986348 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:987538 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:991102 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:991734 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:992969 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:993041 next_seq:0 recv:0 src:25 dst:19
+unfinished flow size:32768 id:999063 next_seq:0 recv:0 src:25 dst:19
+Unfinished Flows: 202
+Priority 0: (600266 Flows, Finished/Unf: 600064/202)
+FCT (in us) (100% RPCs) (Median, 99th, 99.9th) = 8.10, 25.12, 100.26
+FCT (in us) (mid 50% RPCs) (Median, 99th, 99.9th) = 8.06, 23.32, 39.69
+FCT (in us) (first 50% RPCs) (Median, 99th, 99.9th) = 8.13, 26.57, 109.31
+FCT (in us) (last 50% RPCs) (Median, 99th, 99.9th) = 8.06, 24.03, 53.67
+99.9th (out of 100% RPCs) RPC is RPC[1662], completion time = 100.26; total queuing time = 111.40
+Priority 1: (399734 Flows, Finished/Unf: 399734/0)
+FCT (in us) (100% RPCs) (Median, 99th, 99.9th) = 60.84, 327.45, 659.19
+FCT (in us) (mid 50% RPCs) (Median, 99th, 99.9th) = 55.37, 245.70, 410.24
+FCT (in us) (first 50% RPCs) (Median, 99th, 99.9th) = 75.93, 402.78, 750.62
+FCT (in us) (last 50% RPCs) (Median, 99th, 99.9th) = 49.65, 219.31, 368.27
+99.9th (out of 100% RPCs) RPC is RPC[5440], completion time = 659.19; total queuing time = 160.01
+Per pkt queuing delay:
+Priority[0] (100% packets) (tot pkts: 13801774) (Median, 99th, 99.9th) (us) = 3.11, 12.73, 17.52
+Priority[1] (100% packets) (tot pkts: 9194216) (Median, 99th, 99.9th) (us) = 16.79, 82.93, 116.44
+Priority[0] (mid 50% packets) (tot pkts: 6900887) (Median, 99th, 99.9th) (us) = 3.14, 12.85, 17.70
+Priority[1] (mid 50% packets) (tot pkts: 4597108) (Median, 99th, 99.9th) (us) = 17.97, 85.22, 118.98
+Per pkt RTT:
+Priority[0] (100% packets) (tot pkts: 13801087) (Median, 99th, 99.9th, Max) (us) = 5.91, 17.70, 23.26, 44.91
+Priority[1] (100% packets) (tot pkts: 9193454) (Median, 99th, 99.9th, Max) (us) = 35.87, 119.39, 160.03, 292.42
+Priority[0] (mid 50% packets) (tot pkts: 6900543) (Median, 99th, 99.9th) (us) = 5.96, 17.84, 23.35
+Priority[1] (mid 50% packets) (tot pkts: 4596727) (Median, 99th, 99.9th) (us) = 38.00, 121.89, 163.43
+Cwnd (1th, median) = 8, 30
+Priority[0] throughput = 1539.65 Gbps
+Priority[1] throughput = 1025.38 Gbps
+At switch queue[33]: # Pkt drop = 4
+At switch queue[37]: # Pkt drop = 82
+At switch queue[38]: # Pkt drop = 30
+At switch queue[46]: # Pkt drop = 26
+At switch queue[48]: # Pkt drop = 45
+At switch queue[53]: # Pkt drop = 59
+At switch queue[54]: # Pkt drop = 173
+At switch queue[55]: # Pkt drop = 20
+At switch queue[56]: # Pkt drop = 43
+At switch queue[61]: # Pkt drop = 22
+At switch queue[63]: # Pkt drop = 68
+num timeouts: 205
+sum completion time of all finished RPCs = 36.79 sec
+avg sending period (busy + idle) = 108.00 us
+2020-04-21.02:06:56 Simulator ended. Program execution time: 372.0000 seconds
+Simulation event duration: 0.1026 seconds
