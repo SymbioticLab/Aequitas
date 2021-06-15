@@ -1,5 +1,5 @@
-#ifndef Veritas_FLOW_H
-#define Veritas_FLOW_H
+#ifndef VERITAS_FLOW_H
+#define VERITAS_FLOW_H
 
 #include "../coresim/flow.h"
 #include "../coresim/packet.h"

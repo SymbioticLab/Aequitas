@@ -52,7 +52,7 @@ Flow* Factory::get_flow(
         case NORMAL_FLOW:
             return new Flow(id, start_time, size, src, dst);
             break;
-        case Veritas_FLOW:
+        case VERITAS_FLOW:
             return new VeritasFlow(id, start_time, size, src, dst, flow_priority);
             break;
     }

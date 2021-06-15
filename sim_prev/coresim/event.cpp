@@ -113,7 +113,7 @@ void FlowCreationForInitializationEvent::process_event() {
 
     if (size != 0) {
         int flow_priority = 0;
-        if (params.flow_type == Veritas_FLOW) {
+        if (params.flow_type == VERITAS_FLOW) {
             assert(!params.qos_ratio.empty());
             UniformRandomVariable uv;
             double rn = uv.value();
