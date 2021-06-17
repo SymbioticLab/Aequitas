@@ -3,7 +3,7 @@
 #include "assert.h"
 
 #include "wfQueue.h"
-#include "Veritasflow.h"
+#include "veritasflow.h"
 
 /* Factory method to return appropriate queue */
 Queue* Factory::get_queue(

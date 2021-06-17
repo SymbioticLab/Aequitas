@@ -372,7 +372,7 @@ void QueueProcessingEvent::process_event() {
         queue->queue_proc_event = new QueueProcessingEvent(time + td, queue);
         add_to_event_queue(queue->queue_proc_event);
         queue->busy_events.push_back(queue->queue_proc_event);
-        if (next_hop == NULL) {
+        if (next_hop == NULL) {     // Arrive at DST
             //std::cout << "PUPU next_hop = NULL" << std::endl;
             //if (packet->type == NORMAL_PACKET) {
             //    std::cout << "NORMAL pkt" << std::endl;

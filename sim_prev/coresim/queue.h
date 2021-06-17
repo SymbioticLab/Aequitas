@@ -69,4 +69,10 @@ class ProbDropQueue : public Queue {
         double drop_prob;
 };
 
+class HostEgressQueue : public Queue {
+    public:
+        HostEgressQueue(uint32_t id, double rate, int location);
+        void enque(Packet *packet) override;
+};
+
 #endif

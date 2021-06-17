@@ -52,6 +52,7 @@ class DCExpParams {
         double load;
         uint32_t burst_size;        // number of RPCs sent before switch to wait and send nothing in the dynamic load setting; may change to # of bytes in the future
         double burst_load;          // load we use to send burst data in dynamic load setting. Better be > 1
+        uint32_t unlimited_nic_speed;   // packets can go out from host exceeding nic line rate; default off
         //uint32_t load_change_freq;    // number of flows sent before switching to the next load; 100 means 100 flows at each load value
         //std::vector<double> dynamic_load;
         //std::vector<ExponentialRandomVariable *> nv_intarr_vec; // no longer used

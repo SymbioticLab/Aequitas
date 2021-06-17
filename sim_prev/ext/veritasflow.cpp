@@ -75,11 +75,19 @@ Packet *VeritasFlow::send_with_delay(uint32_t seq, double delay) {
     this->total_pkt_sent++;
     p->start_ts = get_current_time();
 
+    if (params.unlimited_nic_speed) {
+        Queue *next_hop = topology->get_next_hop(p, src->queue);
+        add_to_event_queue(new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay + delay, p, next_hop));
+    } else {
+        add_to_event_queue(new PacketQueuingEvent(get_current_time(), p, src->egress_queue));
+    }
+    /*
     Queue *next_hop = topology->get_next_hop(p, src->queue);
     //PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + delay, p, next_hop);
     PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay + delay, p, next_hop);
     event->flow_id = this->id;
     add_to_event_queue(event);
+    */
     //add_to_event_queue(new PacketQueuingEvent(get_current_time(), p, src->queue));
 
     // packet start from the switch queue; skipping the host queue
@@ -164,6 +172,7 @@ void VeritasFlow::send_ack(uint32_t seq, std::vector<uint32_t> sack_list, double
     p->pf_priority = flow_priority;
     p->start_ts = pkt_start_ts; // carry the orig packet's start_ts back to the sender for RTT measurement
     //std::cout << "Flow[" << id << "] with priority " << flow_priority << " send ack: " << seq << std::endl;
+    /*
     Queue *next_hop = topology->get_next_hop(p, dst->queue);
     ////PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time(), p, next_hop);      // currnet version: skip src queue & include dst queue
     PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);      // currnet version: skip src queue & include dst queue
@@ -171,4 +180,13 @@ void VeritasFlow::send_ack(uint32_t seq, std::vector<uint32_t> sack_list, double
     event->flow_id = this->id;
     add_to_event_queue(event);
     //add_to_event_queue(new PacketQueuingEvent(get_current_time(), p, dst->queue));
+    */
+    if (params.unlimited_nic_speed) {
+        Queue *next_hop = topology->get_next_hop(p, dst->queue);
+        add_to_event_queue(new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop));
+    } else {
+        add_to_event_queue(new PacketQueuingEvent(get_current_time(), p, dst->egress_queue));
+    }
 }
+
+

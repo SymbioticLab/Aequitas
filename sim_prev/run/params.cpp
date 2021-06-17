@@ -34,6 +34,7 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
     params.big_switch = 0;
     params.multi_switch = 0;
     params.mtu = 5000;
+    params.unlimited_nic_speed = 0;
     //params.dynamic_load = std::vector<double>();
     while (std::getline(input, line)) {
         std::istringstream lineStream(line);
@@ -136,6 +137,9 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
         }
         else if (key == "mtu") {
             lineStream >> params.mtu;
+        }
+        else if (key == "unlimited_nic_speed") {
+            lineStream >> params.unlimited_nic_speed;
         }
         else if (key == "host_type") {
             lineStream >> params.host_type;
@@ -384,6 +388,11 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
     std::cout << "mtu: " << params.mtu << std::endl;
     std::cout << "mss: " << params.mss << std::endl;
     std::cout << "Swift Delay target: " << params.cc_delay_target << " us" << std::endl;
+    if (params.unlimited_nic_speed) {
+        std::cout << "Unlimted NIC speed," << std::endl;
+    } else {
+        std::cout << "Host NIC egress speed cannot go beyond line rate." << std::endl;
+    }
     assert(params.burst_size > 0);
     //std::cout << "Flushing Coefficient = " << params.flushing_coefficient << std::endl;
     std::cout << "Retransmission Timeout: " << params.retx_timeout_value * 1e6 << " us" << std::endl;

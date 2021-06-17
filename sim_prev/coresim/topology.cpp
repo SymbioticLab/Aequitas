@@ -214,6 +214,9 @@ BigSwitchTopology::BigSwitchTopology(
         hosts[i]->queue->set_src_dst(hosts[i], the_switch);
         Queue *q = the_switch->queues[i];
         q->set_src_dst(the_switch, hosts[i]);
+        if (!params.unlimited_nic_speed) {
+            hosts[i]->egress_queue->set_src_dst(hosts[i], the_switch);
+        }
     }
 }
 

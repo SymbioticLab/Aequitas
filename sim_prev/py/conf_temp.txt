@@ -24,6 +24,7 @@ load: 0.8
 use_dynamic_load: 1
 burst_load: 1.4
 burst_size: 4
+unlimited_nic_speed: 1
 use_random_jitter: 0
 random_flow_start: 0
 reauth_limit: 3
