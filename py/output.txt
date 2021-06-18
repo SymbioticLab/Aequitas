@@ -1,0 +1,130 @@
+PUPU: config filename: heavy_conf.txt
+memory time duration (us) = 60000
+Downgrade Hardcoded Targets: 30 100 
+num pctl for qos dist breakdown = 10
+QoS weights: 8 4 1 
+Sum weights = 13
+Fair Share Ratio = 0.615384615384615 : 0.307692307692308 : 0.0769230769230769
+QoS ratio: 0.6 0.3 0.1 
+Use dynamic load.
+Avg load to achieve = 0.8
+burst size (# of bytes) in the dynamic load setting: 65536
+Heavy burst mode: RPCs with the same burst period arrives at the same time (with tiny delay)
+Using Channel Multiplexing. Multiplexing Constant = 10
+burst load = 1.4
+Use random jitter.
+CDF: ./CDF_read_req_latency.txt
+Per port queue size: 1048576 Bytes
+Disable Poisson Arrival; use initial shift instead
+Disable Packet Logging (to save memory)
+Disable CWND Logging (to save memory)
+Disable DWND Logging (to save memory)
+Enable smart time window. Adjust per qos window time duration based on target X 3000
+Enable latency measurement (in the simulation results) by RPC size (# of MTUs)
+Enable Priority Downgrade.
+downgrade lat target: 10 us
+target expires in 2000000 us
+qd expires in 50 us
+qd estimated from rtt expires in 300000 us
+dp alpha: 0.01
+dp beta: 0.015
+downgrade batch size: 20
+upgrade batch size: 10
+expiration count: 250
+Init cwnd: 2
+Max cwnd: 30
+Num Hosts: 144
+Num total RPCs to run: 1000000
+traffic pattern: all-to-all
+mtu: 5120
+mss: 5080
+Swift Delay target: 10 us
+Retransmission Timeout: 450 us
+num_hosts = 144
+params.cdf_or_flow_trace: ./CDF_read_req_latency.txt
+Mean flow size: 149089
+## 1.003752320020000 NumPktOutstd 1526624 MaxPktOutstd 1676942 PktDropsSoFar 59970 NumUnfFlows 18562 StartedFlows 100000 NumRPCsOutstd 18674 StartedPkts 2983960
+All QoS_H Host avg prob: 0.79
+## 1.015839666700000 NumPktOutstd 330288 MaxPktOutstd 1676942 PktDropsSoFar 119649 NumUnfFlows 11519 StartedFlows 200000 NumRPCsOutstd 11523 StartedPkts 5991776
+All QoS_H Host avg prob: 0.42
+## 1.024573477520000 NumPktOutstd 133227 MaxPktOutstd 1676942 PktDropsSoFar 121103 NumUnfFlows 6473 StartedFlows 300000 NumRPCsOutstd 6474 StartedPkts 8944260
+All QoS_H Host avg prob: 0.92
+## 1.035542435500000 NumPktOutstd 20129 MaxPktOutstd 1676942 PktDropsSoFar 121139 NumUnfFlows 1776 StartedFlows 400000 NumRPCsOutstd 1777 StartedPkts 11913576
+All QoS_H Host avg prob: 0.92
+## 1.045678118200000 NumPktOutstd 1930 MaxPktOutstd 1676942 PktDropsSoFar 121150 NumUnfFlows 1198 StartedFlows 500000 NumRPCsOutstd 1199 StartedPkts 14906369
+All QoS_H Host avg prob: 0.86
+## 1.056047663130000 NumPktOutstd 6049 MaxPktOutstd 1676942 PktDropsSoFar 121150 NumUnfFlows 1416 StartedFlows 600000 NumRPCsOutstd 1417 StartedPkts 17878303
+All QoS_H Host avg prob: 0.79
+## 1.066432566200000 NumPktOutstd 206 MaxPktOutstd 1676942 PktDropsSoFar 121150 NumUnfFlows 1229 StartedFlows 700000 NumRPCsOutstd 1230 StartedPkts 20886225
+All QoS_H Host avg prob: 0.81
+## 1.076727093300000 NumPktOutstd 6158 MaxPktOutstd 1676942 PktDropsSoFar 121161 NumUnfFlows 1647 StartedFlows 800000 NumRPCsOutstd 1648 StartedPkts 23872259
+All QoS_H Host avg prob: 0.55
+## 1.087139338000000 NumPktOutstd 262 MaxPktOutstd 1676942 PktDropsSoFar 121161 NumUnfFlows 1389 StartedFlows 900000 NumRPCsOutstd 1390 StartedPkts 26861246
+All QoS_H Host avg prob: 0.75
+## 1.097487490140000 NumPktOutstd 11269 MaxPktOutstd 1676942 PktDropsSoFar 121192 NumUnfFlows 1574 StartedFlows 1000000 NumRPCsOutstd 1575 StartedPkts 29861993
+All QoS_H Host avg prob: 0.68
+ Pure simulation execution time: 168.00 seconds
+ Events/sec: 1875709.31
+ Data Pkts/sec: 180241.69
+Unfinished Flows: 0
+Finished Flows: 1000000
+Num 16K RPCs: 0
+Num 32K RPCs: 0
+Num 64K RPCs: 0
+start_end_time[0]: 0.10
+start_end_time[1]: 0.10
+start_end_time[2]: 0.10
+global last flow time: 1.10; global first flow time: 1.00
+Priority 0: (285075 Flows, Finished/Unf: 285075/0) (Assigned: 600275, Finished/Unf: 600275/0)
+FCT (in us) (100% RPCs) (Median, 99th, 99.9th, max) = 2.08, 528.92, 614.79, 1385.68
+FCT (in us) (mid 80% RPCs) (Median, 99th, 99.9th, max) = 1.86, 222.74, 581.86, 1385.68
+FCT (in us) (last 50% RPCs) (Median, 99th, 99.9th, max) = 1.34, 12.44, 25.92, 82.95
+99.9th (out of 100% RPCs) RPC is RPC[51450], size = 512; completion time = 614.79
+Priority 1: (290541 Flows, Finished/Unf: 290541/0) (Assigned: 299915, Finished/Unf: 299915/0)
+FCT (in us) (100% RPCs) (Median, 99th, 99.9th, max) = 3.13, 307.52, 557.45, 1542.01
+FCT (in us) (mid 80% RPCs) (Median, 99th, 99.9th, max) = 2.63, 117.53, 323.85, 1542.01
+FCT (in us) (last 50% RPCs) (Median, 99th, 99.9th, max) = 2.09, 85.57, 182.70, 365.01
+99.9th (out of 100% RPCs) RPC is RPC[48490], size = 512; completion time = 557.45
+Priority 2: (424384 Flows, Finished/Unf: 424384/0) (Assigned: 99810, Finished/Unf: 99810/0)
+FCT (in us) (100% RPCs) (Median, 99th, 99.9th, max) = 26.67, 1012.37, 3370.74, 8311.82
+FCT (in us) (mid 80% RPCs) (Median, 99th, 99.9th, max) = 21.88, 620.30, 1373.19, 4285.03
+FCT (in us) (last 50% RPCs) (Median, 99th, 99.9th, max) = 14.31, 407.39, 800.43, 1670.47
+99.9th (out of 100% RPCs) RPC is RPC[163043], size = 2188; completion time = 3370.74
+Priority[0] throughput = 24.15 Gbps
+Priority[1] throughput = 24.65 Gbps
+Priority[2] throughput = 35.66 Gbps
+Final QoS Dist: 28.5/29.1/42.4
+Percentile, QoS Dist trend, QoS_H dist, QoS_H RPC 99.9th(us), QoS_M RPC 99.9th(us), end pctl timestamp(s):
+10.0, 54.9/29.5/15.6, 54.9, 951.28, 908.58, 1.000000
+20.0, 25.1/29.0/45.8, 25.1, 466.69, 576.80, 1.006656
+30.0, 26.5/29.0/44.6, 26.5, 114.47, 344.46, 1.016580
+40.0, 25.1/29.0/46.0, 25.1, 32.27, 174.92, 1.025009
+50.0, 25.4/29.0/45.6, 25.4, 27.93, 168.35, 1.036981
+60.0, 25.9/29.0/45.1, 25.9, 22.92, 176.21, 1.048159
+70.0, 25.3/29.1/45.6, 25.3, 25.54, 186.05, 1.065091
+80.0, 25.8/29.1/45.1, 25.8, 27.41, 193.46, 1.066930
+90.0, 25.3/29.1/45.6, 25.3, 26.72, 182.66, 1.079676
+100.0, 25.8/28.9/45.3, 25.8, 25.96, 173.30, 1.094654
+[][][]: 1.86,581.86,2.63,323.85,21.88,1373.19,25.8/28.9/45.3,25.8,28.5/29.1/42.4,28.5
+86.11% out of Priority[0] RPCs passed the target(30.00)
+98.63% out of Priority[1] RPCs passed the target(100.00)
+instantaneous load (per-port at switch) (avg/99th/max): 2331.41/2540.71/2567.68 Gbps.
+total pkt drops: 121192
+total priority downgrades: 324574
+Priority[0] pkt drops: 70070
+Priority[1] pkt drops: 36097
+Priority[2] pkt drops: 15025
+Number of QoS_H RPCs that missed the target: 57605 / 57605
+All Host avg admit prob: 0.70
+num prob samples = 65640; admit prob (avg/50th/90th/99th/max) = 0.70/0.83/0.98/1.00/1.00
+QoS_H downgrades to QoS_M: 0
+QoS_H downgrades to QoS_L: 315200
+QoS_M downgrades to QoS_L: 9374
+num timeouts[0]: 43812
+num timeouts[1]: 24693
+num timeouts[2]: 231739
+sum completion time of all finished RPCs = 57.29 seconds
+avg sending period (busy + idle) = 8925.68 us
+Outstanding RPCs (avg/p99/p999): 4690.70/18674/18674
+Simulation event duration: 0.10 seconds.
+2021-01-27.00:28:42 Simulator ended. Program execution time: 169.0000 seconds
