@@ -1,0 +1,210 @@
+PUPU: config filename: conf_temp.txt
+memory time duration (us) = 5000
+Downgrade Hardcoded Targets: 10 20 
+num pctl for qos dist breakdown = 10
+QoS weights: 8 4 1 
+Sum weights = 13
+Fair Share Ratio = 0.615384615384615 : 0.307692307692308 : 0.0769230769230769
+QoS ratio: 0.6 0.3 0.1 
+Use dynamic load.
+Avg load to achieve = 0.8
+burst size (# of bytes) in the dynamic load setting: 393216
+Heavy burst mode: RPCs with the same burst period arrives at the same time (with tiny delay)
+Using Channel Multiplexing. Multiplexing Constant = 1
+burst load = 1.4
+Use random jitter.
+CDF: ./CDF_bad_size.txt
+Per port queue size: 1048576 Bytes
+Disable Poisson Arrival; use initial shift instead
+Disable Packet Logging (to save memory)
+Disable CWND Logging (to save memory)
+Disable DWND Logging (to save memory)
+Extra size experiment: size does not correspond to priority (please use an appropriate rpc size CDF)
+Enable latency measurement (in the simulation results) by RPC size (# of MTUs)
+Enable Priority Downgrade.
+downgrade lat target: 10 us
+target expires in 2000000 us
+qd expires in 50 us
+qd estimated from rtt expires in 300000 us
+dp alpha: 0.01
+dp beta: 0.015
+downgrade batch size: 20
+upgrade batch size: 10
+expiration count: 250
+Init cwnd: 2
+Max cwnd: 30
+Num Hosts: 33
+Num total RPCs to run: 5000000
+traffic pattern: all-to-all
+mtu: 5120
+mss: 5080
+Swift Delay target: 10 us
+Retransmission Timeout: 450 us
+num_hosts = 33
+params.cdf_or_flow_trace: ./CDF_bad_size.txt
+Mean flow size: 11247
+## 1.002542797010000 NumPktOutstd 41457 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 25461 StartedFlows 100000 NumRPCsOutstd 25665 StartedPkts 270379
+All QoS_H Host avg prob: 0.78
+## 1.006317670630000 NumPktOutstd 21796 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 13549 StartedFlows 200000 NumRPCsOutstd 13661 StartedPkts 540586
+All QoS_H Host avg prob: 0.61
+## 1.010066329950001 NumPktOutstd 3674 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 2125 StartedFlows 300000 NumRPCsOutstd 2132 StartedPkts 810220
+All QoS_H Host avg prob: 0.61
+## 1.012713984180000 NumPktOutstd 36791 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 25518 StartedFlows 400000 NumRPCsOutstd 25534 StartedPkts 1080090
+All QoS_H Host avg prob: 0.59
+## 1.016462643410001 NumPktOutstd 20811 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 14344 StartedFlows 500000 NumRPCsOutstd 14366 StartedPkts 1350504
+All QoS_H Host avg prob: 0.59
+## 1.020211302520001 NumPktOutstd 4676 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 3490 StartedFlows 600000 NumRPCsOutstd 3571 StartedPkts 1620554
+All QoS_H Host avg prob: 0.61
+## 1.022885171430001 NumPktOutstd 35028 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 26019 StartedFlows 700000 NumRPCsOutstd 26039 StartedPkts 1890574
+All QoS_H Host avg prob: 0.60
+## 1.026607616320001 NumPktOutstd 21892 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 15893 StartedFlows 800000 NumRPCsOutstd 15899 StartedPkts 2160810
+All QoS_H Host avg prob: 0.61
+## 1.030356275240001 NumPktOutstd 5641 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 5004 StartedFlows 900000 NumRPCsOutstd 5005 StartedPkts 2430793
+All QoS_H Host avg prob: 0.62
+## 1.033082572860001 NumPktOutstd 31836 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 25959 StartedFlows 1000000 NumRPCsOutstd 25967 StartedPkts 2701360
+All QoS_H Host avg prob: 0.62
+## 1.036778803370002 NumPktOutstd 21066 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 16715 StartedFlows 1100000 NumRPCsOutstd 16724 StartedPkts 2971731
+All QoS_H Host avg prob: 0.62
+## 1.040501248180002 NumPktOutstd 7867 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 6899 StartedFlows 1200000 NumRPCsOutstd 6901 StartedPkts 3242260
+All QoS_H Host avg prob: 0.63
+## 1.043279974590001 NumPktOutstd 28170 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 25570 StartedFlows 1300000 NumRPCsOutstd 25573 StartedPkts 3512276
+All QoS_H Host avg prob: 0.63
+## 1.046949990460002 NumPktOutstd 20570 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 17665 StartedFlows 1400000 NumRPCsOutstd 17683 StartedPkts 3782191
+All QoS_H Host avg prob: 0.64
+## 1.050646221040003 NumPktOutstd 10372 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 8570 StartedFlows 1500000 NumRPCsOutstd 8572 StartedPkts 4052151
+All QoS_H Host avg prob: 0.65
+## 1.053660877120002 NumPktOutstd 7687 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 18347 StartedFlows 1600000 NumRPCsOutstd 18348 StartedPkts 4322432
+All QoS_H Host avg prob: 0.65
+## 1.057094963530002 NumPktOutstd 22850 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 19308 StartedFlows 1700000 NumRPCsOutstd 19318 StartedPkts 4592582
+All QoS_H Host avg prob: 0.65
+## 1.060817408140002 NumPktOutstd 9178 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 9206 StartedFlows 1800000 NumRPCsOutstd 9216 StartedPkts 4862244
+All QoS_H Host avg prob: 0.67
+## 1.064461209920003 NumPktOutstd 1372 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 1274 StartedFlows 1900000 NumRPCsOutstd 1280 StartedPkts 5132375
+All QoS_H Host avg prob: 0.67
+## 1.067292364810003 NumPktOutstd 19566 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 19252 StartedFlows 2000000 NumRPCsOutstd 19255 StartedPkts 5402096
+All QoS_H Host avg prob: 0.67
+## 1.070962381110004 NumPktOutstd 11967 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 11123 StartedFlows 2100000 NumRPCsOutstd 11125 StartedPkts 5673057
+All QoS_H Host avg prob: 0.68
+## 1.074632397130004 NumPktOutstd 3011 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 2872 StartedFlows 2200000 NumRPCsOutstd 2874 StartedPkts 5943410
+All QoS_H Host avg prob: 0.69
+## 1.077463552220004 NumPktOutstd 20571 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 20560 StartedFlows 2300000 NumRPCsOutstd 20562 StartedPkts 6213637
+All QoS_H Host avg prob: 0.69
+## 1.081133568280004 NumPktOutstd 13082 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 12690 StartedFlows 2400000 NumRPCsOutstd 12692 StartedPkts 6484204
+All QoS_H Host avg prob: 0.70
+## 1.084829798490004 NumPktOutstd 2514 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 3711 StartedFlows 2500000 NumRPCsOutstd 3717 StartedPkts 6754525
+All QoS_H Host avg prob: 0.70
+## 1.087660953840003 NumPktOutstd 18661 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 20750 StartedFlows 2600000 NumRPCsOutstd 20755 StartedPkts 7024393
+All QoS_H Host avg prob: 0.71
+## 1.091304755440004 NumPktOutstd 13791 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 14064 StartedFlows 2700000 NumRPCsOutstd 14067 StartedPkts 7294835
+All QoS_H Host avg prob: 0.71
+## 1.095000985620005 NumPktOutstd 3351 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 5033 StartedFlows 2800000 NumRPCsOutstd 5039 StartedPkts 7565017
+All QoS_H Host avg prob: 0.71
+## 1.097910784010004 NumPktOutstd 11531 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 19192 StartedFlows 2900000 NumRPCsOutstd 19194 StartedPkts 7834858
+All QoS_H Host avg prob: 0.73
+## 1.101475942710004 NumPktOutstd 13710 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 15010 StartedFlows 3000000 NumRPCsOutstd 15012 StartedPkts 8104687
+All QoS_H Host avg prob: 0.72
+## 1.105145958610005 NumPktOutstd 5680 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 6772 StartedFlows 3100000 NumRPCsOutstd 6778 StartedPkts 8375039
+All QoS_H Host avg prob: 0.74
+## 1.108658688040007 NumPktOutstd 54 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 93 StartedFlows 3200000 NumRPCsOutstd 94 StartedPkts 8645659
+All QoS_H Host avg prob: 0.74
+## 1.111673344060004 NumPktOutstd 13604 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 15776 StartedFlows 3300000 NumRPCsOutstd 15779 StartedPkts 8916087
+All QoS_H Host avg prob: 0.74
+## 1.115317145940005 NumPktOutstd 8113 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 8605 StartedFlows 3400000 NumRPCsOutstd 8613 StartedPkts 9186489
+All QoS_H Host avg prob: 0.76
+## 1.118960947240005 NumPktOutstd 280 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 615 StartedFlows 3500000 NumRPCsOutstd 616 StartedPkts 9456532
+All QoS_H Host avg prob: 0.75
+## 1.121844531450005 NumPktOutstd 13720 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 17096 StartedFlows 3600000 NumRPCsOutstd 17101 StartedPkts 9726750
+All QoS_H Host avg prob: 0.76
+## 1.125488333100005 NumPktOutstd 8942 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 9997 StartedFlows 3700000 NumRPCsOutstd 9999 StartedPkts 9997155
+All QoS_H Host avg prob: 0.77
+## 1.129132134630006 NumPktOutstd 1517 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 2270 StartedFlows 3800000 NumRPCsOutstd 2271 StartedPkts 10267439
+All QoS_H Host avg prob: 0.77
+## 1.132041933130005 NumPktOutstd 11832 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 17413 StartedFlows 3900000 NumRPCsOutstd 17415 StartedPkts 10537522
+All QoS_H Host avg prob: 0.78
+## 1.135685734400005 NumPktOutstd 6693 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 10350 StartedFlows 4000000 NumRPCsOutstd 10354 StartedPkts 10807400
+All QoS_H Host avg prob: 0.79
+## 1.139329536020006 NumPktOutstd 938 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 2827 StartedFlows 4100000 NumRPCsOutstd 2836 StartedPkts 11077181
+All QoS_H Host avg prob: 0.79
+## 1.142239334580006 NumPktOutstd 9641 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 17431 StartedFlows 4200000 NumRPCsOutstd 17437 StartedPkts 11346988
+All QoS_H Host avg prob: 0.80
+## 1.145856921600006 NumPktOutstd 8090 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 11690 StartedFlows 4300000 NumRPCsOutstd 11693 StartedPkts 11617428
+All QoS_H Host avg prob: 0.80
+## 1.149500723220007 NumPktOutstd 1750 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 4131 StartedFlows 4400000 NumRPCsOutstd 4132 StartedPkts 11887393
+All QoS_H Host avg prob: 0.80
+## 1.152462950590007 NumPktOutstd 5092 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 16426 StartedFlows 4500000 NumRPCsOutstd 16427 StartedPkts 12157230
+All QoS_H Host avg prob: 0.82
+## 1.156028108890008 NumPktOutstd 7738 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 12693 StartedFlows 4600000 NumRPCsOutstd 12697 StartedPkts 12427283
+All QoS_H Host avg prob: 0.81
+## 1.159645696350007 NumPktOutstd 4451 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 6031 StartedFlows 4700000 NumRPCsOutstd 6036 StartedPkts 12697347
+All QoS_H Host avg prob: 0.82
+## 1.163027353610008 NumPktOutstd 3 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 1725 StartedFlows 4800000 NumRPCsOutstd 1726 StartedPkts 12967750
+All QoS_H Host avg prob: 0.83
+## 1.166199296240008 NumPktOutstd 8429 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 13594 StartedFlows 4900000 NumRPCsOutstd 13601 StartedPkts 13237833
+All QoS_H Host avg prob: 0.83
+## 1.169843097740007 NumPktOutstd 3561 MaxPktOutstd 63426 PktDropsSoFar 0 NumUnfFlows 6626 StartedFlows 5000000 NumRPCsOutstd 6627 StartedPkts 13508419
+All QoS_H Host avg prob: 0.84
+ Pure simulation execution time: 68.00 seconds
+ Events/sec: 2166140.13
+ Data Pkts/sec: 198653.22
+Unfinished Flows: 0
+Finished Flows: 5000000
+Num 16K RPCs: 1205917
+Num 32K RPCs: 219317
+Num 64K RPCs: 0
+start_end_time[0]: 0.17
+start_end_time[1]: 0.17
+start_end_time[2]: 0.17
+global last flow time: 1.17; global first flow time: 1.00
+Priority 0: (153368 Flows, Finished/Unf: 153368/0) (Assigned: 219317, Finished/Unf: 219317/0)
+FCT (in us) (100% RPCs) (Median, 99th, 99.9th, max) = 1.69, 18.30, 31.83, 36.64
+FCT (in us) (mid 80% RPCs) (Median, 99th, 99.9th, max) = 1.58, 6.29, 9.70, 18.59
+FCT (in us) (last 50% RPCs) (Median, 99th, 99.9th, max) = 1.43, 5.66, 8.42, 12.54
+99.9th (out of 100% RPCs) RPC is RPC[24513], size = 32768; completion time = 31.83
+Priority 1: (320608 Flows, Finished/Unf: 320608/0) (Assigned: 1205917, Finished/Unf: 1205917/0)
+FCT (in us) (100% RPCs) (Median, 99th, 99.9th, max) = 3.80, 113.85, 146.21, 158.39
+FCT (in us) (mid 80% RPCs) (Median, 99th, 99.9th, max) = 3.55, 15.82, 23.43, 32.78
+FCT (in us) (last 50% RPCs) (Median, 99th, 99.9th, max) = 3.61, 16.07, 24.04, 36.38
+99.9th (out of 100% RPCs) RPC is RPC[31208], size = 16384; completion time = 146.21
+Priority 2: (4526024 Flows, Finished/Unf: 4526024/0) (Assigned: 3574766, Finished/Unf: 3574766/0)
+FCT (in us) (100% RPCs) (Median, 99th, 99.9th, max) = 155.50, 463.29, 505.93, 529.97
+FCT (in us) (mid 80% RPCs) (Median, 99th, 99.9th, max) = 151.81, 445.08, 485.71, 529.97
+FCT (in us) (last 50% RPCs) (Median, 99th, 99.9th, max) = 128.43, 416.27, 464.26, 527.33
+99.9th (out of 100% RPCs) RPC is RPC[1380466], size = 8192; completion time = 505.93
+Priority[0] throughput = 7.17 Gbps
+Priority[1] throughput = 7.50 Gbps
+Priority[2] throughput = 65.49 Gbps
+Final QoS Dist: 3.1/6.4/90.5
+Percentile, QoS Dist trend, QoS_H dist, QoS_H RPC 99.9th(us), QoS_M RPC 99.9th(us), end pctl timestamp(s):
+10.0, 2.9/5.7/91.4, 2.9, 35.41, 154.48, 1.000000
+20.0, 2.6/3.7/93.7, 2.6, 12.14, 25.00, 1.022754
+30.0, 2.7/4.4/92.9, 2.7, 9.62, 22.25, 1.043096
+40.0, 2.8/5.1/92.1, 2.8, 7.50, 24.38, 1.065955
+50.0, 3.0/5.8/91.2, 3.0, 9.70, 20.99, 1.083650
+60.0, 3.1/6.5/90.4, 3.1, 8.62, 19.33, 1.097544
+70.0, 3.2/7.2/89.5, 3.2, 9.24, 24.66, 1.102603
+80.0, 3.3/7.9/88.7, 3.3, 7.67, 22.61, 1.133091
+90.0, 3.5/8.6/88.0, 3.5, 8.46, 23.90, 1.136970
+100.0, 3.6/9.3/87.2, 3.6, 8.00, 25.02, 1.166121
+[][][]: 1.58,9.70,3.55,23.43,151.81,485.71,3.6/9.3/87.2,3.6,3.1/6.4/90.5,3.1
+99.93% out of Priority[0] RPCs passed the target(10.00)
+99.78% out of Priority[1] RPCs passed the target(20.00)
+instantaneous load (per-port at switch) (avg/99th/max): 685.79/724.47/724.47 Gbps.
+total pkt drops: 0
+total priority downgrades: 951258
+Priority[0] pkt drops: 0
+Priority[1] pkt drops: 0
+Priority[2] pkt drops: 0
+Number of QoS_H RPCs that missed the target: 4448 / 4448
+All Host avg admit prob: 0.71
+num prob samples = 34552; admit prob (avg/50th/90th/99th/max) = 0.71/0.72/0.94/1.00/1.00
+QoS_H downgrades to QoS_M: 0
+QoS_H downgrades to QoS_L: 65949
+QoS_M downgrades to QoS_L: 885309
+num timeouts[0]: 0
+num timeouts[1]: 0
+num timeouts[2]: 0
+sum completion time of all finished RPCs = 787.26 seconds
+avg sending period (busy + idle) = 1999.59 us
+Outstanding RPCs (avg/p99/p999): 12159.56/26039/26039
+Simulation event duration: 0.17 seconds.
+2021-01-20.23:08:08 Simulator ended. Program execution time: 74.0000 seconds
