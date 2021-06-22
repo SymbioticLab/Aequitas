@@ -89,11 +89,15 @@ void AggChannel::process_latency_signal(double fct_in, uint32_t flow_id, int flo
                 admit_prob = 1;
             }
         } else {
+            //// Always use normalized beta value; i.e., always do dp_beta * flow_size regardless of the value of params.normalized_lat
+            admit_prob -= params.dp_beta * flow_size;
+            /*
             if (!params.normalized_lat) {
                 admit_prob -= params.dp_beta;
             } else {
                 admit_prob -= params.dp_beta * flow_size;    // flow_size is in # of MTUs for now
             }
+            */
             if (admit_prob < 0.1) {
                 admit_prob = 0.1;
             }

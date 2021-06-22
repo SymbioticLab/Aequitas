@@ -19,7 +19,7 @@ enable_flow_lookup: 0
 flow_lookup_id: 0
 priority_downgrade: 1
 dp_alpha: 0.01
-dp_beta: 0.1
+dp_beta: 0.01
 channel_multiplexing: 1
 multiplex_constant: 1
 use_burst_byte: 0
