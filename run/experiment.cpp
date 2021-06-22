@@ -14,17 +14,17 @@
 #include <assert.h>
 #include <math.h>
 
-#include "channel.h"
-#include "event.h"
-#include "factory.h"
-#include "flow.h"
+#include "../coresim/channel.h"
+#include "../coresim/event.h"
+#include "../coresim/flow.h"
+#include "../coresim/node.h"
+#include "../coresim/packet.h"
+#include "../coresim/queue.h"
+#include "../coresim/random_variable.h"
+#include "../coresim/topology.h"
+#include "../ext/factory.h"
 #include "flow_generator.h"
-#include "node.h"
-#include "packet.h"
 #include "params.h"
-#include "queue.h"
-#include "random_variable.h"
-#include "topology.h"
 
 
 extern Topology *topology;
@@ -304,14 +304,14 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
         fg->make_flows();
         std::cout << "FlowReader make_flows() done" << std::endl;
     }
-    else if (params.interarrival_cdf != "none") {
-        fg = new CustomCDFFlowGenerator(num_flows, topology, params.cdf_or_flow_trace, params.interarrival_cdf);
-        fg->make_flows();
-    }
-    else if (params.permutation_tm != 0) {
-        fg = new PermutationTM(num_flows, topology, params.cdf_or_flow_trace);
-        fg->make_flows();
-    }
+    //else if (params.interarrival_cdf != "none") {
+    //    fg = new CustomCDFFlowGenerator(num_flows, topology, params.cdf_or_flow_trace, params.interarrival_cdf);
+    //    fg->make_flows();
+    //}
+    //else if (params.permutation_tm != 0) {
+    //    fg = new PermutationTM(num_flows, topology, params.cdf_or_flow_trace);
+    //    fg->make_flows();
+    //}
     else if (params.bytes_mode) {
         std::cout << "params.cdf_or_flow_trace: " << params.cdf_or_flow_trace << std::endl;
         //fg = new PoissonFlowBytesGenerator(num_flows, topology, params.cdf_or_flow_trace);

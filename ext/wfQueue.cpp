@@ -7,11 +7,11 @@
 #include <limits.h>
 #include <unordered_set>
 
-#include "channel.h"
-#include "flow.h"
-#include "packet.h"
-#include "params.h"
-#include "node.h"
+#include "../coresim/channel.h"
+#include "../coresim/flow.h"
+#include "../coresim/packet.h"
+#include "../coresim/node.h"
+#include "../run/params.h"
 
 
 extern double get_current_time();

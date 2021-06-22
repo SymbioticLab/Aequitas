@@ -4,7 +4,6 @@
 #include <unordered_map>
 #include <map>
 #include <vector>
-#include "agg_channel.h"
 
 class Packet;
 class Ack;
@@ -13,6 +12,7 @@ class Probe;
 class RetxTimeoutEvent;
 class FlowProcessingEvent;
 class Channel;
+class AggChannel;
 
 class Flow {
     public:

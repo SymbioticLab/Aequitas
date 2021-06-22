@@ -7,7 +7,7 @@
 //#include "flow.h"
 #include "channel.h"
 #include "node.h"
-#include "params.h"
+#include "../run/params.h"
 
 extern double get_current_time();
 extern DCExpParams params;

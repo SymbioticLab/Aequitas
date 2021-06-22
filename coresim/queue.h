@@ -5,14 +5,11 @@
 #include <stdint.h>
 #include <vector>
 
-#define DROPTAIL_QUEUE 1
-
 class Node;
 class Packet;
 class Event;
 
 class QueueProcessingEvent;
-class PacketPropagationEvent;
 
 class Queue {
     public:

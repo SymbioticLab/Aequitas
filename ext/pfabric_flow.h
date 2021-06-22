@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-#include "flow.h"
+#include "../coresim/flow.h"
 
 class Packet;
 

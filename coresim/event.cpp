@@ -1,11 +1,3 @@
-//
-//  event.cpp
-//  TurboCpp
-//
-//  Created by Gautam Kumar on 3/9/14.
-//
-//
-
 #include "event.h"
 
 #include <cstddef>
@@ -15,12 +7,12 @@
 
 #include "channel.h"
 #include "debug.h"
-#include "factory.h"
 #include "flow.h"
 #include "packet.h"
-#include "params.h"
 #include "queue.h"
 #include "topology.h"
+#include "../ext/factory.h"
+#include "../run/params.h"
 
 extern Topology* topology;
 //extern std::vector<std::priority_queue<Event*, std::vector<Event*>, EventComparator>> event_queues;

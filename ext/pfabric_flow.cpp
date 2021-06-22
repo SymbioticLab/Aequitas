@@ -4,12 +4,12 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "event.h"
-#include "flow.h"
-#include "packet.h"
-#include "params.h"
-#include "queue.h"
-#include "topology.h"
+#include "../coresim/event.h"
+#include "../coresim/flow.h"
+#include "../coresim/packet.h"
+#include "../coresim/queue.h"
+#include "../coresim/topology.h"
+#include "../run/params.h"
 
 extern double get_current_time();
 extern void add_to_event_queue(Event *);

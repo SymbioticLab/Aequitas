@@ -1,7 +1,7 @@
 #ifndef CORESIM_VERITAS_FLOW_H
 #define CORESIM_VERITAS_FLOW_H
 
-#include "flow.h"
+#include "../coresim/flow.h"
 
 class Packet;
 

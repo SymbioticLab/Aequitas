@@ -12,7 +12,7 @@
 #include <sstream>
 #include <utility>
 
-#include "params.h"
+#include "../run/params.h"
 
 extern DCExpParams params;
 

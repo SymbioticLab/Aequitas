@@ -16,10 +16,10 @@
 #include "flow.h"
 #include "node.h"
 #include "packet.h"
-#include "params.h"
 #include "queue.h"
 #include "random_variable.h"
 #include "topology.h"
+#include "../run/params.h"
 
 Topology* topology;
 double current_time = 0;

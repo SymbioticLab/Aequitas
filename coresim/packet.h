@@ -16,7 +16,6 @@
 #define FASTPASS_RTS 9
 #define FASTPASS_SCHEDULE 10
 
-class FastpassEpochSchedule;
 class Flow;
 class Host;
 

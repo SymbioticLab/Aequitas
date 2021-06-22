@@ -2,8 +2,8 @@
 
 #include <iostream>
 
+#include "../coresim/node.h"
 #include "veritasflow.h"
-#include "node.h"
 #include "pfabric_flow.h"
 #include "pfabric_queue.h"
 #include "wfQueue.h"

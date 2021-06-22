@@ -14,7 +14,7 @@ simulator_SOURCES = 				 		 	 \
 					coresim/random_variable.cpp  \
 					coresim/channel.cpp  		 \
 					ext/factory.cpp 		 	 \
-					ext/Veritasflow.cpp         \
+					ext/veritasflow.cpp         \
 					ext/wfQueue.cpp			     \
 					run/params.cpp 		 	 	 \
 					run/stats.cpp 			   	 \

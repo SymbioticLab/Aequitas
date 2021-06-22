@@ -9,9 +9,9 @@
 #include "flow.h"
 #include "node.h"
 #include "packet.h"
-#include "params.h"
 #include "queue.h"
 #include "topology.h"
+#include "../run/params.h"
 
 extern double get_current_time();
 extern void add_to_event_queue(Event *);

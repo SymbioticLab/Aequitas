@@ -4,8 +4,6 @@
 #include <vector>
 #include <queue>
 
-
-
 #define HOST 0
 #define SWITCH 1
 

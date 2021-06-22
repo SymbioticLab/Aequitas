@@ -9,8 +9,6 @@
 class Channel;
 class Flow;
 class Host;
-class Packet;
-class ChannelRetxTimeoutEvent;
 
 /* AggChannel: an aggregated channel that manages the admit prob of its sub-channels in one-RPC-one-Channel impl */
 class AggChannel {

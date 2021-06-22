@@ -1,7 +1,7 @@
 #include "packet.h"
 
 #include "flow.h"
-#include "params.h"
+#include "../run/params.h"
 
 extern DCExpParams params;
 uint32_t Packet::instance_count = 0;

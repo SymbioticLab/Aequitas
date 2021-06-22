@@ -1,11 +1,3 @@
-//
-//  event.h
-//  TurboCpp
-//
-//  Created by Gautam Kumar on 3/9/14.
-//
-//
-
 #ifndef CORESIM_EVENT_H
 #define CORESIM_EVENT_H
 

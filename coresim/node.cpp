@@ -2,10 +2,10 @@
 
 #include <iostream>
 
-#include "factory.h"
 #include "flow.h"
-#include "params.h"
 #include "queue.h"
+#include "../ext/factory.h"
+#include "../run/params.h"
 
 
 extern DCExpParams params;

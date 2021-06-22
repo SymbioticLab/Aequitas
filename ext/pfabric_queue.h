@@ -1,7 +1,7 @@
 #ifndef CORESIM_PFABRIC_QUEUE_H
 #define CORESIM_PFABRIC_QUEUE_H
 
-#include "queue.h"
+#include "../coresim/queue.h"
 
 class Packet;
 

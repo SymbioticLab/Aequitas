@@ -3,10 +3,9 @@
 #include <climits>
 #include <iostream>
 
-#include "flow.h"
-#include "packet.h"
-#include "params.h"
-
+#include "../coresim/flow.h"
+#include "../coresim/packet.h"
+#include "../run/params.h"
 
 extern double get_current_time();
 extern void add_to_event_queue(Event *ev);
