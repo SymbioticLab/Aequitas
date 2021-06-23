@@ -186,3 +186,14 @@ void ProbDropQueue::enque(Packet *packet) {
     }
 }
 
+/* Implementation for NIC Egress Queue */
+// Essentially an infinitely long queue to ensure packets go out within the NIC line rate
+HostEgressQueue::HostEgressQueue(uint32_t id, double rate, int location)
+    : Queue(id, rate, 0, location) {}
+
+void HostEgressQueue::enque(Packet *packet) {
+    p_arrivals += 1;
+    b_arrivals += packet->size;
+    packets.push_back(packet);
+    bytes_in_queue += packet->size;
+}

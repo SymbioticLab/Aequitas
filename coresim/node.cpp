@@ -30,6 +30,9 @@ Node::Node(uint32_t id, uint32_t type) {
 Host::Host(uint32_t id, double rate, uint32_t queue_type, uint32_t host_type) : Node(id, HOST) {
     queue = Factory::get_queue(id, rate, params.queue_size, queue_type, 0, 0, params.weights);
     this->host_type = host_type;
+    if (!params.unlimited_nic_speed) {
+        egress_queue = new HostEgressQueue(id+100, rate, 0);
+    }
 }
 
 // TODO FIX superclass constructor

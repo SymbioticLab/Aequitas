@@ -465,7 +465,7 @@ void PacketQueuingEvent::process_event() {
         std::cout << "At time: " << get_current_time() << ", Queue[" << queue->unique_id << "] PacketQueuingEvent{" << qid << "}(packet[" << packet->unique_id << "]" << "<" << packet->type << ">{" << packet->seq_no << "}) from Flow[" << packet->flow->id << "]" << std::endl;
     }
     if (params.enable_flow_lookup && packet->flow->id == params.flow_lookup_id) {
-        std::cout << "At time: " << get_current_time() << ", Queue[" << queue->unique_id << "] PacketQueuingEvent (packet[" << packet->unique_id << "]" << "<" << packet->type << ">{" << packet->seq_no << "}) from Flow[" << packet->flow->id << "]" << std::endl;
+        std::cout << "At time: " << get_current_time() << ", Queue[" << queue->unique_id << ", " << queue->id << "] PacketQueuingEvent (packet[" << packet->unique_id << "]" << "<" << packet->type << ">{" << packet->seq_no << "}) from Flow[" << packet->flow->id << "]" << std::endl;
     }
     if (params.debug_event_info) {
         if (queue->busy) {

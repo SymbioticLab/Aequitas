@@ -56,6 +56,7 @@ class DCExpParams {
         uint32_t burst_with_no_spacing;   // all the RPCs in the burst period arrives at the same time; default = false (0)
         uint32_t channel_multiplexing;    // Instead of one Channel per flow (all AggChannel controls all Channels), use one Channel for multiple flows; default off
         uint32_t multiplex_constant;      // # of Channels under each [src,dst,qos] tuple (AggChannel)
+        uint32_t unlimited_nic_speed;     // packets can go out from host exceeding nic line rate; default off
         //uint32_t enable_initial_shift;
         //std::vector<double> dynamic_load;
         //int load_idx = 0;

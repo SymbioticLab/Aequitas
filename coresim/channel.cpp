@@ -177,12 +177,17 @@ Packet *Channel::send_one_pkt(uint64_t seq, uint32_t pkt_size, double delay, Flo
             );
     p->start_ts = get_current_time();
 
-    Queue *next_hop = topology->get_next_hop(p, src->queue);
     if (params.debug_event_info) {
         std::cout << "sending out Packet[" << p->unique_id << "] (seq=" << seq << ") at time: " << get_current_time() + delay << " (base=" << get_current_time() << "; delay=" << delay << ")" << std::endl;
     }
-    PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay + delay, p, next_hop);  // add a pd since we skip the source queue
-    add_to_event_queue(event);
+    if (params.unlimited_nic_speed) {
+        Queue *next_hop = topology->get_next_hop(p, src->queue);
+        PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay + delay, p, next_hop);  // add a pd since we skip the source queue
+        add_to_event_queue(event);
+    } else {
+        PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time(), p, src->egress_queue);
+        add_to_event_queue(event);
+    }
     return p;
 }
 
@@ -253,9 +258,14 @@ void Channel::send_ack(uint64_t seq, std::vector<uint64_t> sack_list, double pkt
     if (params.enable_flow_lookup && flow->id == params.flow_lookup_id) {
         std::cout << "Channel[" << id << "] Flow[" << flow->id << "] with priority " << priority << " send ack: " << seq << std::endl;
     }
-    Queue *next_hop = topology->get_next_hop(p, dst->queue);
-    PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);  // skip src queue, include dst queue; add a pd delay
-    add_to_event_queue(event);
+    if (params.unlimited_nic_speed) {
+        Queue *next_hop = topology->get_next_hop(p, dst->queue);
+        PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);  // skip src queue, include dst queue; add a pd delay
+        add_to_event_queue(event);
+    } else{
+        PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time(), p, dst->egress_queue);
+        add_to_event_queue(event);
+    }
 }
 
 void Channel::cleanup_after_finish(Flow *flow) {

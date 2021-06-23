@@ -389,7 +389,7 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
     std::cout << "mss: " << params.mss << std::endl;
     std::cout << "Swift Delay target: " << params.cc_delay_target << " us" << std::endl;
     if (params.unlimited_nic_speed) {
-        std::cout << "Unlimted NIC speed," << std::endl;
+        std::cout << "Unlimted NIC speed." << std::endl;
     } else {
         std::cout << "Host NIC egress speed cannot go beyond line rate." << std::endl;
     }
