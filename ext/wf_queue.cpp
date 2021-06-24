@@ -1,4 +1,4 @@
-#include "wfQueue.h"
+#include "wf_queue.h"
 
 #include <assert.h>
 #include <cmath>

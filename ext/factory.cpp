@@ -3,10 +3,10 @@
 #include <iostream>
 
 #include "../coresim/node.h"
-#include "veritasflow.h"
+#include "veritas_flow.h"
 #include "pfabric_flow.h"
 #include "pfabric_queue.h"
-#include "wfQueue.h"
+#include "wf_queue.h"
 
 /* Factory method to return appropriate queue */
 Queue* Factory::get_queue(

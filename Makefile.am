@@ -15,10 +15,10 @@ simulator_SOURCES =                              \
 					coresim/random_variable.cpp  \
 					coresim/topology.cpp         \
 					ext/factory.cpp              \
-					ext/veritasflow.cpp          \
+					ext/veritas_flow.cpp         \
 					ext/pfabric_flow.cpp         \
 					ext/pfabric_queue.cpp        \
-					ext/wfQueue.cpp              \
+					ext/wf_queue.cpp             \
 					run/experiment.cpp           \
 					run/flow_generator.cpp       \
 					run/params.cpp
