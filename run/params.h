@@ -57,6 +57,7 @@ class DCExpParams {
         uint32_t channel_multiplexing;    // Instead of one Channel per flow (all AggChannel controls all Channels), use one Channel for multiple flows; default off
         uint32_t multiplex_constant;      // # of Channels under each [src,dst,qos] tuple (AggChannel); default = 1; increase the value (e.g., to 10) when having a large scale exp
         uint32_t real_nic;                // packets sending out cannot exceed nic line rate; default on; when turned on, channel_multiplexing must be on
+        uint32_t nic_use_WF;              // real nic uses WF instead of RR; default on; only meaningful when real_nic is on
         //uint32_t enable_initial_shift;
         //std::vector<double> dynamic_load;
         //int load_idx = 0;

@@ -72,6 +72,7 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
     params.flow_lookup_id = 0;
     params.mtu = 5120;
     params.real_nic = 0;
+    params.nic_use_WF = 0;
     //params.enable_initial_shift = 0;
     //params.dynamic_load = std::vector<double>();
     while (std::getline(input, line)) {
@@ -276,6 +277,9 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
         }
         else if (key == "real_nic") {
             lineStream >> params.real_nic;
+        }
+        else if (key == "nic_use_WF") {
+            lineStream >> params.nic_use_WF;
         }
         //else if (key == "enable_initial_shift") {
         //    lineStream >> params.enable_initial_shift;
@@ -655,6 +659,12 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
     if (params.real_nic) {
         std::cout << "Use realistic NIC" << std::endl;
         assert(params.channel_multiplexing);    // when limiting nic speed with line rate, params.channel_multiplexing must be on
+        if (params.nic_use_WF) {
+            std::cout << "Real NIC uses WF" << std::endl;
+        } else {
+            std::cout << "Real NIC uses RR" << std::endl;
+
+        }
     } else {
         std::cout << "NIC egress speed may go beyond line rate (for theorey-related testing)." << std::endl;
     }

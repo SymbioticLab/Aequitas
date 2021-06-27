@@ -16,8 +16,9 @@ NIC::NIC(Host *s, double rate) {
     this->busy = false;
     this->rate = rate;
     this->agg_channel_count = 0;
-    this->prio_idx_RR = 0;
-    this->agg_channel_idx_RR.resize(params.num_qos_level, 0);
+    this->prio_idx = 0;
+    this->agg_channel_idx.resize(params.num_qos_level, 0);
+    this->WF_counters.resize(params.num_qos_level, 0);
     this->agg_channels.resize(params.num_qos_level);
     //this->ack_queue = new HostEgressQueue(src->id+100, rate, 0);
 }
@@ -33,16 +34,23 @@ void NIC::set_agg_channels(AggChannel *agg_channel) {
 }
 
 void NIC::increment_prio_idx() {
-    prio_idx_RR++;
-    if (prio_idx_RR == params.num_qos_level) {
-        prio_idx_RR = 0;
+    prio_idx++;
+    if (prio_idx == params.num_qos_level) {
+        prio_idx = 0;
+    }
+}
+
+void NIC::increment_WF_counters() {
+    WF_counters[prio_idx]++;
+    if (WF_counters[prio_idx] == params.weights[prio_idx]) {
+        WF_counters[prio_idx] = 0;
     }
 }
 
 void NIC::increment_agg_channel_idx() {
-    agg_channel_idx_RR[prio_idx_RR]++;
-    if (agg_channel_idx_RR[prio_idx_RR] == agg_channels[prio_idx_RR].size()) {
-        agg_channel_idx_RR[prio_idx_RR] = 0;
+    agg_channel_idx[prio_idx]++;
+    if (agg_channel_idx[prio_idx] == agg_channels[prio_idx].size()) {
+        agg_channel_idx[prio_idx] = 0;
     }
 }
 
@@ -64,17 +72,24 @@ void NIC::send_next_pkt() {
     //std::cout << "num_channels_in_agg = " << num_channels_in_agg << std::endl;
     //std::cout << "num_total_channels = " << num_total_channels << std::endl;
     while (!pkt_sent) {
-        AggChannel *next_agg_channel = agg_channels[prio_idx_RR][agg_channel_idx_RR[prio_idx_RR]];
+        AggChannel *next_agg_channel = agg_channels[prio_idx][agg_channel_idx[prio_idx]];
         Channel *next_channel = next_agg_channel->pick_next_channel_RR();
         pkt_sent = next_channel->nic_send_next_pkt();
         num_channels_in_agg--;
         num_total_channels--;
         if (pkt_sent > 0) { // have just sent a pkt
             // need to increment agg_channel_idx before incrementing prio_idx
-            increment_agg_channel_idx();    // RR among all priority levels
-            increment_prio_idx();           // RR among all the channels within same priority
-        } else if (pkt_sent == 0 && num_channels_in_agg == 0) { // no pkt sent in the current agg channel
-            if (num_total_channels != 0) {
+            increment_agg_channel_idx();    // RR among all the channels within same priority
+            if (params.nic_use_WF) {            
+                increment_WF_counters();        // WF among all priority levels
+                if (WF_counters[prio_idx] == 0) {
+                    increment_prio_idx();
+                }
+            } else {
+                increment_prio_idx();           // RR among all priority levels
+            }
+        } else if (pkt_sent == 0 && num_channels_in_agg == 0) { // no pkt sent in the current agg channel (agg_channels are grouped by prio)
+            if (num_total_channels != 0) {  // no pkt in the current agg_channels[prio_idx], but other prio levels may have one
                 increment_agg_channel_idx();    // reset to the prev agg channel that sent a pkt
                 increment_prio_idx();           // try the next priority
             } else {    // currently no pkt need to be served at the host

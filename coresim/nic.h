@@ -30,13 +30,15 @@ class NIC {
     void set_agg_channels(AggChannel* agg_channel);
     void increment_prio_idx();
     void increment_agg_channel_idx();
+    void increment_WF_counters();
     void start_nic();
     void send_next_pkt();
 
     bool busy;
     uint32_t agg_channel_count;     // among all prio levels
-    uint32_t prio_idx_RR;
-    std::vector<uint32_t> agg_channel_idx_RR;
+    uint32_t prio_idx;
+    std::vector<uint32_t> WF_counters;
+    std::vector<uint32_t> agg_channel_idx;
     double rate;
     Host *src;
     std::vector<std::vector<AggChannel *>> agg_channels;
