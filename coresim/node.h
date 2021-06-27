@@ -15,10 +15,9 @@
 #define DISK 2
 
 class Flow;
+class NIC;
 class Packet;
 class Queue;
-class HostEgressQueue;
-
 
 class FlowComparator{
     public:
@@ -38,7 +37,7 @@ class Host : public Node {
         Host(uint32_t id, double rate, uint32_t queue_type, uint32_t host_type);
         Queue *queue;
         int host_type;
-        HostEgressQueue *egress_queue;
+        NIC *nic;
 };
 
 class Switch : public Node {

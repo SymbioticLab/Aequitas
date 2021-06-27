@@ -54,9 +54,6 @@ PFabricTopology::PFabricTopology(
     for (uint32_t i = 0; i < num_hosts; i++) {
         hosts[i]->queue->set_src_dst(hosts[i], agg_switches[i/hosts_per_agg_switch]);
         //std::cout << "Linking Host " << i << " to Agg " << i/hosts_per_agg_switch << "\n";
-        if (!params.unlimited_nic_speed) {
-            hosts[i]->egress_queue->set_src_dst(hosts[i], agg_switches[i/hosts_per_agg_switch]);
-        }
     }
 
     // For agg switches -- REMAINING
@@ -273,9 +270,6 @@ BigSwitchTopology::BigSwitchTopology(
         hosts[i]->queue->set_src_dst(hosts[i], the_switch);
         Queue *q = the_switch->queues[i];
         q->set_src_dst(the_switch, hosts[i]);
-        if (!params.unlimited_nic_speed) {
-            hosts[i]->egress_queue->set_src_dst(hosts[i], the_switch);
-        }
     }
 }
 

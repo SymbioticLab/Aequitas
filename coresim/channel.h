@@ -6,12 +6,11 @@
 #include <vector>
 #include <unordered_map>
 
-#include "agg_channel.h"
-
 class Flow;
 class Host;
 class Packet;
 class ChannelRetxTimeoutEvent;
+class AggChannel;
 
 /* Channel: a single direction src-dst pair per QoS */
 // Handles (1) Transport in packet level (2) CC (3) Veritas admission control
@@ -23,6 +22,7 @@ class Channel {
 
         void add_to_channel(Flow *flow);   // called by a flow to add its packets to the channel
         void send_pkts();        // handle transport for flows (packet level)
+        int nic_send_next_pkt();    // use nic to allow channel to proceed with transport for flows (one packet each time)
         Packet *send_one_pkt(uint64_t seq, uint32_t pkt_size, double delay, Flow *flow);    // send a packet with tiny delay
         Flow *find_next_flow(uint64_t seq);
         void receive_data_pkt(Packet* p);

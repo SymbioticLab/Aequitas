@@ -5,9 +5,11 @@
 #include <iostream>
 #include <math.h>
 
+#include "agg_channel.h"
 #include "event.h"
 #include "flow.h"
 #include "node.h"
+#include "nic.h"
 #include "packet.h"
 #include "queue.h"
 #include "topology.h"
@@ -93,7 +95,12 @@ void Channel::add_to_channel(Flow *flow) {
     end_seq_no += flow->size;
     outstanding_flows.push_back(flow);    // for RPC boundary, tie flow to pkt, easy handling of flow_finish, etc.
     flow->end_seq_no = end_seq_no;
-    send_pkts();
+    //std::cout << "add_to_channel[" << id << "]: end_seq_no = " << end_seq_no << std::endl;
+    if (params.real_nic) {
+        src->nic->start_nic();  // wake up nic if it's not busy working already
+    } else {
+        send_pkts();
+    }
 }
 
 // Given a sequence number, find the correspongding RPC whose packet contains this sequence number.
@@ -152,7 +159,6 @@ void Channel::send_pkts() {
         seq = next_seq_no;
         pkts_sent++;
 
-
         if (retx_event == NULL) {
             set_timeout(get_current_time() + retx_timeout);
         }
@@ -180,15 +186,67 @@ Packet *Channel::send_one_pkt(uint64_t seq, uint32_t pkt_size, double delay, Flo
     if (params.debug_event_info) {
         std::cout << "sending out Packet[" << p->unique_id << "] (seq=" << seq << ") at time: " << get_current_time() + delay << " (base=" << get_current_time() << "; delay=" << delay << ")" << std::endl;
     }
-    if (params.unlimited_nic_speed) {
-        Queue *next_hop = topology->get_next_hop(p, src->queue);
-        PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay + delay, p, next_hop);  // add a pd since we skip the source queue
-        add_to_event_queue(event);
+    Queue *next_hop = topology->get_next_hop(p, src->queue);
+    if (!params.real_nic) {
+        add_to_event_queue(new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay + delay, p, next_hop));  // add a pd since we skip the source queue
     } else {
-        PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time(), p, src->egress_queue);
-        add_to_event_queue(event);
+        double td = src->queue->get_transmission_delay(pkt_size);
+        double pd = src->queue->propagation_delay;
+        //std::cout << "Channel[" << id << "] td = " << td << "; pd = " << pd << std::endl;
+        add_to_event_queue(new PacketQueuingEvent(get_current_time() + pd + td, p, next_hop));  // tiny delay should be uncessary in this case; TODO: check later
+        add_to_event_queue(new NICProcessingEvent(get_current_time() + td, src->nic));
     }
     return p;
+}
+
+// called by nic when params.real_nic is on
+int Channel::nic_send_next_pkt() {
+    uint32_t pkts_sent = 0;
+    uint64_t seq = next_seq_no;
+    uint32_t window = cwnd_mss * mss + scoreboard_sack_bytes;  // Note sack_bytes is always 0 for now
+    if (params.debug_event_info) {
+        std::cout << "Channel[" << id << "] nic_send_next_pkt():" << " seq = " << seq
+            << ", window = " << window << ", last_unacked_seq = " << last_unacked_seq << std::endl;
+        std::cout << "seq + mss = " << seq + mss << std::endl;
+        std::cout << "end_seq_no = " << end_seq_no << std::endl;
+    }
+
+    // only send one packet each call; so use if statement instead of while loop
+    if (
+        (seq + mss <= last_unacked_seq + window) &&                                     // (1) CWND still allows me to send more packets
+        ((seq + mss <= end_seq_no) || (seq != end_seq_no && (end_seq_no - seq < mss)))  // (2) I still have more packets to send
+    ) {
+        uint32_t pkt_size;
+        Flow *flow_to_send = find_next_flow(seq);
+        uint64_t next_flow_boundary = flow_to_send->end_seq_no;
+        if (seq + mss < next_flow_boundary) {
+            pkt_size = mss + hdr_size;
+            next_seq_no = seq + mss;
+        } else {
+            pkt_size = (next_flow_boundary - seq) + hdr_size;
+            next_seq_no = next_flow_boundary;
+        }
+
+        Packet *p = send_one_pkt(seq, pkt_size, 1e-12 * (pkts_sent + 1), flow_to_send);    // send with 1 ps delay for each pkt
+        if (params.enable_flow_lookup && flow_to_send->id == params.flow_lookup_id) {    // NOTE: the Time print out here does not reflect the tiny delay
+            std::cout << "At time: " << get_current_time() << ", NIC instructs Flow[" << flow_to_send->id << "] (flow_size=" << flow_to_send->size
+                << ") to send a packet[" << p->unique_id <<"] (seq=" << seq << "), last_unacked_seq = " << last_unacked_seq << "; window = " << window
+                << "; Flow start_seq = " << flow_to_send->start_seq_no << "; flow end_seq = " << flow_to_send->end_seq_no << std::endl;
+        }
+        seq = next_seq_no;  // unnecessary here; remote later
+        pkts_sent++;
+
+        if (retx_event == NULL) {
+            set_timeout(get_current_time() + retx_timeout);
+        }
+    }
+
+    if (params.debug_event_info) {
+        std::cout << "Channel[" << id << "] sends " << pkts_sent << " pkts." << std::endl;
+    }
+    pkt_total_count += pkts_sent;    // for global logging; pkts_sent supposed to be 1
+
+    return pkts_sent;
 }
 
 // Note: we longer track Flow's avg_queuing_time and inter_pkt_spacing after moving this function to Channel
@@ -258,14 +316,13 @@ void Channel::send_ack(uint64_t seq, std::vector<uint64_t> sack_list, double pkt
     if (params.enable_flow_lookup && flow->id == params.flow_lookup_id) {
         std::cout << "Channel[" << id << "] Flow[" << flow->id << "] with priority " << priority << " send ack: " << seq << std::endl;
     }
-    if (params.unlimited_nic_speed) {
-        Queue *next_hop = topology->get_next_hop(p, dst->queue);
-        PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);  // skip src queue, include dst queue; add a pd delay
-        add_to_event_queue(event);
-    } else{
-        PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time(), p, dst->egress_queue);
-        add_to_event_queue(event);
-    }
+
+    //// When params.real_nic is on, for ACK pkts, just do the old way for now since they are really small and don't count much for the tput.
+    //// This also prioritizes those Acks so they don't get blocked by whatever arbitration policy we do in the NIC.
+    // TODO: Do a more realistic implementation (probably won't do given the complexity; and I'm sure the results will be very similar)
+    Queue *next_hop = topology->get_next_hop(p, dst->queue);
+    PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);  // skip src queue, include dst queue; add a pd delay
+    add_to_event_queue(event);
 }
 
 void Channel::cleanup_after_finish(Flow *flow) {
@@ -314,7 +371,11 @@ void Channel::receive_ack(uint64_t ack, Flow *flow, std::vector<uint64_t> sack_l
         report_ack(rtt);
 
         // Send the remaining data
-        send_pkts();
+        if (params.real_nic) {
+            src->nic->start_nic();
+        } else {
+            send_pkts();
+        }
 
         // Update the retx timer
         if (retx_event != NULL) { // Try to move
@@ -455,7 +516,11 @@ void Channel::handle_timeout() {
     adjust_cwnd_on_RTO();
 
     next_seq_no = last_unacked_seq;
-    send_pkts();
+    if (params.real_nic) {
+        src->nic->start_nic();
+    } else {
+        send_pkts();
+    }
     set_timeout(get_current_time() + retx_timeout);
 }
 

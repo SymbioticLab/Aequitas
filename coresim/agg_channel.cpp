@@ -27,6 +27,7 @@ AggChannel::AggChannel(uint32_t id, Host *s, Host *d, uint32_t priority) {
     this->src = s;
     this->dst = d;
     this->priority = priority;
+    this->channel_idx_RR = 0;
 
     this->admit_prob = 1;
     this->curr_memory = 0;
@@ -48,7 +49,7 @@ AggChannel::AggChannel(uint32_t id, Host *s, Host *d, uint32_t priority) {
         exit(1);
     }
 
-    // Create channels
+    // Create Channels (under AggChannel)
     if (params.channel_multiplexing) {
         for (uint32_t i = 0; i < params.multiplex_constant; i++) {
             channels.push_back(new Channel(id, src, dst, priority, this));
@@ -127,4 +128,12 @@ void AggChannel::process_latency_signal(double fct_in, uint32_t flow_id, int flo
         num_rpcs_in_memory = 0;
         collect_memory = false;
     }
+}
+
+Channel* AggChannel::pick_next_channel_RR() {
+    Channel* next_channel = channels[channel_idx_RR++];
+    if (channel_idx_RR == channels.size()) {
+        channel_idx_RR = 0;
+    }
+    return next_channel;
 }

@@ -19,12 +19,14 @@
 #define FLOW_CREATION_EVENT 8
 #define LOGGING 9
 #define CHANNEL_RETX_TIMEOUT 10
+#define NIC_PROCESSING 11
 
 class Flow;
 class Host;
 class Packet;
 class Queue;
 class Channel;
+class NIC;
 
 class Event {
     public:
@@ -187,6 +189,14 @@ class ChannelRetxTimeoutEvent : public Event {
         ~ChannelRetxTimeoutEvent();
         void process_event();
         Channel *channel;
+};
+
+class NICProcessingEvent : public Event {
+    public:
+        NICProcessingEvent(double time, NIC* nic);
+        ~NICProcessingEvent();
+        NIC* nic;
+        void process_event();
 };
 
 #endif // CORESIM_EVENT_H

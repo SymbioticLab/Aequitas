@@ -14,10 +14,12 @@
 #include <assert.h>
 #include <math.h>
 
+#include "../coresim/agg_channel.h"
 #include "../coresim/channel.h"
 #include "../coresim/event.h"
 #include "../coresim/flow.h"
 #include "../coresim/node.h"
+#include "../coresim/nic.h"
 #include "../coresim/packet.h"
 #include "../coresim/queue.h"
 #include "../coresim/random_variable.h"
@@ -220,7 +222,7 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
         topology = new PFabricTopology(params.num_hosts, params.num_agg_switches, params.num_core_switches, params.bandwidth, params.queue_type);
     }
 
-    // Create Channel
+    // Create AggChannel
     // Assume single direction INCAST traffic (N-1 send to 1)
     // The global variable "channels" is a vector of map with key being src-dst pair and value being ptr to the actual channel.
     // Each vector index classifies one QoS level, and within each QoS level we have a map of channels.
@@ -264,6 +266,10 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
                     channels[i][src_dst_pair] = new AggChannel(count_channel, topology->hosts[j], topology->hosts[params.num_hosts - 1], i);
                     //std::cout << "creating channel[" << count_channel << "], src: " << topology->hosts[j]->id << ", dst: " << topology->hosts[params.num_hosts - 1]->id << ", prio: " << i  <<std::endl;
                     count_channel++;
+                    // set agg_channel to NICs
+                    if (params.real_nic) {
+                        channels[i][src_dst_pair]->src->nic->set_agg_channels(channels[i][src_dst_pair]);
+                    }
                 }
             }
         } else {
@@ -271,11 +277,15 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
               for (uint32_t j = 0; j < params.num_hosts; j++) {
                   for (uint32_t k = 0; k < params.num_hosts; k++) {
                       if (j != k) {
-                          //auto src_dst_pair = std::make_pair(topology->hosts[j], topology->hosts[k]);
-                          auto src_dst_pair = std::make_pair(j, k);
-                          channels[i][src_dst_pair] = new AggChannel(count_channel, topology->hosts[j], topology->hosts[k], i);
-                          //std::cout << "creating channel[" << count_channel << "], src: " << topology->hosts[j]->id << ", dst: " << topology->hosts[k]->id << ", prio: " << i  <<std::endl;
-                          count_channel++;
+                        //auto src_dst_pair = std::make_pair(topology->hosts[j], topology->hosts[k]);
+                        auto src_dst_pair = std::make_pair(j, k);
+                        channels[i][src_dst_pair] = new AggChannel(count_channel, topology->hosts[j], topology->hosts[k], i);
+                        //std::cout << "creating channel[" << count_channel << "], src: " << topology->hosts[j]->id << ", dst: " << topology->hosts[k]->id << ", prio: " << i  <<std::endl;
+                        count_channel++;
+                        // set agg_channel to NICs
+                        if (params.real_nic) {
+                            channels[i][src_dst_pair]->src->nic->set_agg_channels(channels[i][src_dst_pair]);
+                        }
                       }
                   }
               }
@@ -294,6 +304,8 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
             }
         }
     }
+
+
 
     uint32_t num_flows = params.num_flows_to_run;
 

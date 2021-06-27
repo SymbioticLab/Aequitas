@@ -33,7 +33,7 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
     params.use_burst_byte = 0;
     params.burst_with_no_spacing = 0;
     params.channel_multiplexing = 0;
-    params.multiplex_constant = 10;
+    params.multiplex_constant = 1;
     params.flushing_coefficient = 1;
     params.disable_poisson_arrival = 0;    // default: enable poisson
     params.disable_veritas_cc = 0;
@@ -71,7 +71,7 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
     params.enable_flow_lookup = 0;
     params.flow_lookup_id = 0;
     params.mtu = 5120;
-    params.unlimited_nic_speed = 0;
+    params.real_nic = 0;
     //params.enable_initial_shift = 0;
     //params.dynamic_load = std::vector<double>();
     while (std::getline(input, line)) {
@@ -274,8 +274,8 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
         else if (key == "mtu") {
             lineStream >> params.mtu;
         }
-        else if (key == "unlimited_nic_speed") {
-            lineStream >> params.unlimited_nic_speed;
+        else if (key == "real_nic") {
+            lineStream >> params.real_nic;
         }
         //else if (key == "enable_initial_shift") {
         //    lineStream >> params.enable_initial_shift;
@@ -652,10 +652,11 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
     std::cout << "mtu: " << params.mtu << std::endl;
     std::cout << "mss: " << params.mss << std::endl;
     std::cout << "Swift Delay target: " << params.cc_delay_target << " us" << std::endl;
-    if (params.unlimited_nic_speed) {
-        std::cout << "Unlimted NIC speed," << std::endl;
+    if (params.real_nic) {
+        std::cout << "Use realistic NIC" << std::endl;
+        assert(params.channel_multiplexing);    // when limiting nic speed with line rate, params.channel_multiplexing must be on
     } else {
-        std::cout << "Host NIC egress speed cannot go beyond line rate." << std::endl;
+        std::cout << "NIC egress speed may go beyond line rate (for theorey-related testing)." << std::endl;
     }
     assert(params.burst_size > 0);
     //std::cout << "Flushing Coefficient = " << params.flushing_coefficient << std::endl;

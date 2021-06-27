@@ -16,15 +16,15 @@ class AggChannel {
         AggChannel(uint32_t id, Host *s, Host *d, uint32_t priority);
         ~AggChannel();
 
-        //void process_latency_signal(double latency);    // latency: RPC completion time
-        //void window_insert(double fct_in, uint32_t flow_id, int flow_size);
         void process_latency_signal(double fct_in, uint32_t flow_id, int flow_size);
+        Channel *pick_next_channel_RR();
 
         uint32_t id;
         uint32_t priority;
         Host *src;
         Host *dst;
         std::vector<Channel *> channels;
+        uint32_t channel_idx_RR;
 
         double admit_prob;
 

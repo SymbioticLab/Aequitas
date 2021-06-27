@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "agg_channel.h"
 #include "channel.h"
 #include "event.h"
 #include "node.h"

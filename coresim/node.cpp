@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "flow.h"
+#include "nic.h"
 #include "queue.h"
 #include "../ext/factory.h"
 #include "../run/params.h"
@@ -30,8 +31,8 @@ Node::Node(uint32_t id, uint32_t type) {
 Host::Host(uint32_t id, double rate, uint32_t queue_type, uint32_t host_type) : Node(id, HOST) {
     queue = Factory::get_queue(id, rate, params.queue_size, queue_type, 0, 0, params.weights);
     this->host_type = host_type;
-    if (!params.unlimited_nic_speed) {
-        egress_queue = new HostEgressQueue(id+100, rate, 0);
+    if (params.real_nic) {
+        nic = new NIC(this, rate);    // Each Host has one NIC
     }
 }
 

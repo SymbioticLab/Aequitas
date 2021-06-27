@@ -8,6 +8,7 @@
 #include "channel.h"
 #include "debug.h"
 #include "flow.h"
+#include "nic.h"
 #include "packet.h"
 #include "queue.h"
 #include "topology.h"
@@ -465,7 +466,7 @@ void PacketQueuingEvent::process_event() {
         std::cout << "At time: " << get_current_time() << ", Queue[" << queue->unique_id << "] PacketQueuingEvent{" << qid << "}(packet[" << packet->unique_id << "]" << "<" << packet->type << ">{" << packet->seq_no << "}) from Flow[" << packet->flow->id << "]" << std::endl;
     }
     if (params.enable_flow_lookup && packet->flow->id == params.flow_lookup_id) {
-        std::cout << "At time: " << get_current_time() << ", Queue[" << queue->unique_id << ", " << queue->id << "] PacketQueuingEvent (packet[" << packet->unique_id << "]" << "<" << packet->type << ">{" << packet->seq_no << "}) from Flow[" << packet->flow->id << "]" << std::endl;
+        std::cout << "At time: " << get_current_time() << ", Queue[" << queue->unique_id << "] PacketQueuingEvent (packet[" << packet->unique_id << "]" << "<" << packet->type << ">{" << packet->seq_no << "}) from Flow[" << packet->flow->id << "]" << std::endl;
     }
     if (params.debug_event_info) {
         if (queue->busy) {
@@ -663,11 +664,6 @@ FlowFinishedEvent::~FlowFinishedEvent() {}
 void FlowFinishedEvent::process_event() {
     //this->flow->current_event_time = time;
     num_outstanding_rpcs--;
-    if (params.debug_event_info) {
-        std::cout << "At time: " << get_current_time() << ", Flow[" << flow->id << "](" << flow->flow_priority << ") FlowFinishedEvent{" << qid << "}; FCT = "
-            << flow->flow_completion_time * 1e6 << std::endl;
-                //<< " us; avg_queuing_delay = " << flow->get_avg_queuing_delay_in_us() << std::endl;
-    }
 
     //// These data has been updated in Flow::receive_ack(); but I think we need to do this again because now we should have the correct global time
     this->flow->finished = true;
@@ -680,6 +676,11 @@ void FlowFinishedEvent::process_event() {
     }
     total_finished_flows++;
     ////
+    if (params.debug_event_info) {
+        std::cout << "At time: " << get_current_time() << ", Flow[" << flow->id << "](" << flow->flow_priority << ") FlowFinishedEvent{" << qid << "}; FCT = "
+            << flow->flow_completion_time * 1e6 << std::endl;
+                //<< " us; avg_queuing_delay = " << flow->get_avg_queuing_delay_in_us() << std::endl;
+    }
 
     //// Does not compute oracle fct for now for the No_ACK_Pkt hack
     /*
@@ -786,4 +787,21 @@ void ChannelRetxTimeoutEvent::process_event() {
         std::cout << "At time: " << get_current_time() << "; process RetxTimeoutEvent for Channel["<< channel->id << "]" << std::endl;
     }
     channel->handle_timeout();
+}
+
+/* NIC Processing */
+NICProcessingEvent::NICProcessingEvent(double time, NIC* nic)
+        : Event(NIC_PROCESSING, time) {
+    this->time = time;
+    this->nic = nic;
+}
+
+NICProcessingEvent::~NICProcessingEvent() {
+}
+
+void NICProcessingEvent::process_event() {
+    if (params.debug_event_info) {
+        std::cout << "At time: " << get_current_time() << ", NIC from Host[" << nic->src->id << "] NICProcessingEvent" << std::endl;
+    }
+    nic->send_next_pkt();
 }

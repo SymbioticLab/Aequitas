@@ -188,6 +188,7 @@ void ProbDropQueue::enque(Packet *packet) {
 
 /* Implementation for NIC Egress Queue */
 // Essentially an infinitely long queue to ensure packets go out within the NIC line rate
+// For now, only used for ACK packets
 HostEgressQueue::HostEgressQueue(uint32_t id, double rate, int location)
     : Queue(id, rate, 0, location) {}
 

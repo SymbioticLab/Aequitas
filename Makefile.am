@@ -9,6 +9,7 @@ simulator_SOURCES =                              \
 					coresim/debug.cpp            \
 					coresim/event.cpp            \
 					coresim/flow.cpp             \
+					coresim/nic.cpp              \
 					coresim/node.cpp             \
 					coresim/queue.cpp            \
 					coresim/packet.cpp           \

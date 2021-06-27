@@ -4,6 +4,7 @@
 #include <ostream>
 #include <map>
 
+#include "../coresim/agg_channel.h"
 #include "../coresim/channel.h"
 #include "../coresim/event.h"
 #include "../coresim/flow.h"
