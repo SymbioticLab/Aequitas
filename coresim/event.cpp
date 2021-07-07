@@ -13,6 +13,7 @@
 #include "queue.h"
 #include "topology.h"
 #include "../ext/factory.h"
+#include "../ext/qjump_host.h"
 #include "../run/params.h"
 
 extern Topology* topology;
@@ -159,7 +160,8 @@ void FlowCreationForInitializationEvent::process_event() {
     if (size != 0) {
         int flow_priority = 0;
         if (params.flow_type == VERITAS_FLOW ||
-            params.flow_type == PFABRIC_FLOW) {
+            params.flow_type == PFABRIC_FLOW ||
+            params.flow_type == QJUMP_FLOW) {       // TODO: set priority for all flow types; those that can't support it is supposed to ignore it
             assert(!params.qos_ratio.empty());
             UniformRandomVariable uv;
             double rn = uv.value();
@@ -805,3 +807,21 @@ void NICProcessingEvent::process_event() {
     }
     nic->send_next_pkt();
 }
+
+/* Qjump Epoch */
+QjumpEpochEvent::QjumpEpochEvent(double time, Host *host)
+        : Event(QJUMP_EPOCH, time) {
+    this->time = time;
+    this->host = host;
+}
+
+QjumpEpochEvent::~QjumpEpochEvent(){
+}
+
+void QjumpEpochEvent::process_event() {
+    if (params.debug_event_info) {
+        std::cout << "At time: " << get_current_time() << ", Host[" << host->id << "] process QjumpEpochEvent" << std::endl;
+    }
+    host->send_next_pkt();
+}
+

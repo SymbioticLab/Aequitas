@@ -244,7 +244,7 @@ int Channel::nic_send_next_pkt() {
     if (params.debug_event_info) {
         std::cout << "Channel[" << id << "] sends " << pkts_sent << " pkts." << std::endl;
     }
-    pkt_total_count += pkts_sent;    // for global logging; pkts_sent supposed to be 1
+    pkt_total_count += pkts_sent;    // for global logging; pkts_sent supposed to be 1 or 0
 
     return pkts_sent;
 }
@@ -485,10 +485,11 @@ void Channel::adjust_cwnd_on_RTO() {
 // delay/rtt is in us
 void Channel::report_ack(double delay) {
     if (params.disable_veritas_cc) {
+        return;
+    } else {
         if (!params.disable_cwnd_logging) {
             cwnds[priority].push_back(cwnd_mss);
         }
-        return;
     }
 
     adjust_cwnd_on_ACK(delay);
@@ -508,10 +509,11 @@ void Channel::set_timeout(double time) {
 void Channel::handle_timeout() {
     num_timeouts[priority]++;
     if (params.disable_veritas_cc) {
+        return;
+    } else {
         if (!params.disable_cwnd_logging) {
             cwnds[priority].push_back(cwnd_mss);
         }
-        return;
     }
     adjust_cwnd_on_RTO();
 

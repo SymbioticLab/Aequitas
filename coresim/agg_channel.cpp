@@ -8,6 +8,7 @@
 #include "channel.h"
 #include "node.h"
 #include "../run/params.h"
+#include "../ext/factory.h"
 
 extern double get_current_time();
 extern DCExpParams params;
@@ -52,7 +53,8 @@ AggChannel::AggChannel(uint32_t id, Host *s, Host *d, uint32_t priority) {
     // Create Channels (under AggChannel)
     if (params.channel_multiplexing) {
         for (uint32_t i = 0; i < params.multiplex_constant; i++) {
-            channels.push_back(new Channel(id, src, dst, priority, this));
+            //channels.push_back(new Channel(id, src, dst, priority, this));
+            channels.push_back(Factory::get_channel(id, src, dst, priority, this, params.flow_type));
         }
     }
 }

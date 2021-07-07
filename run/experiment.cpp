@@ -268,7 +268,10 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
                     count_channel++;
                     // set agg_channel to NICs
                     if (params.real_nic) {
-                        channels[i][src_dst_pair]->src->nic->set_agg_channels(channels[i][src_dst_pair]);
+                        //channels[i][src_dst_pair]->src->nic->set_agg_channels(channels[i][src_dst_pair]);
+                        topology->hosts[j]->nic->set_agg_channels(channels[i][src_dst_pair]);
+                    } else if (params.flow_type == 7) { // qjump
+                        topology->hosts[j]->set_agg_channels(channels[i][src_dst_pair]);
                     }
                 }
             }
@@ -284,7 +287,10 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
                         count_channel++;
                         // set agg_channel to NICs
                         if (params.real_nic) {
-                            channels[i][src_dst_pair]->src->nic->set_agg_channels(channels[i][src_dst_pair]);
+                            //channels[i][src_dst_pair]->src->nic->set_agg_channels(channels[i][src_dst_pair]);
+                            topology->hosts[j]->nic->set_agg_channels(channels[i][src_dst_pair]);
+                        } else if (params.flow_type == 7) {
+                            topology->hosts[j]->set_agg_channels(channels[i][src_dst_pair]);
                         }
                       }
                   }

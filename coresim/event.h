@@ -20,6 +20,7 @@
 #define LOGGING 9
 #define CHANNEL_RETX_TIMEOUT 10
 #define NIC_PROCESSING 11
+#define QJUMP_EPOCH 12
 
 class Flow;
 class Host;
@@ -27,6 +28,7 @@ class Packet;
 class Queue;
 class Channel;
 class NIC;
+class QjumpHost;
 
 class Event {
     public:
@@ -196,6 +198,14 @@ class NICProcessingEvent : public Event {
         NICProcessingEvent(double time, NIC* nic);
         ~NICProcessingEvent();
         NIC* nic;
+        void process_event();
+};
+
+class QjumpEpochEvent : public Event {
+    public:
+        QjumpEpochEvent(double time, Host* host);
+        ~QjumpEpochEvent();
+        Host* host;
         void process_event();
 };
 

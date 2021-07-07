@@ -37,7 +37,6 @@ class AggChannel {
         double memory_time_duration;
         uint32_t num_rpcs_in_memory;
         ////
-
 };
 
 #endif  // CORESIM_AGG_CHANNEL_H

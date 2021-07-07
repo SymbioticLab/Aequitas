@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "agg_channel.h"
 #include "flow.h"
 #include "nic.h"
 #include "queue.h"
@@ -34,6 +35,14 @@ Host::Host(uint32_t id, double rate, uint32_t queue_type, uint32_t host_type) : 
     if (params.real_nic) {
         nic = new NIC(this, rate);    // Each Host has one NIC
     }
+}
+
+void Host::set_agg_channels(AggChannel *agg_channel) {
+    assert(false);
+}
+
+void Host::send_next_pkt() {
+    assert(false);
 }
 
 // TODO FIX superclass constructor

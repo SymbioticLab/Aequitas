@@ -73,6 +73,7 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
     params.mtu = 5120;
     params.real_nic = 0;
     params.nic_use_WF = 0;
+    params.qjump_cumulative_pd = 1;
     //params.enable_initial_shift = 0;
     //params.dynamic_load = std::vector<double>();
     while (std::getline(input, line)) {
@@ -166,6 +167,9 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
         }
         else if (key == "cc_delay_target") {
             lineStream >> params.cc_delay_target;
+        }
+        else if (key == "qjump_cumulative_pd") {
+            lineStream >> params.qjump_cumulative_pd;
         }
         else if (key == "high_prio_lat_target") {
             lineStream >> params.high_prio_lat_target;
@@ -668,9 +672,17 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
     } else {
         std::cout << "NIC egress speed may go beyond line rate (for theorey-related testing)." << std::endl;
     }
+    if (params.flow_type == 7) {    // Qjump disables CC
+        params.disable_veritas_cc = 1;
+        std::cout << "Qjump disables CC." << std::endl;
+        assert(params.channel_multiplexing && params.multiplex_constant == 1);
+        assert(params.real_nic == 0);
+        std::cout << "Qjump cumulative processing delay: " << params.qjump_cumulative_pd << " us." << std::endl;
+    }
     assert(params.burst_size > 0);
     //std::cout << "Flushing Coefficient = " << params.flushing_coefficient << std::endl;
     std::cout << "Retransmission Timeout: " << params.retx_timeout_value * 1e6 << " us" << std::endl;
 
+    //TODO: assert(params.real_nic == 0);
 
 }

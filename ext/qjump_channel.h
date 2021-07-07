@@ -1,0 +1,28 @@
+#ifndef EXT_QJUMPCHANNEL_H
+#define EXT_QJUMPCHANNEL_H
+
+#include "../coresim/channel.h"
+
+class Flow;
+class Host;
+class Packet;
+class AggChannel;
+
+/* QjumpChannel: a single direction src-dst pair per QoS */
+// implement Qjump's transport level
+// Qjump does not use congestion control, so don't implement CC-related features
+// Note QjumpChannel is implemented assuming there exists one QjumpChannel per AggChannel;
+// namely params.multiplexing_constant = 1 and params.channel_multiplex == 1
+class QjumpChannel : public Channel {
+    public:
+        QjumpChannel(uint32_t id, Host *s, Host *d, uint32_t priority, AggChannel *agg_channel);
+        ~QjumpChannel();
+
+        void send_pkts() override;
+        Packet *send_one_pkt(uint64_t seq, uint32_t pkt_size, double delay, Flow *flow) override;
+
+        double network_epoch;
+
+};
+
+#endif  // EXT_QJUMPCHANNEL_H

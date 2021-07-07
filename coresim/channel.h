@@ -18,12 +18,12 @@ class AggChannel;
 class Channel {
     public:
         Channel(uint32_t id, Host *s, Host *d, uint32_t priority, AggChannel *agg_channel);
-        ~Channel();
+        virtual ~Channel();
 
         void add_to_channel(Flow *flow);   // called by a flow to add its packets to the channel
-        void send_pkts();        // handle transport for flows (packet level)
+        virtual void send_pkts();        // handle transport for flows (packet level)
+        virtual Packet *send_one_pkt(uint64_t seq, uint32_t pkt_size, double delay, Flow *flow);    // send a packet with tiny delay
         int nic_send_next_pkt();    // use nic to allow channel to proceed with transport for flows (one packet each time)
-        Packet *send_one_pkt(uint64_t seq, uint32_t pkt_size, double delay, Flow *flow);    // send a packet with tiny delay
         Flow *find_next_flow(uint64_t seq);
         void receive_data_pkt(Packet* p);
         void send_ack(uint64_t seq, std::vector<uint64_t> sack_list, double pkt_start_ts, Flow *flow);
