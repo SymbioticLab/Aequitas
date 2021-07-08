@@ -20,11 +20,12 @@ class QjumpHost : public Host {
         void increment_agg_channel_idx();
         void increment_WF_counters();
 
-        void start_next_epoch();
+        void start_next_epoch() override;
         void send_next_pkt() override;
 
         bool busy;  // whether has sent a pkt during the current epoch
-        double network_epoch;   //TODO: set network_epoch in constructor;
+        //std::vector<double> network_epoch;  // each priority level has an epoch value
+        double network_epoch;  // each priority level has an epoch value
         uint32_t agg_channel_count;     // among all prio levels
         uint32_t prio_idx;
         std::vector<uint32_t> WF_counters;

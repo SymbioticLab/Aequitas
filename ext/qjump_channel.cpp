@@ -36,15 +36,24 @@ QjumpChannel::QjumpChannel(uint32_t id, Host *s, Host *d, uint32_t priority, Agg
 
 QjumpChannel::~QjumpChannel() {}
 
+void QjumpChannel::add_to_channel(Flow *flow) {
+    flow->start_seq_no = end_seq_no;
+    end_seq_no += flow->size;
+    outstanding_flows.push_back(flow);    // for RPC boundary, tie flow to pkt, easy handling of flow_finish, etc.
+    flow->end_seq_no = end_seq_no;
+    //std::cout << "add_to_channel[" << id << "]: end_seq_no = " << end_seq_no << std::endl;
+    src->start_next_epoch();
+}
+
 // Qjump sends one packet at a time instead of as many pkts as the cwnd allows
 // impl copied from Channel::nic_send_next_pkt()
 //TODO: assert when choosing Qjump; param.real_nic must be 0
-void QjumpChannel::send_pkts() {
+int QjumpChannel::send_pkts() {
     uint32_t pkts_sent = 0;
     uint64_t seq = next_seq_no;
     uint32_t window = cwnd_mss * mss + scoreboard_sack_bytes;  // Note sack_bytes is always 0 for now
     if (params.debug_event_info) {
-        std::cout << "Channel[" << id << "] nic_send_next_pkt():" << " seq = " << seq
+        std::cout << "QjumpChannel[" << id << "] send_pkts():" << " seq = " << seq
             << ", window = " << window << ", last_unacked_seq = " << last_unacked_seq << std::endl;
         std::cout << "seq + mss = " << seq + mss << std::endl;
         std::cout << "end_seq_no = " << end_seq_no << std::endl;
@@ -68,7 +77,7 @@ void QjumpChannel::send_pkts() {
 
         Packet *p = send_one_pkt(seq, pkt_size, 1e-12 * (pkts_sent + 1), flow_to_send);    // send with 1 ps delay for each pkt
         if (params.enable_flow_lookup && flow_to_send->id == params.flow_lookup_id) {    // NOTE: the Time print out here does not reflect the tiny delay
-            std::cout << "At time: " << get_current_time() << ", NIC instructs Flow[" << flow_to_send->id << "] (flow_size=" << flow_to_send->size
+            std::cout << "At time: " << get_current_time() << ", Qjump instructs Flow[" << flow_to_send->id << "] (flow_size=" << flow_to_send->size
                 << ") to send a packet[" << p->unique_id <<"] (seq=" << seq << "), last_unacked_seq = " << last_unacked_seq << "; window = " << window
                 << "; Flow start_seq = " << flow_to_send->start_seq_no << "; flow end_seq = " << flow_to_send->end_seq_no << std::endl;
         }
@@ -81,9 +90,11 @@ void QjumpChannel::send_pkts() {
     }
 
     if (params.debug_event_info) {
-        std::cout << "Channel[" << id << "] sends " << pkts_sent << " pkts." << std::endl;
+        std::cout << "QjumpChannel[" << id << "] sends " << pkts_sent << " pkts." << std::endl;
     }
     pkt_total_count += pkts_sent;
+
+    return pkts_sent;
 }
 
 // Note the tiny delay won't be used here since Qjump only send one packet at a time

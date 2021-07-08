@@ -45,6 +45,10 @@ void Host::send_next_pkt() {
     assert(false);
 }
 
+void Host::start_next_epoch() {
+    assert(false);
+}
+
 // TODO FIX superclass constructor
 Switch::Switch(uint32_t id, uint32_t switch_type) : Node(id, SWITCH) {
     this->switch_type = switch_type;

@@ -20,8 +20,8 @@ class Channel {
         Channel(uint32_t id, Host *s, Host *d, uint32_t priority, AggChannel *agg_channel);
         virtual ~Channel();
 
-        void add_to_channel(Flow *flow);   // called by a flow to add its packets to the channel
-        virtual void send_pkts();        // handle transport for flows (packet level)
+        virtual void add_to_channel(Flow *flow);   // called by a flow to add its packets to the channel
+        virtual int send_pkts();        // handle transport for flows (packet level)
         virtual Packet *send_one_pkt(uint64_t seq, uint32_t pkt_size, double delay, Flow *flow);    // send a packet with tiny delay
         int nic_send_next_pkt();    // use nic to allow channel to proceed with transport for flows (one packet each time)
         Flow *find_next_flow(uint64_t seq);

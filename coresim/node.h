@@ -38,6 +38,7 @@ class Host : public Node {
         Host(uint32_t id, double rate, uint32_t queue_type, uint32_t host_type);
         virtual void set_agg_channels(AggChannel *agg_channel);    // Qjump overrides this
         virtual void send_next_pkt();       // Qjump overrides this
+        virtual void start_next_epoch();    // Qjump overrides this
         Queue *queue;
         int host_type;
         NIC *nic;

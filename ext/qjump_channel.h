@@ -18,7 +18,8 @@ class QjumpChannel : public Channel {
         QjumpChannel(uint32_t id, Host *s, Host *d, uint32_t priority, AggChannel *agg_channel);
         ~QjumpChannel();
 
-        void send_pkts() override;
+        void add_to_channel(Flow *flow) override;
+        int send_pkts() override;
         Packet *send_one_pkt(uint64_t seq, uint32_t pkt_size, double delay, Flow *flow) override;
 
         double network_epoch;

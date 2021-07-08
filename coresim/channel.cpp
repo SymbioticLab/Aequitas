@@ -125,7 +125,7 @@ Flow * Channel::find_next_flow(uint64_t seq) {
 }
 
 // once called, send as many packets as possible
-void Channel::send_pkts() {
+int Channel::send_pkts() {
     uint32_t pkts_sent = 0;
     uint64_t seq = next_seq_no;
     uint32_t window = cwnd_mss * mss + scoreboard_sack_bytes;  // Note sack_bytes is always 0 for now
@@ -168,6 +168,8 @@ void Channel::send_pkts() {
         std::cout << "Channel[" << id << "] sends " << pkts_sent << " pkts." << std::endl;
     }
     pkt_total_count += pkts_sent;    // for global logging
+
+    return pkts_sent;
 }
 
 // send with some tiny delay so that pkts from the same batch of a flow can always be ordered correctly by the event comparator

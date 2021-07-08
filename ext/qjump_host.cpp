@@ -13,10 +13,15 @@ extern double get_current_time();
 extern void add_to_event_queue(Event *);
 extern DCExpParams params;
 
-// From Qjump's paper: network epoch = worse-case e2e delay <= num_hosts x (max_packet_size / rate) + cumulative_processing_delay
+// From Qjump's paper: network epoch = 2 * num_hosts' x (max_packet_size / rate) + cumulative_processing_delay
+// where num_hosts' = num_hosts / tput_factor_i, i = prio level idx
 QjumpHost::QjumpHost(uint32_t id, double rate, uint32_t queue_type, uint32_t host_type)
         : Host(id, rate, queue_type, QJUMP_HOST) {
-    this->network_epoch = params.num_hosts * (params.mss * 8.0 / params.bandwidth) + params.qjump_cumulative_pd;    //TODO: double check this
+    //for (int i = 0; i < params.num_qos_level; i++) {
+    //    double epoch = 2 * ((double)params.num_hosts / params.qjump_tput_factor[i]) * (params.mss * 8.0 / params.bandwidth) + params.qjump_cumulative_pd;
+    //    //this->network_epoch.push_back
+    //}
+    this->network_epoch = 2 * params.num_hosts * (params.mss * 8.0 / params.bandwidth) + (double)params.qjump_cumulative_pd / 1e6;
     this->busy = false;
     this->agg_channel_count = 0;
     this->prio_idx = 0;
@@ -24,8 +29,9 @@ QjumpHost::QjumpHost(uint32_t id, double rate, uint32_t queue_type, uint32_t hos
     this->WF_counters.resize(params.num_qos_level, 0);
     this->agg_channels.resize(params.num_qos_level);
     if (params.debug_event_info) {
-        std::cout << "Qjump epoch = " << network_epoch << " us." << std::endl;
+        std::cout << "Qjump epoch = " << network_epoch * 1e6 << " us." << std::endl;
     }
+    std::cout << "Qjump epoch = " << network_epoch * 1e6 << " us." << std::endl;
 }
 
 QjumpHost::~QjumpHost() {
@@ -46,7 +52,7 @@ void QjumpHost::increment_prio_idx() {
 
 void QjumpHost::increment_WF_counters() {
     WF_counters[prio_idx]++;
-    if (WF_counters[prio_idx] == params.weights[prio_idx]) {
+    if (WF_counters[prio_idx] == params.qjump_tput_factor[prio_idx]) {
         WF_counters[prio_idx] = 0;
     }
 }
@@ -77,23 +83,22 @@ void QjumpHost::send_next_pkt() {
     while (!pkt_sent) {
         AggChannel *next_agg_channel = agg_channels[prio_idx][agg_channel_idx[prio_idx]];
         Channel *next_channel = next_agg_channel->pick_next_channel_RR();
-        pkt_sent = next_channel->nic_send_next_pkt();
+        pkt_sent = next_channel->send_pkts();
         num_channels_in_agg--;
         num_total_channels--;
         if (pkt_sent > 0) { // have just sent a pkt
             // need to increment agg_channel_idx before incrementing prio_idx
             increment_agg_channel_idx();    // RR among all the channels within same priority
             increment_prio_idx();           // RR among all priority levels
-            /*
-            if (params.nic_use_WF) {            
-                increment_WF_counters();        // WF among all priority levels
-                if (WF_counters[prio_idx] == 0) {
-                    increment_prio_idx();
-                }
-            } else {
-                increment_prio_idx();           // RR among all priority levels
-            }
-            */
+            //if (params.nic_use_WF) {            
+            //increment_WF_counters();        // WF among all priority levels
+            //if (WF_counters[prio_idx] == 0) {
+            //    increment_prio_idx();
+            //}
+            //} else {
+            //    increment_prio_idx();           // RR among all priority levels
+            //}
+
         } else if (pkt_sent == 0 && num_channels_in_agg == 0) { // no pkt sent in the current agg channel (agg_channels are grouped by prio)
             if (num_total_channels != 0) {  // no pkt in the current agg_channels[prio_idx], but other prio levels may have one
                 increment_agg_channel_idx();    // reset to the prev agg channel that sent a pkt

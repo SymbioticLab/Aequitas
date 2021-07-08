@@ -72,7 +72,7 @@ Flow* Factory::get_flow(
             return new PFabricFlow(id, start_time, size, src, dst, flow_priority);
             break;
         case QJUMP_FLOW:
-            return new PFabricFlow(id, start_time, size, src, dst, flow_priority);
+            return new QjumpFlow(id, start_time, size, src, dst, flow_priority);
             break;
     }
     assert(false);
