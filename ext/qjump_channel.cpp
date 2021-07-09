@@ -31,7 +31,7 @@ extern uint32_t pkt_total_count;
 
 QjumpChannel::QjumpChannel(uint32_t id, Host *s, Host *d, uint32_t priority, AggChannel *agg_channel)
     : Channel(id, s, d, priority, agg_channel) {
-        network_epoch = dynamic_cast<QjumpHost *>(s)->network_epoch;   // assuming the host has figured out epoch value at this point
+        network_epoch = dynamic_cast<QjumpHost *>(s)->network_epoch[priority];   // assuming the host has figured out epoch value at this point
     }
 
 QjumpChannel::~QjumpChannel() {}
@@ -42,7 +42,7 @@ void QjumpChannel::add_to_channel(Flow *flow) {
     outstanding_flows.push_back(flow);    // for RPC boundary, tie flow to pkt, easy handling of flow_finish, etc.
     flow->end_seq_no = end_seq_no;
     //std::cout << "add_to_channel[" << id << "]: end_seq_no = " << end_seq_no << std::endl;
-    src->start_next_epoch();
+    src->start_next_epoch(flow->flow_priority);
 }
 
 // Qjump sends one packet at a time instead of as many pkts as the cwnd allows
@@ -115,7 +115,7 @@ Packet *QjumpChannel::send_one_pkt(uint64_t seq, uint32_t pkt_size, double delay
     }
     Queue *next_hop = topology->get_next_hop(p, src->queue);
     add_to_event_queue(new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay + network_epoch, p, next_hop));
-    add_to_event_queue(new QjumpEpochEvent(get_current_time() + network_epoch, src));
+    add_to_event_queue(new QjumpEpochEvent(get_current_time() + network_epoch, src, priority));
     return p;
 }
 // We won't apply epoch on ACK pkts to prioritize them for Qjump's sake

@@ -16,18 +16,14 @@ class QjumpHost : public Host {
         ~QjumpHost();
 
         void set_agg_channels(AggChannel *agg_channel) override;
-        void increment_prio_idx();
-        void increment_agg_channel_idx();
-        void increment_WF_counters();
+        void increment_agg_channel_idx(uint32_t priority);
 
-        void start_next_epoch() override;
-        void send_next_pkt() override;
+        void start_next_epoch(uint32_t priority) override;
+        void send_next_pkt(uint32_t priority) override;
 
-        bool busy;  // whether has sent a pkt during the current epoch
-        //std::vector<double> network_epoch;  // each priority level has an epoch value
-        double network_epoch;  // each priority level has an epoch value
+        std::vector<bool> busy;  // whether a particular priority level has sent a pkt during the current epoch
+        std::vector<double> network_epoch;  // each priority level has an epoch value
         uint32_t agg_channel_count;     // among all prio levels
-        uint32_t prio_idx;
         std::vector<uint32_t> WF_counters;
         std::vector<uint32_t> agg_channel_idx;
         std::vector<std::vector<AggChannel *>> agg_channels;

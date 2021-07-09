@@ -809,10 +809,11 @@ void NICProcessingEvent::process_event() {
 }
 
 /* Qjump Epoch */
-QjumpEpochEvent::QjumpEpochEvent(double time, Host *host)
+QjumpEpochEvent::QjumpEpochEvent(double time, Host *host, uint32_t priority)
         : Event(QJUMP_EPOCH, time) {
     this->time = time;
     this->host = host;
+    this->priority = priority;
 }
 
 QjumpEpochEvent::~QjumpEpochEvent(){
@@ -822,6 +823,6 @@ void QjumpEpochEvent::process_event() {
     if (params.debug_event_info) {
         std::cout << "At time: " << get_current_time() << ", Host[" << host->id << "] process QjumpEpochEvent" << std::endl;
     }
-    host->send_next_pkt();
+    host->send_next_pkt(priority);
 }
 

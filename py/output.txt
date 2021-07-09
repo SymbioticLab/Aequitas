@@ -5,7 +5,7 @@ num pctl for qos dist breakdown = 10
 QoS weights: 8 4 1 
 Sum weights = 13
 Fair Share Ratio = 0.615384615384615 : 0.307692307692308 : 0.0769230769230769
-QoS ratio: 1 0 0 
+QoS ratio: 0.6 0.3 0.1 
 Qjump throughput factors: 32 16 1 
 Use dynamic load.
 Avg load to achieve = 0.8
@@ -24,7 +24,7 @@ Disable Priority Downgrade.
 Init cwnd: 2
 Max cwnd: 30
 Num Hosts: 33
-Num total RPCs to run: 1000
+Num total RPCs to run: 100000
 traffic pattern: all-to-all
 mtu: 5120
 mss: 5080
@@ -33,62 +33,204 @@ NIC egress speed may go beyond line rate (for theorey-related testing).
 Qjump disables CC.
 Qjump cumulative processing delay: 1 us.
 Retransmission Timeout: 450 us
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
-Qjump epoch = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
+Qjump epoch[0] = 1.8382 us.
+Qjump epoch[1] = 2.6764 us.
+Qjump epoch[2] = 27.8224 us.
 num_hosts = 33
 params.cdf_or_flow_trace: ./CDF_uniform_32K.txt
 Mean flow size: 32768
- Pure simulation execution time: 0 seconds
- Events/sec: inf
- Data Pkts/sec: inf
-unfinished flow size:32768 id:9 next_seq:0 recv:0 src:15 dst:32
-Unfinished Flows: 1
-Finished Flows: 999
+## 1.009906602676199 NumPktOutstd 10 MaxPktOutstd 9187 PktDropsSoFar 0 NumUnfFlows 868 StartedFlows 100000 NumRPCsOutstd 869 StartedPkts 700000
+ Pure simulation execution time: 4.000000000000000 seconds
+ Events/sec: 2108423.500000000000000
+ Data Pkts/sec: 174933.500000000000000
+unfinished flow size:32768 id:99302 next_seq:0 recv:0 src:31 dst:17
+unfinished flow size:32768 id:99374 next_seq:0 recv:0 src:31 dst:18
+unfinished flow size:32768 id:99421 next_seq:0 recv:0 src:31 dst:1
+unfinished flow size:32768 id:99463 next_seq:0 recv:0 src:3 dst:17
+unfinished flow size:32768 id:99464 next_seq:0 recv:0 src:17 dst:30
+unfinished flow size:32768 id:99466 next_seq:0 recv:0 src:31 dst:24
+unfinished flow size:32768 id:99514 next_seq:0 recv:0 src:3 dst:17
+unfinished flow size:32768 id:99546 next_seq:0 recv:0 src:31 dst:4
+unfinished flow size:32768 id:99558 next_seq:0 recv:0 src:4 dst:13
+unfinished flow size:32768 id:99574 next_seq:0 recv:0 src:31 dst:22
+unfinished flow size:32768 id:99639 next_seq:0 recv:0 src:3 dst:22
+unfinished flow size:32768 id:99665 next_seq:0 recv:0 src:24 dst:13
+unfinished flow size:32768 id:99667 next_seq:0 recv:0 src:24 dst:19
+unfinished flow size:32768 id:99716 next_seq:0 recv:0 src:31 dst:3
+unfinished flow size:32768 id:99723 next_seq:0 recv:0 src:31 dst:7
+unfinished flow size:32768 id:99754 next_seq:0 recv:0 src:31 dst:24
+unfinished flow size:32768 id:99762 next_seq:0 recv:0 src:3 dst:1
+unfinished flow size:32768 id:99776 next_seq:0 recv:0 src:31 dst:28
+unfinished flow size:32768 id:99794 next_seq:0 recv:0 src:24 dst:26
+unfinished flow size:32768 id:99797 next_seq:0 recv:0 src:14 dst:21
+unfinished flow size:32768 id:99805 next_seq:0 recv:0 src:9 dst:5
+unfinished flow size:32768 id:99845 next_seq:0 recv:0 src:14 dst:7
+unfinished flow size:32768 id:99859 next_seq:0 recv:0 src:31 dst:17
+unfinished flow size:32768 id:99869 next_seq:0 recv:0 src:4 dst:0
+unfinished flow size:32768 id:99878 next_seq:0 recv:0 src:17 dst:1
+unfinished flow size:32768 id:99923 next_seq:0 recv:0 src:3 dst:19
+unfinished flow size:32768 id:99939 next_seq:0 recv:0 src:31 dst:14
+unfinished flow size:32768 id:99950 next_seq:0 recv:0 src:31 dst:10
+unfinished flow size:32768 id:99964 next_seq:0 recv:0 src:12 dst:31
+unfinished flow size:32768 id:99967 next_seq:0 recv:0 src:2 dst:17
+unfinished flow size:32768 id:99968 next_seq:0 recv:0 src:21 dst:12
+unfinished flow size:32768 id:99969 next_seq:0 recv:0 src:3 dst:21
+unfinished flow size:32768 id:99979 next_seq:0 recv:0 src:1 dst:14
+unfinished flow size:32768 id:99980 next_seq:0 recv:0 src:4 dst:26
+unfinished flow size:32768 id:99983 next_seq:0 recv:0 src:14 dst:17
+unfinished flow size:32768 id:99986 next_seq:0 recv:0 src:24 dst:11
+unfinished flow size:32768 id:99997 next_seq:0 recv:0 src:24 dst:25
+unfinished flow size:32768 id:99998 next_seq:0 recv:0 src:18 dst:19
+Unfinished Flows: 38
+Finished Flows: 99962
 Num 16K RPCs: 0
-Num 32K RPCs: 1000
+Num 32K RPCs: 100000
 Num 64K RPCs: 0
-start_end_time[0]: 0.000275896639993833
-global last flow time: 1.00027589663999; global first flow time: 1
-Priority 0: (1000 Flows, Finished/Unf: 999/1) (Assigned: 1000, Finished/Unf: 999/1)
-FCT (in us) (100% RPCs) (Median, 99th, 99.9th, max) = 262.79, 275.53, 275.90, 275.90
-FCT (in us) (mid 80% RPCs) (Median, 99th, 99.9th, max) = 262.79, 271.83, 271.84, 271.84
-FCT (in us) (last 50% RPCs) (Median, 99th, 99.9th, max) = 270.75, 275.54, 275.90, 275.90
-99.9th (out of 100% RPCs) RPC is RPC[807], size = 32768; completion time = 275.90
-Priority 1: (0 Flow)
-Priority 2: (0 Flow)
-Priority[0] throughput = 28.76 Gbps
-Priority[1] throughput = nan Gbps
-Priority[2] throughput = nan Gbps
-Final QoS Dist: 100.0/0.0/0.0
+start_end_time[0]: 0.009975348323962
+start_end_time[1]: 0.010039485677848
+start_end_time[2]: 0.010746821047469
+global last flow time: 1.010746821047469; global first flow time: 1.000000000000000
+Priority 0: (59714 Flows, Finished/Unf: 59695/19) (Assigned: 59714, Finished/Unf: 59695/19)
+FCT (in us) (100% RPCs) (Median, 99th, 99.9th, max) = 37.44, 108.14, 143.76, 173.81
+FCT (in us) (mid 80% RPCs) (Median, 99th, 99.9th, max) = 36.73, 96.27, 124.13, 165.88
+FCT (in us) (last 50% RPCs) (Median, 99th, 99.9th, max) = 36.81, 95.69, 122.55, 151.28
+99.9th (out of 100% RPCs) RPC is RPC[470], size = 32768; completion time = 143.76
+Priority 1: (30080 Flows, Finished/Unf: 30063/17) (Assigned: 30080, Finished/Unf: 30063/17)
+FCT (in us) (100% RPCs) (Median, 99th, 99.9th, max) = 70.95, 308.74, 382.34, 434.35
+FCT (in us) (mid 80% RPCs) (Median, 99th, 99.9th, max) = 68.97, 199.22, 253.10, 309.73
+FCT (in us) (last 50% RPCs) (Median, 99th, 99.9th, max) = 68.28, 205.42, 257.18, 309.73
+99.9th (out of 100% RPCs) RPC is RPC[864], size = 32768; completion time = 382.34
+Priority 2: (10206 Flows, Finished/Unf: 10204/2) (Assigned: 10206, Finished/Unf: 10204/2)
+FCT (in us) (100% RPCs) (Median, 99th, 99.9th, max) = 304.25, 717.44, 879.50, 1067.13
+FCT (in us) (mid 80% RPCs) (Median, 99th, 99.9th, max) = 301.45, 668.94, 854.68, 1067.13
+FCT (in us) (last 50% RPCs) (Median, 99th, 99.9th, max) = 295.35, 668.71, 879.50, 1067.13
+99.9th (out of 100% RPCs) RPC is RPC[99590], size = 32768; completion time = 879.50
+Priority[0] throughput = 47.54 Gbps
+Priority[1] throughput = 23.79 Gbps
+Priority[2] throughput = 7.54 Gbps
+Final QoS Dist: 59.7/30.1/10.2
 Percentile, QoS Dist trend, QoS_H dist, QoS_H RPC 99.9th(us), QoS_M RPC 99.9th(us), end pctl timestamp(s):
+10.0, 60.3/29.7/10.0, 60.3, 166.65, 432.65, 1.000015
+20.0, 60.4/29.5/10.2, 60.4, 124.83, 244.85, 1.001296
+30.0, 59.7/30.4/10.0, 59.7, 124.13, 220.89, 1.002761
+40.0, 59.5/29.9/10.6, 59.5, 123.95, 241.87, 1.003016
+50.0, 59.8/29.9/10.3, 59.8, 121.68, 243.69, 1.004505
+60.0, 59.8/30.0/10.2, 59.8, 126.85, 272.76, 1.005001
+70.0, 59.9/29.9/10.2, 59.9, 114.38, 253.10, 1.006620
+80.0, 59.1/30.6/10.2, 59.1, 129.78, 264.59, 1.007008
+90.0, 59.7/30.3/10.0, 59.7, 126.48, 261.45, 1.008655
+100.0, 59.1/30.5/10.4, 59.1, 121.22, 231.75, 1.009012
+[][][]: 36.73,124.13,68.97,253.10,301.45,854.68,59.1/30.5/10.4,59.1,59.7/30.1/10.2,59.7
+0.85% out of Priority[0] RPCs passed the target(15.00)
+1.02% out of Priority[1] RPCs passed the target(25.00)
+instantaneous load (per-port at switch) (avg/99th/max): 0.00/0.00/0.00 Gbps.
+total pkt drops: 0
+total priority downgrades: 0
+Priority[0] pkt drops: 0
+Priority[1] pkt drops: 0
+Priority[2] pkt drops: 0
+Number of QoS_H RPCs that missed the target: 59211 / 0
+num timeouts[0]: 0
+num timeouts[1]: 0
+num timeouts[2]: 0
+sum completion time of all finished RPCs = 8.39 seconds
+avg sending period (busy + idle) = 109.20 us
+Outstanding RPCs (avg/p99/p999): 869.00/869/869
+Simulation event duration: 0.01 seconds.
+2021-07-08.23:20:28 Simulator ended. Program execution time: 4.0000 seconds

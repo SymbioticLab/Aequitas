@@ -203,9 +203,10 @@ class NICProcessingEvent : public Event {
 
 class QjumpEpochEvent : public Event {
     public:
-        QjumpEpochEvent(double time, Host* host);
+        QjumpEpochEvent(double time, Host* host, uint32_t priority);
         ~QjumpEpochEvent();
         Host* host;
+        uint32_t priority;
         void process_event();
 };
 

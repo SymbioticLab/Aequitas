@@ -41,11 +41,11 @@ void Host::set_agg_channels(AggChannel *agg_channel) {
     assert(false);
 }
 
-void Host::send_next_pkt() {
+void Host::send_next_pkt(uint32_t priority) {
     assert(false);
 }
 
-void Host::start_next_epoch() {
+void Host::start_next_epoch(uint32_t priority) {
     assert(false);
 }
 
