@@ -1,5 +1,5 @@
-#ifndef CORESIM_FACTORY_H
-#define CORESIM_FACTORY_H
+#ifndef EXT_FACTORY_H
+#define EXT_FACTORY_H
 
 #include <cstdint>
 #include <vector>
@@ -91,4 +91,4 @@ class Factory {
                 );
 };
 
-#endif  // CORESIM_FACTORY_H
+#endif  // EXT_FACTORY_H

@@ -1,5 +1,5 @@
-#ifndef CORESIM_PARAMS_H
-#define CORESIM_PARAMS_H
+#ifndef RUN_PARAMS_H
+#define RUN_PARAMS_H
 
 #include <fstream>
 #include <string>
@@ -171,4 +171,4 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type);
 #define SLIGHTLY_SMALL_TIME     0.000000001
 #define SLIGHTLY_SMALL_TIME_POS 0.000000001
 
-#endif  // CORESIM_PARAMS_H
+#endif  // RUN_PARAMS_H

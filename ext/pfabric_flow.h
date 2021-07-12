@@ -1,5 +1,5 @@
-#ifndef CORESIM_PFABRIC_FLOW_H
-#define CORESIM_PFABRIC_FLOW_H
+#ifndef EXT_PFABRIC_FLOW_H
+#define EXT_PFABRIC_FLOW_H
 
 #include <cstdint>
 
@@ -29,4 +29,4 @@ class PFabricFlow : public Flow {
   uint32_t count_ack_additive_increase;
 };
 
-#endif  // CORESIM_PFABRIC_FLOW_H
+#endif  // EXT_PFABRIC_FLOW_H

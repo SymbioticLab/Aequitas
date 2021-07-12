@@ -1,5 +1,5 @@
-#ifndef CORESIM_VERITAS_FLOW_H
-#define CORESIM_VERITAS_FLOW_H
+#ifndef EXT_VERITAS_FLOW_H
+#define EXT_VERITAS_FLOW_H
 
 #include "../coresim/flow.h"
 
@@ -13,4 +13,4 @@ class VeritasFlow : public Flow {
         void receive_ack(uint64_t ack, std::vector<uint64_t> sack_list, double pkt_start_ts, uint32_t priority, uint32_t num_hops) override;
 };
 
-#endif  // CORESIM_VERITAS_FLOW_H
+#endif  // EXT_VERITAS_FLOW_H

@@ -1,5 +1,5 @@
-#ifndef CORESIM_FLOW_GENERATOR_H
-#define CORESIM_FLOW_GENERATOR_H
+#ifndef RUN_FLOW_GENERATOR_H
+#define RUN_FLOW_GENERATOR_H
 
 #include <iostream>
 #include <algorithm>
@@ -59,4 +59,4 @@ public:
     virtual void make_flows();
 };
 
-#endif  // CORESIM_FLOW_GENERATOR_H
+#endif  // RUN_FLOW_GENERATOR_H

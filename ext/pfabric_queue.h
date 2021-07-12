@@ -1,5 +1,5 @@
-#ifndef CORESIM_PFABRIC_QUEUE_H
-#define CORESIM_PFABRIC_QUEUE_H
+#ifndef EXT_PFABRIC_QUEUE_H
+#define EXT_PFABRIC_QUEUE_H
 
 #include "../coresim/queue.h"
 
@@ -12,4 +12,4 @@ class PFabricQueue : public Queue {
   Packet *deque(double deque_time) override;
 };
 
-#endif  // CORESIM_PFABRIC_QUEUE_H
+#endif  // EXT_PFABRIC_QUEUE_H

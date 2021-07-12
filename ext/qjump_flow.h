@@ -1,5 +1,5 @@
-#ifndef CORESIM_QJUMP_FLOW_H
-#define CORESIM_QJUMP_FLOW_H
+#ifndef EXT_QJUMP_FLOW_H
+#define EXT_QJUMP_FLOW_H
 
 #include "../coresim/flow.h"
 
@@ -20,4 +20,4 @@ class QjumpFlow : public Flow {
                         uint32_t num_hops) override;
 };
 
-#endif  // CORESIM_QJUMP_FLOW_H
+#endif  // EXT_QJUMP_FLOW_H

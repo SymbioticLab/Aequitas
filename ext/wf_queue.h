@@ -1,5 +1,5 @@
-#ifndef CORESIM_WF_QUEUE_H
-#define CORESIM_WF_QUEUE_H
+#ifndef EXT_WF_QUEUE_H
+#define EXT_WF_QUEUE_H
 
 #include "../coresim/queue.h"
 
@@ -45,4 +45,4 @@ class WFQueue : public Queue {
 
 };
 
-#endif  // CORESIM_WF_QUEUE_H
+#endif  // EXT_WF_QUEUE_H
