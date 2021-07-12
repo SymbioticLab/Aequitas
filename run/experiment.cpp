@@ -270,7 +270,7 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
                     if (params.real_nic) {
                         //channels[i][src_dst_pair]->src->nic->set_agg_channels(channels[i][src_dst_pair]);
                         topology->hosts[j]->nic->set_agg_channels(channels[i][src_dst_pair]);
-                    } else if (params.flow_type == 7) { // qjump
+                    } else if (params.flow_type == QJUMP_FLOW) {
                         topology->hosts[j]->set_agg_channels(channels[i][src_dst_pair]);
                     }
                 }
@@ -289,7 +289,7 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
                         if (params.real_nic) {
                             //channels[i][src_dst_pair]->src->nic->set_agg_channels(channels[i][src_dst_pair]);
                             topology->hosts[j]->nic->set_agg_channels(channels[i][src_dst_pair]);
-                        } else if (params.flow_type == 7) {
+                        } else if (params.flow_type == QJUMP_FLOW) {
                             topology->hosts[j]->set_agg_channels(channels[i][src_dst_pair]);
                         }
                       }

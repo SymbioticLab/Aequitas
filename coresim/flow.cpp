@@ -415,7 +415,7 @@ void Flow::cancel_retx_event() {
 
 
 uint32_t Flow::get_priority(uint64_t seq) {
-    if (params.flow_type == 1) {
+    if (params.flow_type == NORMAL_FLOW) {
         return 1;
     }
     if(params.deadline && params.schedule_by_deadline)

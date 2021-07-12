@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include "../ext/factory.h"
 
 DCExpParams params;
 
@@ -688,7 +689,7 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
     } else {
         std::cout << "NIC egress speed may go beyond line rate (for theorey-related testing)." << std::endl;
     }
-    if (params.flow_type == 7) {    // Qjump disables CC
+    if (params.flow_type == QJUMP_FLOW) {    // Qjump disables CC
         params.disable_veritas_cc = 1;
         std::cout << "Qjump disables CC." << std::endl;
         assert(params.channel_multiplexing && params.multiplex_constant == 1);
