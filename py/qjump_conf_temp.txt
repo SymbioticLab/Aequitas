@@ -90,4 +90,4 @@ early_pkt_in_highest_prio: 0
 cc_delay_target: 10
 qos_weights: 8,4,1
 qos_ratio: 60,30,10
-qjump_tput_factor: 32,16,1
+qjump_tput_factor: 1,16,32
