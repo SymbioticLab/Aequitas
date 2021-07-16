@@ -86,6 +86,10 @@ Flow::Flow(uint32_t id, double start_time, uint32_t size, Host *s, Host *d) {
     this->first_byte_receive_time = -1;
     this->first_hop_departure = 0;
     this->last_hop_departure = 0;
+
+    this->prev_desired_rate = 0;
+    this->prev_allocated_rate = 0;
+    this->has_ddl = false;
 }
 
 Flow::Flow(uint32_t id, double start_time, uint32_t size, Host *s, Host *d, uint32_t flow_priority) :
@@ -396,6 +400,7 @@ void Flow::set_timeout(double time) {
 }
 
 
+// since set_timeout has the disable_cc check, no need to check again here
 void Flow::handle_timeout() {
     next_seq_no = last_unacked_seq;
     //Reset congestion window to 1
@@ -431,17 +436,30 @@ uint32_t Flow::get_priority(uint64_t seq) {
 
 // No longer used after Channel impl
 void Flow::increase_cwnd() {
+    if (params.disable_veritas_cc) {
+        return;
+    }
     cwnd_mss += 1;
     if (cwnd_mss > max_cwnd) {
         cwnd_mss = max_cwnd;
     }
 }
 
-double Flow::get_avg_queuing_delay_in_us()
-{
+double Flow::get_avg_queuing_delay_in_us() {
     return total_queuing_time/received_count * 1000000;
 }
 
 double Flow::get_avg_inter_pkt_spacing_in_us() {
     return total_inter_pkt_spacing/received_count * 1000000;
+}
+
+// return remaining size in bytes
+uint32_t Flow::get_remaining_flow_size() {
+    return size - last_unacked_seq - scoreboard_sack_bytes;
+}
+
+// assume 'deadline' is set in microseconds
+// return remaining deadline in seconds
+double Flow::get_remaining_deadline() {
+    return start_time + deadline / 1e6 - get_current_time();
 }

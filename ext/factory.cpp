@@ -6,6 +6,8 @@
 #include "../coresim/channel.h"
 #include "../coresim/node.h"
 #include "veritas_flow.h"
+#include "d3_flow.h"
+#include "d3_queue.h"
 #include "pfabric_flow.h"
 #include "pfabric_queue.h"
 #include "qjump_channel.h"
@@ -31,6 +33,8 @@ Queue* Factory::get_queue(
             return new PFabricQueue(id, rate, queue_size, location);
         case QJUMP_QUEUE:
             return new QjumpQueue(id, rate, queue_size, location);
+        case D3_QUEUE:
+            return new D3Queue(id, rate, queue_size, location);
     }
     assert(false);
     return NULL;
@@ -73,6 +77,9 @@ Flow* Factory::get_flow(
             break;
         case QJUMP_FLOW:
             return new QjumpFlow(id, start_time, size, src, dst, flow_priority);
+            break;
+        case D3_FLOW:
+            return new D3Flow(id, start_time, size, src, dst, flow_priority);
             break;
     }
     assert(false);

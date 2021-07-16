@@ -28,6 +28,11 @@ Packet::Packet(
     this->total_queuing_delay = 0;
     this->num_hops = 0;
     this->enque_queue_size = 0;
+
+    this->prev_allocated_rate = 0;
+    this->desired_rate = 0;
+    this->prev_desired_rate = 0;
+    this->hop_count = -1;
 }
 
 Packet::~Packet() {}
@@ -36,9 +41,19 @@ PlainAck::PlainAck(Flow *flow, uint64_t seq_no_acked, uint32_t size, Host* src, 
     this->type = ACK_PACKET;
 }
 
+SynAck::SynAck(Flow *flow, uint64_t seq_no_acked, uint32_t size, Host* src, Host *dst) : Packet(0, flow, seq_no_acked, 0, size, src, dst) {
+    this->type = SYN_ACK_PACKET;
+}
+
 Ack::Ack(Flow *flow, uint64_t seq_no_acked, std::vector<uint64_t> sack_list, uint32_t size, Host* src, Host *dst) : Packet(0, flow, seq_no_acked, 0, size, src, dst) {
     this->type = ACK_PACKET;
     this->sack_list = sack_list;
+}
+
+Syn::Syn(double sending_time, double desired_rate, Flow *flow, uint32_t size, Host* src, Host *dst) : Packet(sending_time, flow, 0, 0, size, src, dst) {
+    this->type = SYN_PACKET;
+    this->desired_rate = desired_rate;  // set the desired rate (for D3)
+    this->start_ts = sending_time;      // start_ts is only used for RTT measurements; it's a don't-care for Syn pkts
 }
 
 RTSCTS::RTSCTS(bool type, double sending_time, Flow *f, uint32_t size, Host *src, Host *dst) : Packet(sending_time, f, 0, 0, f->hdr_size, src, dst) {

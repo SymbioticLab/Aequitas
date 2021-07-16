@@ -15,6 +15,8 @@ simulator_SOURCES =                              \
 					coresim/packet.cpp           \
 					coresim/random_variable.cpp  \
 					coresim/topology.cpp         \
+					ext/d3_queue.cpp             \
+					ext/d3_flow.cpp              \
 					ext/factory.cpp              \
 					ext/veritas_flow.cpp         \
 					ext/pfabric_flow.cpp         \

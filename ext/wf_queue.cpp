@@ -66,8 +66,7 @@ WFQueue::WFQueue(uint32_t id, double rate, uint32_t limit_bytes, int location)
 void WFQueue::update_vtime(Packet *packet, int prio) {
     assert(!last_v_finish_time.empty());
     double v_start_time = std::max(packet->last_enque_time, last_v_finish_time[prio]);
-    packet->v_finish_time = v_start_time + get_transmission_delay(packet->size) / (static_cast<double>(weights[prio])/sum_weights);
-    ////packet->v_finish_time = v_start_time + packet->size / static_cast<double>(weights[prio]);
+    packet->v_finish_time = v_start_time + get_transmission_delay(packet) / (static_cast<double>(weights[prio])/sum_weights);
     last_v_finish_time[prio] = packet->v_finish_time;
 }
 

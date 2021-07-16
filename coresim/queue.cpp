@@ -55,6 +55,7 @@ Queue::Queue(uint32_t id, double rate, uint32_t limit_bytes, int location) {
     this->pkt_drop = 0;
     this->spray_counter=std::rand();
     this->packet_transmitting = NULL;
+    this->num_active_flows = 0;
 }
 
 Queue::~Queue() {};
@@ -104,17 +105,18 @@ Packet *Queue::deque(double deque_time) {
 
 void Queue::drop(Packet *packet) {
     packet->flow->pkt_drop++;
-    if(packet->seq_no < packet->flow->size){
+    if (packet->seq_no < packet->flow->size) {
         packet->flow->data_pkt_drop++;
     }
-    if(packet->type == ACK_PACKET)
+    if (packet->type == ACK_PACKET) {
         packet->flow->ack_pkt_drop++;
+    }
 
     if (location != 0 && packet->type == NORMAL_PACKET) {
         dead_packets += 1;
     }
 
-    if(debug_flow(packet->flow->id))
+    if (debug_flow(packet->flow->id))
         std::cout << get_current_time() << " pkt drop. flow:" << packet->flow->id
         //std::cout << packet->flow->get_current_time() << " pkt drop. flow:" << packet->flow->id
             << " type:" << packet->type << " seq:" << packet->seq_no
@@ -123,8 +125,12 @@ void Queue::drop(Packet *packet) {
     delete packet;
 }
 
-double Queue::get_transmission_delay(uint32_t size) {
-    return size * 8.0 / rate;
+double Queue::get_transmission_delay(Packet *packet) {
+    return packet->size * 8.0 / rate;
+}
+
+double Queue::get_cut_through_delay(Packet *packet) {
+    return packet->flow->hdr_size * 8.0 / rate;
 }
 
 void Queue::preempt_current_transmission() {

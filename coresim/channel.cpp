@@ -192,7 +192,7 @@ Packet *Channel::send_one_pkt(uint64_t seq, uint32_t pkt_size, double delay, Flo
     if (!params.real_nic) {
         add_to_event_queue(new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay + delay, p, next_hop));  // add a pd since we skip the source queue
     } else {
-        double td = src->queue->get_transmission_delay(pkt_size);
+        double td = src->queue->get_transmission_delay(p);
         double pd = src->queue->propagation_delay;
         //std::cout << "Channel[" << id << "] td = " << td << "; pd = " << pd << std::endl;
         add_to_event_queue(new PacketQueuingEvent(get_current_time() + pd + td, p, next_hop));  // tiny delay should be uncessary in this case; TODO: check later
@@ -510,7 +510,7 @@ void Channel::set_timeout(double time) {
 
 void Channel::handle_timeout() {
     num_timeouts[priority]++;
-    if (params.disable_veritas_cc) {
+    if (params.disable_veritas_cc) {    // probably unnecessary since 'set_timeout()' has been checked already
         return;
     } else {
         if (!params.disable_cwnd_logging) {

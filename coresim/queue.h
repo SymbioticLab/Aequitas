@@ -21,7 +21,9 @@ class Queue {
         virtual Packet *deque(double deque_time);
         virtual void drop(Packet *packet);
         virtual void flush() {};
-        double get_transmission_delay(uint32_t size);
+        //double get_transmission_delay(uint32_t size);
+        virtual double get_transmission_delay(Packet *packet);
+        double get_cut_through_delay(Packet *packet);
         void preempt_current_transmission();
 
         // Members
@@ -55,6 +57,8 @@ class Queue {
         int location;
 
         std::vector<uint32_t> served_pkts_per_prio;
+
+        int num_active_flows;   // for D3
 };
 
 

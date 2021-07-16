@@ -41,6 +41,8 @@ class Flow {
         virtual void increase_cwnd();
         virtual double get_avg_queuing_delay_in_us();
         virtual double get_avg_inter_pkt_spacing_in_us();
+        virtual uint32_t get_remaining_flow_size();
+        virtual double get_remaining_deadline();
 
         //double get_current_time() {
         //    return current_event_time;
@@ -100,6 +102,11 @@ class Flow {
         Channel *channel;
         AggChannel *agg_channel;
         //Channel *ack_channel;
+
+        // for D3
+        double prev_desired_rate;       // desired_rate in the prev RTT
+        double prev_allocated_rate;     // min allocated rate in the prev RTT
+        bool has_ddl;                 // tell apart from non-ddl flows
 
         // QID: specifies which EventQueue this flow's events should go to
         uint32_t qid;

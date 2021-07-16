@@ -6,6 +6,8 @@
 
 #define NORMAL_PACKET 0
 #define ACK_PACKET 1
+#define SYN_PACKET 2        // used by D3; SYN/First Rate Request packet
+#define SYN_ACK_PACKET 11   // used by D3; ACK to the SYN/First RR packet
 
 #define RTS_PACKET 3
 #define CTS_PACKET 4
@@ -18,6 +20,7 @@
 
 class Flow;
 class Host;
+class Queue;
 
 class Packet {
 
@@ -49,6 +52,14 @@ class Packet {
         uint32_t num_hops;    // ACK pkt will update it as it traverse thru
 
         uint32_t enque_queue_size;    // in terms of # of bytes enqueued
+
+        // for D3
+        double prev_allocated_rate;                 // min of allocated rates from last RTT; to be used in the rate allocation algo next
+        std::vector<double> curr_rates_per_hop;     // rate allocated in the current RTT per hop (queue) 
+        int hop_count;                              // used to index curr_rates_per_hop when calculation transmission delay
+        double desired_rate;
+        double prev_desired_rate;
+        std::vector<Queue *> traversed_queues;      // stored by ACK pkt; used by D3Queue to decrement num_active_flows when the final ACK is received
 };
 
 class PlainAck : public Packet {
@@ -63,6 +74,16 @@ class Ack : public Packet {
                 Host* src, Host *dst);
         uint32_t sack_bytes;
         std::vector<uint64_t> sack_list;
+};
+
+class Syn : public Packet {
+    public:
+        Syn(double sending_time, double desired_rate, Flow *flow, uint32_t size, Host *src, Host *dst);
+};
+
+class SynAck : public Packet {
+    public:
+        SynAck(Flow *flow, uint64_t seq_no_acked, uint32_t size, Host* src, Host* dst);
 };
 
 class RTSCTS : public Packet {

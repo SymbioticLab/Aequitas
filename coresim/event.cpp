@@ -158,6 +158,7 @@ void FlowCreationForInitializationEvent::process_event() {
     }
 
     if (size != 0) {
+        // setting flow priority
         int flow_priority = 0;
         if (params.flow_type == VERITAS_FLOW ||
             params.flow_type == PFABRIC_FLOW ||
@@ -209,9 +210,25 @@ void FlowCreationForInitializationEvent::process_event() {
 
 
         }
-        flows_to_schedule.push_back(Factory::get_flow(id, time, size, src, dst, params.flow_type, flow_priority));
+
+        Flow *new_flow = Factory::get_flow(id, time, size, src, dst, params.flow_type, flow_priority);
+
+        // setting flow deadline for D3
+        // let's do it using the qos targets for now
+        if (params.flow_type == D3_FLOW) {
+            if (flow_priority == params.num_qos_level - 1) {    // lowest prio level has no deadline
+                new_flow->has_ddl = false;
+                new_flow->deadline = 0;
+            } else {
+                new_flow->has_ddl = true;
+                new_flow->deadline = params.hardcoded_targets[flow_priority];
+            }
+        }
+
+        flows_to_schedule.push_back(new_flow);
         //std::cout << "At time: " << get_current_time() << ", create flow [" << id << "] [" << flow_priority << "]" << std::endl;
     }
+
 
 
     double intarr_value = nv_intarr->value();
@@ -317,10 +334,10 @@ FlowArrivalEvent::~FlowArrivalEvent() {
 
 void FlowArrivalEvent::process_event() {
     if (params.debug_event_info) {
-        std::cout << "At time: " << get_current_time() << ", Flow[" << flow->id << "] from Host[" << flow->src->id << "] FlowArrivalEvent{" << qid << "}" << std::endl;
+        std::cout << "At time: " << get_current_time() << ", Flow[" << flow->id << "] from Host[" << flow->src->id << "] FlowArrivalEvent" << std::endl;
     }
     if (params.enable_flow_lookup && flow->id == params.flow_lookup_id) {
-        std::cout << "At time: " << get_current_time() << ", Flow[" << flow->id << "] from Host[" << flow->src->id << "] FlowArrivalEvent{" << qid << "}" << std::endl;
+        std::cout << "At time: " << get_current_time() << ", Flow[" << flow->id << "] from Host[" << flow->src->id << "] FlowArrivalEvent" << std::endl;
     }
     //Flows start at line rate; so schedule a packet to be transmitted
     //First packet scheduled to be queued
@@ -494,7 +511,7 @@ void PacketQueuingEvent::process_event() {
     }
     else if( params.preemptive_queue && this->packet->pf_priority < queue->packet_transmitting->pf_priority) {
         assert(false);
-        double remaining_percentage = (queue->queue_proc_event->time - get_current_time()) / queue->get_transmission_delay(queue->packet_transmitting->size);
+        double remaining_percentage = (queue->queue_proc_event->time - get_current_time()) / queue->get_transmission_delay(queue->packet_transmitting);
 
         if(remaining_percentage > 0.01){
             queue->preempt_current_transmission();
@@ -505,9 +522,14 @@ void PacketQueuingEvent::process_event() {
         }
     }
 
-    // inc num_hops traverved for an ACK pkt (used for scaling in qd estimation from rtt (QoS Downgrade))
     if (packet->type == ACK_PACKET) {
-        packet->num_hops++;
+        // inc num_hops traverved for an ACK pkt (used for scaling in qd estimation from rtt (QoS Downgrade))
+        packet->num_hops++;     //TODO: remove. not used anymore
+
+        // (for D3) keep note of queues traversed
+        if (params.flow_type == D3_FLOW) {
+            packet->traversed_queues.push_back(queue);
+        }
     }
 
     queue->enque(packet);
@@ -586,7 +608,7 @@ void QueueProcessingEvent::process_event() {
         ////queue->busy_events.clear();
         queue->packet_transmitting = packet;
         Queue *next_hop = topology->get_next_hop(packet, queue);
-        double td = queue->get_transmission_delay(packet->size);
+        double td = queue->get_transmission_delay(packet);
         double pd = queue->propagation_delay;
         //double additional_delay = 1e-10;
 
@@ -619,7 +641,8 @@ void QueueProcessingEvent::process_event() {
             Event* queuing_evt = NULL;
             if (params.cut_through == 1) {
                 double cut_through_delay =
-                    queue->get_transmission_delay(packet->flow->hdr_size);
+                    queue->get_cut_through_delay(packet);
+                    //queue->get_transmission_delay(packet->flow->hdr_size);
                 queuing_evt = new PacketQueuingEvent(get_current_time() + cut_through_delay + pd, packet, next_hop);
             } else {
                 queuing_evt = new PacketQueuingEvent(get_current_time() + td + pd, packet, next_hop);
