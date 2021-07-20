@@ -433,6 +433,7 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
     std::cout << "Num 64K RPCs: " << num_64K_RPCs << std::endl;
 
     std::vector<std::deque<Flow*>> flows_by_prio(params.weights.size());
+    std::vector<std::deque<Flow*>> flows_by_init_prio(params.weights.size());
     std::vector<uint32_t> unfinished_flows_by_prio(params.weights.size());
     std::vector<uint32_t> num_flow_assigned_per_prio(params.weights.size());
     std::vector<uint32_t> num_flow_assigned_per_prio_unf(params.weights.size());
@@ -458,14 +459,16 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
             total_flow_completion_time += f->flow_completion_time;
             num_flow_assigned_per_prio[f->flow_priority]++;
             flows_by_prio_percentile[flow_percentile][f->run_priority].push_back(f);
-            if (flow_cnt == num_flows / num_pctl) {
-                flow_percentile++;
-                flow_cnt = 0;
-            }
             //if (f->flow_priority == 0 && f->run_priority == 0 && f->flow_completion_time * 1e6 > params.high_prio_lat_target) {
             if (f->flow_priority == 0 && f->run_priority == 0 && f->flow_completion_time * 1e6 > params.hardcoded_targets[0]) {
                 num_QoS_H_RPCs_missed_target++;
             }
+        }
+        flows_by_init_prio[f->flow_priority].push_back(f);
+
+        if (flow_cnt == num_flows / num_pctl) {
+            flow_percentile++;
+            flow_cnt = 0;
         }
     }
 
@@ -493,6 +496,12 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
     for (uint32_t i = 0; i < params.weights.size(); i++) {
         if (flows_by_prio[i].empty()) { continue; }
         std::sort (flows_by_prio[i].begin(), flows_by_prio[i].end(), [](Flow *lhs, Flow *rhs) -> bool {
+            return lhs->start_time < rhs->start_time;
+        });
+    }
+    for (uint32_t i = 0; i < params.weights.size(); i++) {
+        if (flows_by_init_prio[i].empty()) { continue; }
+        std::sort (flows_by_init_prio[i].begin(), flows_by_init_prio[i].end(), [](Flow *lhs, Flow *rhs) -> bool {
             return lhs->start_time < rhs->start_time;
         });
     }
@@ -1129,6 +1138,9 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
     }
 
     // find how many QoS High RPCs and QoS Median RPCs meet target
+
+    // method (1): count from run_time priority
+    /*
     for (uint32_t i = 0; i < params.num_qos_level - 1; i++) {
         uint32_t num_RPCs = flows_by_prio_cp3[i].size();
         uint32_t first_10th = num_RPCs * 0.1;
@@ -1143,6 +1155,31 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
         }
         pctg_passed = (double) count / (num_RPCs * 0.8) * 100;
         std::cout << pctg_passed << "% out of Priority[" << i << "] RPCs passed the target(" << params.hardcoded_targets[i] << ")" << std::endl;
+    }
+    */
+
+    // method (2): count from initially assigned priority
+    for (uint32_t i = 0; i < params.num_qos_level - 1; i++) {
+        uint32_t num_RPCs = flows_by_init_prio[i].size();
+        double pctg_passed = 0;
+        uint32_t count = 0;
+        for (uint32_t j = 0; j < num_RPCs; j++) {
+            if (flows_by_init_prio[i][j]->finished && flows_by_init_prio[i][j]->flow_completion_time * 1e6 <= params.hardcoded_targets[i]) {
+                count++;
+            }
+        }
+        pctg_passed = (double) count / num_RPCs * 100;
+        /*
+        uint32_t first_10th = num_RPCs * 0.1;
+        uint32_t last_10th = num_RPCs * 0.9;
+        for (uint32_t j = first_10th; j < last_10th; j++) {
+            if (flows_by_init_prio[i][j]->finished && flows_by_init_prio[i][j]->flow_completion_time * 1e6 <= params.hardcoded_targets[i]) {
+                count++;
+            }
+        }
+        pctg_passed = (double) count / (num_RPCs * 0.8) * 100;
+        */
+        std::cout << pctg_passed << "% out of Priority[" << i << "] RPCs passed the target(" << params.hardcoded_targets[i] << " us)" << std::endl;
     }
 
     double sum_inst_load = 0;
