@@ -59,6 +59,7 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
     params.smart_time_window = 0;
     params.target_pctl = 1000;
     params.normalized_lat = 0;
+    params.print_normalized_result = 0;
     params.big_switch = 0;
     params.disable_pkt_logging = 0;
     params.only_sw_queue = 0;
@@ -205,6 +206,9 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
         }
         else if (key == "normalized_lat") {
             lineStream >> params.normalized_lat;
+        }
+        else if (key == "print_normalized_result") {
+            lineStream >> params.print_normalized_result;
         }
         else if (key == "dwnd_alpha") {
             lineStream >> params.dwnd_alpha;

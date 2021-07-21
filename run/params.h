@@ -101,6 +101,7 @@ class DCExpParams {
         uint32_t smart_time_window;  // set per window time duration based on target per qos
         uint32_t target_pctl;        // used to set the smart time window
         uint32_t normalized_lat;  // normalize latency measurement results by RPC size (# of MTUs)
+        uint32_t print_normalized_result;  // in output log, print normalize latency measurement results; default off
 
         double qjump_cumulative_pd;     // used when calculating qjump's network epoch; in uint of us; default to be 1us
         std::vector<int> qjump_tput_factor;    // specify the throughput factors of Qjump

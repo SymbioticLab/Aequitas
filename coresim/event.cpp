@@ -695,11 +695,19 @@ void FlowFinishedEvent::process_event() {
     this->flow->finished = true;
     this->flow->finish_time = get_current_time();
     //this->flow->flow_completion_time = this->flow->finish_time - this->flow->start_time;
+    /*
     if (!params.normalized_lat) {
         this->flow->flow_completion_time = this->flow->finish_time - this->flow->start_time;
     } else {
         this->flow->flow_completion_time = (this->flow->finish_time - this->flow->start_time) / this->flow->size_in_pkt;
     }
+    */
+    if (params.print_normalized_result) {
+        this->flow->flow_completion_time = (this->flow->finish_time - this->flow->start_time) / this->flow->size_in_pkt;
+    } else {
+        this->flow->flow_completion_time = this->flow->finish_time - this->flow->start_time;
+    }
+
     total_finished_flows++;
     ////
     if (params.debug_event_info) {
