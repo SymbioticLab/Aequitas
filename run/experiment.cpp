@@ -750,96 +750,99 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
     //    }
     //}
 
-    std::vector<double> final_avg_qos_dist;
-    std::cout << "Final QoS Dist: ";
-    std::cout << std::setprecision(1) << std::fixed;
-    for (uint32_t i = 0; i < params.weights.size(); i++) {
-        double dist = (double)flows_by_prio[i].size() / total_finished_flows * 100;
-        final_avg_qos_dist.push_back(dist);
-        if (i < params.weights.size() - 1) {
-            std::cout << dist << "/";
-        } else {
-            std::cout << dist << std::endl;
-        }
-    }
 
-
-
-    //std::cout << "Percentile, QoS Dist trend, QoS_H dist, RPC Median(us), RPC 99.9th(us), end pctl timestamp(s):" << std::endl;
-    std::cout << "Percentile, QoS Dist trend, QoS_H dist, QoS_H RPC 99.9th(us), QoS_M RPC 99.9th(us), end pctl timestamp(s):" << std::endl;
-    std::vector<double> final_dist;
-    for (uint32_t i = 0; i < flows_by_prio_percentile.size(); i++) {
-        if (flows_by_prio_percentile[i].empty()) {
-            continue;
-        }
-        //std::cout << "percentile " << i * ((double)100/num_pctl) << "~" << (i + 1) * ((double)100/num_pctl) << ",";
-        std::cout << (i + 1) * ((double)100/num_pctl) << ", ";
-        uint32_t sum_at_curr_pctl = 0;
-        for (uint32_t j = 0; j < params.weights.size(); j++) {
-            sum_at_curr_pctl += flows_by_prio_percentile[i][j].size();
-            //std::cout << "prio[" << j << "]: " << flows_by_prio_percentile[i][j].size() << std::endl;
-        }
-        double qos_H_dist;
-        for (uint32_t j = 0; j < params.weights.size(); j++) {
-            double dist = (double)flows_by_prio_percentile[i][j].size() / sum_at_curr_pctl * 100;
-            if (j == 0) {
-                qos_H_dist = dist;
-            }
-            if (j < params.weights.size() - 1) {
+    if (params.flow_type != QJUMP_FLOW) {
+        std::vector<double> final_avg_qos_dist;
+        std::cout << "Final QoS Dist: ";
+        std::cout << std::setprecision(1) << std::fixed;
+        for (uint32_t i = 0; i < params.weights.size(); i++) {
+            double dist = (double)flows_by_prio[i].size() / total_finished_flows * 100;
+            final_avg_qos_dist.push_back(dist);
+            if (i < params.weights.size() - 1) {
                 std::cout << dist << "/";
             } else {
-                std::cout << dist << ", ";
-            }
-            if (i == flows_by_prio_percentile.size() - 1) {
-                final_dist.push_back(dist);
+                std::cout << dist << std::endl;
             }
         }
-        std::cout << qos_H_dist << ", ";
-        //uint32_t median = flows_by_prio_percentile[i][0].size() * 0.5;
-        uint32_t tail_999_h = flows_by_prio_percentile[i][0].size() * 0.999;
-        uint32_t tail_999_m = flows_by_prio_percentile[i][1].size() * 0.999;
-        std::sort(flows_by_prio_percentile[i][0].begin(), flows_by_prio_percentile[i][0].end(), [](Flow *lhs, Flow *rhs) -> bool {
-            return lhs->flow_completion_time < rhs->flow_completion_time;
-        });
-        std::sort(flows_by_prio_percentile[i][1].begin(), flows_by_prio_percentile[i][1].end(), [](Flow *lhs, Flow *rhs) -> bool {
-            return lhs->flow_completion_time < rhs->flow_completion_time;
-        });
-        std::cout << std::setprecision(2) << std::fixed;
-        //std::cout << flows_by_prio_percentile[i][0][median]->flow_completion_time * 1e6 << ", "
-        //    << flows_by_prio_percentile[i][0][tail_999]->flow_completion_time * 1e6;
-        std::cout << flows_by_prio_percentile[i][0][tail_999_h]->flow_completion_time * 1e6 << ", "
-                << flows_by_prio_percentile[i][1][tail_999_m]->flow_completion_time * 1e6;
-        std::cout << std::setprecision(6) << std::fixed;
-        //std::cout << ", " << flows_by_prio_percentile[i][0][0]->start_time << std::endl;
-        std::cout << ", " << flows_by_prio_percentile[i][0].back()->start_time << std::endl;
-        std::cout << std::setprecision(1) << std::fixed;
-    }
 
-    // easy copy&paste for useful results:
-    std::cout << std::setprecision(2) << std::fixed;
-    std::cout << "[][][]: ";
-    for (uint32_t i = 0; i < useful_results.size(); i++) {
-        std::cout << useful_results[i] << ",";
-    }
-    std::cout << std::setprecision(1) << std::fixed;
-    for (uint32_t i = 0; i < final_dist.size(); i++) {
-        if (i < final_dist.size() - 1) {
-            std::cout << final_dist[i] << "/";
-        } else {
-            //std::cout << final_dist[i] << std::endl;
-            std::cout << final_dist[i];
+
+
+        //std::cout << "Percentile, QoS Dist trend, QoS_H dist, RPC Median(us), RPC 99.9th(us), end pctl timestamp(s):" << std::endl;
+        std::cout << "Percentile, QoS Dist trend, QoS_H dist, QoS_H RPC 99.9th(us), QoS_M RPC 99.9th(us), end pctl timestamp(s):" << std::endl;
+        std::vector<double> final_dist;
+        for (uint32_t i = 0; i < flows_by_prio_percentile.size(); i++) {
+            if (flows_by_prio_percentile[i].empty()) {
+                continue;
+            }
+            //std::cout << "percentile " << i * ((double)100/num_pctl) << "~" << (i + 1) * ((double)100/num_pctl) << ",";
+            std::cout << (i + 1) * ((double)100/num_pctl) << ", ";
+            uint32_t sum_at_curr_pctl = 0;
+            for (uint32_t j = 0; j < params.weights.size(); j++) {
+                sum_at_curr_pctl += flows_by_prio_percentile[i][j].size();
+                //std::cout << "prio[" << j << "]: " << flows_by_prio_percentile[i][j].size() << std::endl;
+            }
+            double qos_H_dist;
+            for (uint32_t j = 0; j < params.weights.size(); j++) {
+                double dist = (double)flows_by_prio_percentile[i][j].size() / sum_at_curr_pctl * 100;
+                if (j == 0) {
+                    qos_H_dist = dist;
+                }
+                if (j < params.weights.size() - 1) {
+                    std::cout << dist << "/";
+                } else {
+                    std::cout << dist << ", ";
+                }
+                if (i == flows_by_prio_percentile.size() - 1) {
+                    final_dist.push_back(dist);
+                }
+            }
+            std::cout << qos_H_dist << ", ";
+            //uint32_t median = flows_by_prio_percentile[i][0].size() * 0.5;
+            uint32_t tail_999_h = flows_by_prio_percentile[i][0].size() * 0.999;
+            uint32_t tail_999_m = flows_by_prio_percentile[i][1].size() * 0.999;
+            std::sort(flows_by_prio_percentile[i][0].begin(), flows_by_prio_percentile[i][0].end(), [](Flow *lhs, Flow *rhs) -> bool {
+                return lhs->flow_completion_time < rhs->flow_completion_time;
+            });
+            std::sort(flows_by_prio_percentile[i][1].begin(), flows_by_prio_percentile[i][1].end(), [](Flow *lhs, Flow *rhs) -> bool {
+                return lhs->flow_completion_time < rhs->flow_completion_time;
+            });
+            std::cout << std::setprecision(2) << std::fixed;
+            //std::cout << flows_by_prio_percentile[i][0][median]->flow_completion_time * 1e6 << ", "
+            //    << flows_by_prio_percentile[i][0][tail_999]->flow_completion_time * 1e6;
+            std::cout << flows_by_prio_percentile[i][0][tail_999_h]->flow_completion_time * 1e6 << ", "
+                    << flows_by_prio_percentile[i][1][tail_999_m]->flow_completion_time * 1e6;
+            std::cout << std::setprecision(6) << std::fixed;
+            //std::cout << ", " << flows_by_prio_percentile[i][0][0]->start_time << std::endl;
+            std::cout << ", " << flows_by_prio_percentile[i][0].back()->start_time << std::endl;
+            std::cout << std::setprecision(1) << std::fixed;
         }
-    }
-    //std::cout << "," << final_dist[0] << std::endl;
-    std::cout << "," << final_dist[0] << ",";
-    for (uint32_t i = 0; i < final_avg_qos_dist.size(); i++) {
-        std::cout << final_avg_qos_dist[i];
-        if (i < final_avg_qos_dist.size() - 1) {
-            std::cout << "/";
+
+        // easy copy&paste for useful results:
+        std::cout << std::setprecision(2) << std::fixed;
+        std::cout << "[][][]: ";
+        for (uint32_t i = 0; i < useful_results.size(); i++) {
+            std::cout << useful_results[i] << ",";
         }
+        std::cout << std::setprecision(1) << std::fixed;
+        for (uint32_t i = 0; i < final_dist.size(); i++) {
+            if (i < final_dist.size() - 1) {
+                std::cout << final_dist[i] << "/";
+            } else {
+                //std::cout << final_dist[i] << std::endl;
+                std::cout << final_dist[i];
+            }
+        }
+        //std::cout << "," << final_dist[0] << std::endl;
+        std::cout << "," << final_dist[0] << ",";
+        for (uint32_t i = 0; i < final_avg_qos_dist.size(); i++) {
+            std::cout << final_avg_qos_dist[i];
+            if (i < final_avg_qos_dist.size() - 1) {
+                std::cout << "/";
+            }
+        }
+        std::cout << "," << final_avg_qos_dist[0] << std::endl;
+        std::cout << std::setprecision(2) << std::fixed;
     }
-    std::cout << "," << final_avg_qos_dist[0] << std::endl;
-    std::cout << std::setprecision(2) << std::fixed;
 
 
     if (params.host_type == 6) { // per host dist is only meaningful to Veritas
