@@ -1,6 +1,7 @@
 #ifndef CORESIM_NODE_H
 #define CORESIM_NODE_H
 
+#include <stdint.h>
 #include <vector>
 #include <queue>
 

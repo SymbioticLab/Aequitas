@@ -4,7 +4,7 @@
 #include <cmath>
 #include <cstdint>
 #include <iostream>
-#include <limits.h>
+#include <limits>
 #include <unordered_set>
 
 #include "../coresim/channel.h"

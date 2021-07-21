@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <math.h>
+#include <iomanip>
 
 #include "../coresim/event.h"
 #include "../coresim/flow.h"

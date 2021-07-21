@@ -1,5 +1,7 @@
 #include "topology.h"
 
+#include <assert.h>
+
 #include "flow.h"
 #include "packet.h"
 #include "queue.h"

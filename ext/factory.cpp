@@ -1,6 +1,7 @@
 #include "factory.h"
 
 #include <iostream>
+#include <assert.h>
 
 #include "../coresim/agg_channel.h"
 #include "../coresim/channel.h"

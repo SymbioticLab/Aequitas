@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <algorithm>
+#include <assert.h>
 
 #include "../coresim/event.h"
 #include "../coresim/flow.h"

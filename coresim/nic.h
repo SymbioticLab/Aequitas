@@ -1,6 +1,7 @@
 #ifndef CORESIM_NIC_H
 #define CORESIM_NIC_H
 
+#include <stdint.h>
 #include <vector>
 
 class Host;

@@ -1,6 +1,7 @@
 #include "node.h"
 
 #include <iostream>
+#include <assert.h>
 
 #include "agg_channel.h"
 #include "flow.h"

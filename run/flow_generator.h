@@ -14,6 +14,7 @@
 #include <set>
 #include <math.h>
 #include <assert.h>
+#include <deque>
 
 #include "params.h"
 
