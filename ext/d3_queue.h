@@ -21,6 +21,7 @@ class D3Queue : public Queue {
     double demand_counter;
     double allocation_counter;
     double base_rate;
+    double real_base_rate;
 };
 
 #endif  // EXT_D3_QUEUE_H

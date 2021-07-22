@@ -22,7 +22,9 @@ D3Queue::D3Queue(uint32_t id, double rate, uint32_t limit_bytes, int location)
     : Queue(id, rate, limit_bytes, location) {
         this->demand_counter = 0;
         this->allocation_counter = 0;
-        this->base_rate = 0.1 * rate;   // double check on this
+        this->base_rate = 0;        // base_rate is a very small value that can only send out a header-only pkt;
+        // We set the value of base_rate used in the rate allocation algo to be set to 0 to prevent allocation_counter > rate
+        this->real_base_rate = 0.1 * rate;   // D3queue will use this rate to when a pkt gets assigned "base_rate"
     }
 
 //D3Queue::~D3Queue() {};
@@ -32,8 +34,11 @@ void D3Queue::enque(Packet *packet) {
     Queue::enque(packet);
 }
 
+// TODO: make D3's deque a batch deque
 Packet *D3Queue::deque(double deque_time) {
-    if (bytes_in_queue > 0) {
+    // since in D3 some packets has 0 size (e.g., syn, syn_ack, empty data pkts), we can't check with bytes_in_queue
+    //if (bytes_in_queue > 0) {
+    if (!packets.empty()) {
         Packet *p = packets.front();
         packets.pop_front();
         bytes_in_queue -= p->size;
@@ -61,9 +66,11 @@ void D3Queue::allocate_rate(Packet *packet) {
     allocation_counter -= packet->prev_allocated_rate;
     demand_counter = demand_counter - packet->prev_desired_rate + packet->desired_rate;
     left_capacity = rate - allocation_counter;
+    assert(left_capacity >= 0);
     fair_share = (rate - demand_counter) / num_active_flows;
-    assert(fair_share > 0);
     std::cout << std::setprecision(2) << std::fixed;
+    std::cout << "demand_counter = " << demand_counter/1e9 << std::endl;
+    assert(fair_share > 0);
     std::cout << "At D3 Queue[" << unique_id << "]:" << std::endl;
     std::cout << "allocate rate for Packet[" << packet->unique_id << "] from Flow["<< packet->flow->id << "]; type = " << packet->type << " at Queue[" << unique_id << "]" << std::endl;
     std::cout << "num_active_flows = " << num_active_flows << "; prev allocated = " << packet->prev_allocated_rate/1e9
@@ -77,10 +84,17 @@ void D3Queue::allocate_rate(Packet *packet) {
         rate_to_allocate = left_capacity;
     }
     rate_to_allocate = std::max(rate_to_allocate, base_rate);
+    if (rate_to_allocate == base_rate) {
+        packet->marked_base_rate = true;
+    }
+    // Yiwen: set base_rate value to be 0 to prevent allocation_counter > rate; otherwise left_capacity becomes negative in next RTT
     allocation_counter += rate_to_allocate;
     std::cout << "rate_to_allocate = " << rate_to_allocate/1e9 << " Gbps; desired_rate = " << packet->desired_rate/1e9 << " Gbps." << std::endl;
     std::cout << std::setprecision(15) << std::fixed;
 
+    if (packet->marked_base_rate) {
+        rate_to_allocate = real_base_rate;
+    }
     packet->curr_rates_per_hop.push_back(rate_to_allocate);
 }
 
@@ -102,10 +116,10 @@ void D3Queue::drop(Packet *packet) {
     }
 
     if (packet->type == SYN_PACKET) {
-        assert(false);  //TODO: impl syn pkt retransmission if this ever happens
+        assert(false);  //TODO: impl syn pkt retransmission if this ever happens; -> made syn pkt zero byte so it can't be dropped
     }
     if (packet->type == SYN_ACK_PACKET) {
-        assert(false);  //TODO: impl syn_ack pkt retransmission if this ever happens
+        assert(false);  //TODO: impl syn_ack pkt retransmission if this ever happens -> made it zero byte so it can't be dropped
     }
     if (packet->type == ACK_PACKET) {
         packet->flow->ack_pkt_drop++;

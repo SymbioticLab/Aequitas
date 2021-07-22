@@ -59,6 +59,7 @@ class Packet {
         int hop_count;                              // used to index curr_rates_per_hop when calculation transmission delay
         double desired_rate;
         double prev_desired_rate;
+        bool marked_base_rate;                      // so that D3queue takes special care of it
         std::vector<Queue *> traversed_queues;      // stored by ACK pkt; used by D3Queue to decrement num_active_flows when the final ACK is received
 };
 

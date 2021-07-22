@@ -33,6 +33,7 @@ Packet::Packet(
     this->desired_rate = 0;
     this->prev_desired_rate = 0;
     this->hop_count = -1;
+    this->marked_base_rate = false;
 }
 
 Packet::~Packet() {}
