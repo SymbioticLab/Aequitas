@@ -64,19 +64,26 @@ void D3Queue::allocate_rate(Packet *packet) {
         num_active_flows++;
     }
     allocation_counter -= packet->prev_allocated_rate;
-    demand_counter = demand_counter - packet->prev_desired_rate + packet->desired_rate;
+    double temp_demand_counter = demand_counter - packet->prev_desired_rate + packet->desired_rate;
     left_capacity = rate - allocation_counter;
     assert(left_capacity >= 0);
+    if (temp_demand_counter < rate) {   // only update the demand_counter when its new value will not exceed line rate
+        demand_counter = temp_demand_counter;
+    } else {    // otherwise its desired_rate can't be satisfied, and we only grant it "base_rate" and instead forward the packet as a header-only RRQ (rate request) packet
+        packet->marked_base_rate = true;
+        rate_to_allocate = base_rate;       // case 1 for assigning base rate
+    }
     fair_share = (rate - demand_counter) / num_active_flows;
-    std::cout << std::setprecision(2) << std::fixed;
-    std::cout << "demand_counter = " << demand_counter/1e9 << std::endl;
     assert(fair_share > 0);
-    std::cout << "At D3 Queue[" << unique_id << "]:" << std::endl;
-    std::cout << "allocate rate for Packet[" << packet->unique_id << "] from Flow["<< packet->flow->id << "]; type = " << packet->type << " at Queue[" << unique_id << "]" << std::endl;
-    std::cout << "num_active_flows = " << num_active_flows << "; prev allocated = " << packet->prev_allocated_rate/1e9
-        << "; prev desired = " << packet->prev_desired_rate/1e9 << "; desired = " << packet->desired_rate/1e9 << std::endl;
-    std::cout << "allocation_counter = " << allocation_counter/1e9
-        << "; demand_counter = " << demand_counter/1e9 << "; left_capacity = " << left_capacity/1e9 << "; fair_share = " << fair_share/1e9 << std::endl;
+    if (params.debug_event_info) {
+        std::cout << std::setprecision(2) << std::fixed;
+        std::cout << "At D3 Queue[" << unique_id << "]:" << std::endl;
+        std::cout << "allocate rate for Packet[" << packet->unique_id << "] from Flow["<< packet->flow->id << "]; type = " << packet->type << " at Queue[" << unique_id << "]" << std::endl;
+        std::cout << "num_active_flows = " << num_active_flows << "; prev allocated = " << packet->prev_allocated_rate/1e9
+            << "; prev desired = " << packet->prev_desired_rate/1e9 << "; desired = " << packet->desired_rate/1e9 << std::endl;
+        std::cout << "allocation_counter = " << allocation_counter/1e9
+            << "; demand_counter = " << demand_counter/1e9 << "; left_capacity = " << left_capacity/1e9 << "; fair_share = " << fair_share/1e9 << std::endl;
+    }
 
     if (left_capacity > packet->desired_rate) {
         rate_to_allocate = packet->desired_rate + fair_share;
@@ -85,12 +92,14 @@ void D3Queue::allocate_rate(Packet *packet) {
     }
     rate_to_allocate = std::max(rate_to_allocate, base_rate);
     if (rate_to_allocate == base_rate) {
-        packet->marked_base_rate = true;
+        packet->marked_base_rate = true;    // case 2 for assigning base rate; this happens when 'rate_to_allocate' = 0 (because 'base_rate' is set to 0)
     }
     // Yiwen: set base_rate value to be 0 to prevent allocation_counter > rate; otherwise left_capacity becomes negative in next RTT
     allocation_counter += rate_to_allocate;
-    std::cout << "rate_to_allocate = " << rate_to_allocate/1e9 << " Gbps; desired_rate = " << packet->desired_rate/1e9 << " Gbps." << std::endl;
-    std::cout << std::setprecision(15) << std::fixed;
+    if (params.debug_event_info) {
+        std::cout << "rate_to_allocate = " << rate_to_allocate/1e9 << " Gbps; desired_rate = " << packet->desired_rate/1e9 << " Gbps." << std::endl;
+        std::cout << std::setprecision(15) << std::fixed;
+    }
 
     if (packet->marked_base_rate) {
         rate_to_allocate = real_base_rate;

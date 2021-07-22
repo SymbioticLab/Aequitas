@@ -248,7 +248,6 @@ void D3Flow::receive_data_pkt(Packet* p) {
 void D3Flow::receive_syn_pkt(Packet *syn_pkt) {
     // basically calling send_ack_d3(), but send a SynAck pkt instead of a normal Ack.
     ////Packet *p = new SynAck(this, 0, hdr_size, dst, src);  //Acks are dst->src
-    std::cout << "PUPU receiving syn pkt" << std::endl;
     Packet *p = new SynAck(this, 0, 0, dst, src);  //Acks are dst->src; made its size=0
     p->prev_allocated_rate = *std::min_element(syn_pkt->curr_rates_per_hop.begin(), syn_pkt->curr_rates_per_hop.end());
     p->desired_rate = syn_pkt->desired_rate;
