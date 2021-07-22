@@ -34,10 +34,33 @@ void D3Flow::start_flow() {
     //send_pending_data();      // can't send data pkts yet; only after received the syn_ack pkt
 }
 
-// TODO: for D3Flow, make syn pkt not counting hdr_size (or maybe not; test it first)
+// TODO: for D3Flow, make syn pkt not counting hdr_size (or maybe not; tes
 // send out the SYN (first "Rate Request packet" in D3)
 // later RRQ pkts are "piggybacked in data pkts" so only need the first one
 // send_syn_pkt() is called right after start_flow() so it's going to be ahead of all other data pkts
+// SYN, SYN_ACK, FIN, and header-only DATA pkt (in this case, it is treated as a RRQ or Rate Request packet) all has 0 size so they can never be dropped
+void D3Flow::send_fin_pkt() {
+    Packet *p = new Fin(
+            get_current_time(),
+            prev_desired_rate,
+            prev_allocated_rate,
+            this,
+            0,  // made it 0 size so it can't be dropped 
+            src,
+            dst
+            );
+    Queue *next_hop = topology->get_next_hop(p, src->queue);
+    PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);  // adding a pd since we skip the source queue
+    //PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time(), p, src->queue);
+    add_to_event_queue(event);
+    if (params.debug_event_info) {
+        std::cout << "Host[" << src->id << "] sends out Fin Packet[" << p->unique_id << "] from Flow[" << id << "] at time: " << get_current_time() << std::endl;
+    }
+}
+
+// once the ACK of the last data pkt is received, send a FIN packet to return the flow's desired & allocated rate to all the D3queues on its path.
+// Note we mark flow completion when ACK of the last data pkt is received (as usual) instead of after the FIN packet is processed or the ACK of it is received (and this is no ACK to the FIN pkt)
+// like other header-only packet, FIN can not be dropped since its size is set to 0.
 void D3Flow::send_syn_pkt() {
     Packet *p = new Syn(
             get_current_time(),
@@ -166,8 +189,9 @@ void D3Flow::receive(Packet *p) {
         receive_syn_pkt(p);
     } else if (p->type == SYN_ACK_PACKET) {
         receive_syn_ack_pkt(p);
-    }
-    else {
+    } else if (p->type == FIN_PACKET) {
+        receive_fin_pkt(p);
+    } else {
         assert(false);
     }
 
@@ -239,6 +263,11 @@ void D3Flow::receive_syn_ack_pkt(Packet *p) {
     send_pending_data();
 }
 
+void D3Flow::receive_fin_pkt(Packet *p) {
+    // nothing to do here since we decide to mark flow completion early at the receive of the last data ACK
+    assert(finished);
+}
+
 // D3's version of send_ack(), which takes an addition input parameter (data_pkt) to send the allocated_rate back to the source via ACK pkt
 void D3Flow::send_ack_d3(uint64_t seq, std::vector<uint64_t> sack_list, double pkt_start_ts, Packet *data_pkt) {
     // log the min of all allocated rates in this RTT and send back via ACK pkt
@@ -291,6 +320,8 @@ void D3Flow::receive_ack_d3(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sa
         */
     }
 
+    // Yiwen: since we don't implement FIN packet for other work, I will still use the last DATA ACK to mark the completion of a flow for D3 as a courtesy
+    // Here the FIN pkt can never be dropped so its rate return will always be done.
     if (ack == size && !finished) {
         finished = true;
         received.clear();
@@ -303,6 +334,9 @@ void D3Flow::receive_ack_d3(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sa
         for (int i = 0; i < ack_pkt->traversed_queues.size(); i++) {
             ack_pkt->traversed_queues[i]->num_active_flows--;
         }
+
+        // send out a FIN pkt to return the desired and allocated rate of this flow during the last RTT to the routers(queues) on its path
+        send_fin_pkt();
     }
 }
 

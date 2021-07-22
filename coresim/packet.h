@@ -8,6 +8,7 @@
 #define ACK_PACKET 1
 #define SYN_PACKET 2        // used by D3; SYN/First Rate Request packet
 #define SYN_ACK_PACKET 11   // used by D3; ACK to the SYN/First RR packet
+#define FIN_PACKET 12       // used by D3;
 
 #define RTS_PACKET 3
 #define CTS_PACKET 4
@@ -85,6 +86,11 @@ class Syn : public Packet {
 class SynAck : public Packet {
     public:
         SynAck(Flow *flow, uint64_t seq_no_acked, uint32_t size, Host* src, Host* dst);
+};
+
+class Fin : public Packet {
+    public:
+        Fin(double sending_time, double prev_desired_rate, double prev_allocated_rate, Flow *flow, uint32_t size, Host *src, Host *dst);
 };
 
 class RTSCTS : public Packet {

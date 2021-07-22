@@ -57,6 +57,14 @@ Syn::Syn(double sending_time, double desired_rate, Flow *flow, uint32_t size, Ho
     this->start_ts = sending_time;      // start_ts is only used for RTT measurements; it's a don't-care for Syn pkts
 }
 
+Fin::Fin(double sending_time, double prev_desired_rate, double prev_allocated_rate, Flow *flow, uint32_t size, Host *src, Host *dst)
+        : Packet(sending_time, flow, 0, 0, size, src, dst) {
+    this->type = FIN_PACKET;
+    this->desired_rate = 0;                             // Fin's desired_rate must be set to 0
+    this->prev_desired_rate = prev_desired_rate;        // return prev desired rate
+    this->prev_allocated_rate = prev_allocated_rate;    // return prev allocated rate
+}
+
 RTSCTS::RTSCTS(bool type, double sending_time, Flow *f, uint32_t size, Host *src, Host *dst) : Packet(sending_time, f, 0, 0, f->hdr_size, src, dst) {
     if (type) {
         this->type = RTS_PACKET;
