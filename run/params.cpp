@@ -22,6 +22,7 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
     params.num_agg_switches = 9;
     params.num_core_switches = 4;
     params.weights = std::vector<int>();
+    params.targets = std::vector<double>();
     params.hardcoded_targets = std::vector<double>();
     params.qos_ratio = std::vector<double>();
     params.buffer_carving = std::vector<int>();
@@ -495,6 +496,21 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
             }
             std::cout << std::endl;
         }
+        else if (key == "targets") {
+            std::string temp_str;
+            lineStream >> temp_str;
+            std::stringstream ss(temp_str);
+            while (ss.good()) {
+                std::string target;
+                getline(ss, target, ',');
+                params.targets.push_back(stod(target));
+            }
+            std::cout << "Final targets (unnormalized latency) (for counting traffic meeting SLOs): ";
+            for (auto i: params.targets) {
+                std::cout << i << " ";
+            }
+            std::cout << std::endl;
+        }
         else if (key == "qjump_tput_factor") {
             std::string temp_str;
             lineStream >> temp_str;
@@ -658,10 +674,10 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
         std::cout << "downgrade batch size: " <<  params.downgrade_batch_size << std::endl;
         std::cout << "upgrade batch size: " <<  params.upgrade_batch_size << std::endl;
         std::cout << "expiration count: " <<  params.expiration_count << std::endl;
-        params.targets.resize(params.weights.size() - 1);
-        for (uint32_t i = 0; i < params.weights.size() - 1; i++) {
-            params.targets[i] = params.high_prio_lat_target * ((double)params.weights[0] / params.weights[i]);
-        }
+        //params.targets.resize(params.weights.size() - 1);
+        //for (uint32_t i = 0; i < params.weights.size() - 1; i++) {
+        //    params.targets[i] = params.high_prio_lat_target * ((double)params.weights[0] / params.weights[i]);
+        //}
     } else {
         std::cout << "Disable Priority Downgrade." << std::endl;
     }

@@ -566,12 +566,18 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
             std::cout << "Priority " << i << ": (0 Flow)" << std::endl;
         } else {
             uint32_t median = flows_by_prio[i].size() / 2;
+            uint32_t tail_70 = flows_by_prio[i].size() * 0.70;
+            uint32_t tail_80 = flows_by_prio[i].size() * 0.80;
+            uint32_t tail_90 = flows_by_prio[i].size() * 0.90;
             uint32_t tail_99 = flows_by_prio[i].size() * 0.99;
             uint32_t tail_999 = flows_by_prio[i].size() * 0.999;
             uint32_t total_max = flows_by_prio[i].size() - 1;
             uint32_t median_refined_mid_80 = median;
             ////uint32_t tail_10_refined_mid_80 = flows_by_prio[i].size() * (0.1 + 0.8 * 0.10);
             ////uint32_t tail_30_refined_mid_80 = flows_by_prio[i].size() * (0.1 + 0.8 * 0.30);
+            uint32_t tail_70_refined_mid_80 = flows_by_prio[i].size() * (0.1 + 0.8 * 0.70);
+            uint32_t tail_80_refined_mid_80 = flows_by_prio[i].size() * (0.1 + 0.8 * 0.80);
+            uint32_t tail_90_refined_mid_80 = flows_by_prio[i].size() * (0.1 + 0.8 * 0.90);
             uint32_t tail_99_refined_mid_80 = flows_by_prio[i].size() * (0.1 + 0.8 * 0.99);
             uint32_t tail_999_refined_mid_80 = flows_by_prio[i].size() * (0.1 + 0.8 * 0.999);
             uint32_t mid_80_max = flows_by_prio[i].size() * 0.9 - 1;
@@ -588,8 +594,12 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
                 << " Flows, Finished/Unf: " << flows_by_prio[i].size() << "/"
                 << unfinished_flows_by_prio[i] << ")" << " (Assigned: " << num_flow_assigned_per_prio[i] + num_flow_assigned_per_prio_unf[i]
                 << ", Finished/Unf: " << num_flow_assigned_per_prio[i] << "/" <<  num_flow_assigned_per_prio_unf[i] << ")" << std::endl
-                << "FCT (in us) (100% RPCs) (Median, 99th, 99.9th, max) = "
+                ////<< "FCT (in us) (100% RPCs) (Median, 99th, 99.9th, max) = "
+                << "FCT (in us) (100% RPCs) (Median, 70th, 80th, 90th, 99th, 99.9th, max) = "
                 << flows_by_prio[i][median]->flow_completion_time * 1000000 << ", "
+                << flows_by_prio[i][tail_70]->flow_completion_time * 1000000 << ", "
+                << flows_by_prio[i][tail_80]->flow_completion_time * 1000000 << ", "
+                << flows_by_prio[i][tail_90]->flow_completion_time * 1000000 << ", "
                 << flows_by_prio[i][tail_99]->flow_completion_time * 1000000 << ", "
                 << flows_by_prio[i][tail_999]->flow_completion_time * 1000000 << ", "
                 << flows_by_prio[i][total_max]->flow_completion_time * 1000000 << std::endl
@@ -599,11 +609,15 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
                 //<< flows_by_prio_cp4[i][tail_99_refined_first_half]->flow_completion_time * 1000000 << ", "
                 //<< flows_by_prio_cp4[i][tail_999_refined_first_half]->flow_completion_time * 1000000 << ", "
                 //<< flows_by_prio_cp4[i][first_half_max]->flow_completion_time * 1000000 << std::endl
-                << "FCT (in us) (mid 80% RPCs) (Median, 99th, 99.9th, max) = "
+                ////<< "FCT (in us) (mid 80% RPCs) (Median, 99th, 99.9th, max) = "
+                << "FCT (in us) (mid 80% RPCs) (Median, 70th, 80th, 90th, 99th, 99.9th, max) = "
                 ////<< "FCT (in us) (mid 80% RPCs) (10th, 30th, Median, 99th, 99.9th, max) = "
                 ////<< flows_by_prio_cp3[i][tail_10_refined_mid_80]->flow_completion_time * 1000000 << ", "
                 ////<< flows_by_prio_cp3[i][tail_30_refined_mid_80]->flow_completion_time * 1000000 << ", "
                 << flows_by_prio_cp3[i][median_refined_mid_80]->flow_completion_time * 1000000 << ", "
+                << flows_by_prio_cp3[i][tail_70_refined_mid_80]->flow_completion_time * 1000000 << ", "
+                << flows_by_prio_cp3[i][tail_80_refined_mid_80]->flow_completion_time * 1000000 << ", "
+                << flows_by_prio_cp3[i][tail_90_refined_mid_80]->flow_completion_time * 1000000 << ", "
                 << flows_by_prio_cp3[i][tail_99_refined_mid_80]->flow_completion_time * 1000000 << ", "
                 << flows_by_prio_cp3[i][tail_999_refined_mid_80]->flow_completion_time * 1000000 << ", "
                 << flows_by_prio_cp3[i][mid_80_max]->flow_completion_time * 1000000 << std::endl
@@ -1162,6 +1176,7 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
     */
 
     // method (2): count from initially assigned priority
+    /*
     for (uint32_t i = 0; i < params.num_qos_level - 1; i++) {
         uint32_t num_RPCs = flows_by_init_prio[i].size();
         double pctg_passed = 0;
@@ -1172,18 +1187,53 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
             }
         }
         pctg_passed = (double) count / num_RPCs * 100;
-        /*
-        uint32_t first_10th = num_RPCs * 0.1;
-        uint32_t last_10th = num_RPCs * 0.9;
-        for (uint32_t j = first_10th; j < last_10th; j++) {
-            if (flows_by_init_prio[i][j]->finished && flows_by_init_prio[i][j]->flow_completion_time * 1e6 <= params.hardcoded_targets[i]) {
-                count++;
-            }
-        }
+        // no need for counting mid 80%; numbers are pretty close
+        //uint32_t first_10th = num_RPCs * 0.1;
+        //uint32_t last_10th = num_RPCs * 0.9;
+        //for (uint32_t j = first_10th; j < last_10th; j++) {
+        //    if (flows_by_init_prio[i][j]->finished && flows_by_init_prio[i][j]->flow_completion_time * 1e6 <= params.hardcoded_targets[i]) {
+        //        count++;
+        //    }
+        //}
+        ////
         pctg_passed = (double) count / (num_RPCs * 0.8) * 100;
-        */
         std::cout << pctg_passed << "% out of Priority[" << i << "] RPCs passed the target(" << params.hardcoded_targets[i] << " us)" << std::endl;
     }
+    */
+
+    // method (3): count from initially assigned priority and count in terms of bytes instead of # of RPCs; use final target instead of downgrade targets
+    for (uint32_t i = 0; i < params.num_qos_level - 1; i++) {
+        uint32_t num_RPCs = flows_by_init_prio[i].size();
+        uint64_t sum_bytes = 0;
+        double pctg_passed_bytes = 0;
+        double pctg_passed_num_rpcs = 0;
+        uint32_t num_RPCs_passed = 0;
+        uint64_t bytes_passed = 0;
+        for (uint32_t j = 0; j < flows_by_init_prio[i].size(); j++) {
+            sum_bytes += flows_by_init_prio[i][j]->size;
+            //double flow_completion_time;
+            //if (!params.print_normalized_result && params.normalized_lat) {
+            //    flow_completion_time = flows_by_init_prio[i][j]->flow_completion_time / flows_by_init_prio[i][j]->size_in_pkt;
+            //} else {
+            //    flow_completion_time = flows_by_init_prio[i][j]->flow_completion_time;
+            //}
+            //double flow_completion_time = flows_by_init_prio[i][j]->flow_completion_time / flows_by_init_prio[i][j]->size_in_pkt;
+            //if (flows_by_init_prio[i][j]->finished && flow_completion_time * 1e6 <= params.hardcoded_targets[i]) {
+            if (flows_by_init_prio[i][j]->finished && flows_by_init_prio[i][j]->flow_completion_time * 1e6 <= params.targets[i]) {
+                bytes_passed += flows_by_init_prio[i][j]->size;
+                num_RPCs_passed++;
+            }
+        }
+        pctg_passed_bytes = (double) bytes_passed / sum_bytes * 100;
+        pctg_passed_num_rpcs = (double) num_RPCs_passed / num_RPCs * 100;
+        //std::cout << "bytse_passed = " << bytes_passed << "; sum_bytes = " << sum_bytes << std::endl;
+        //std::cout << pctg_passed << "% out of Priority[" << i << "] traffic (bytes) passed the target(" << params.hardcoded_targets[i] << " us)" << std::endl;
+        std::cout << pctg_passed_num_rpcs << "% out of Priority[" << i << "] RPCs passed the target(" << params.targets[i] << " us)" << std::endl;
+        std::cout << pctg_passed_bytes << "% out of Priority[" << i << "] traffic (bytes) passed the target(" << params.targets[i] << " us)" << std::endl;
+        //std::cout << pctg_passed_num_rpcs << "% out of Priority[" << i << "] RPCs passed the target(" << params.hardcoded_targets[i] << " us)" << std::endl;
+        //std::cout << pctg_passed_bytes << "% out of Priority[" << i << "] traffic (bytes) passed the target(" << params.hardcoded_targets[i] << " us)" << std::endl;
+    }
+
 
     double sum_inst_load = 0;
     for (const auto &x: switch_max_inst_load) {
