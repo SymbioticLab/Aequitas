@@ -102,7 +102,10 @@ void D3Queue::allocate_rate(Packet *packet) {
     }
 
     if (packet->marked_base_rate) {
-        rate_to_allocate = real_base_rate;
+        rate_to_allocate = real_base_rate;  // 'real_base_rate' is set to be a small value so that the header-only packet can be sent out
+        if (packet->type == NORMAL_PACKET) {    // for DATA packet, remove its data payload and make it a header-only packet (so it becomes a RRQ packet)
+            packet->size = 0;   // remove payload; seq_no remains the same
+        }
     }
     packet->curr_rates_per_hop.push_back(rate_to_allocate);
 }

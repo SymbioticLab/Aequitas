@@ -98,7 +98,8 @@ double D3Flow::calculate_desired_rate() {
     return curr_desired_rate;
 }
 
-// Flow::send_pending_data()
+// TODO: send data in a rate that is determined by the router.
+// The router can further determine the rate allocation there, but at the hosts the rate sending out should be proper rate-limited.
 void D3Flow::send_pending_data() {
     uint32_t pkts_sent = 0;
     uint64_t seq = next_seq_no;
@@ -207,18 +208,26 @@ void D3Flow::receive_data_pkt(Packet* p) {
     }
     last_data_pkt_receive_time = get_current_time();
 
-    if (received.count(p->seq_no) == 0) {
-        received[p->seq_no] = true;
-        if(num_outstanding_packets >= ((p->size - hdr_size) / (mss)))
-            num_outstanding_packets -= ((p->size - hdr_size) / (mss));
-        else
-            num_outstanding_packets = 0;
-        received_bytes += (p->size - hdr_size);
+    if (p->marked_base_rate) {  // for header-only data pkt whose payload is removed
+        std::cout << "receive data pkt with zero payload." << std::endl;
+        assert(p->size == 0);
+        if (num_outstanding_packets > 0) {
+            num_outstanding_packets--;
+        }
     } else {
-        duplicated_packets_received += 1;
-    }
-    if (p->seq_no > max_seq_no_recv) {
-        max_seq_no_recv = p->seq_no;
+        if (received.count(p->seq_no) == 0) {
+            received[p->seq_no] = true;
+            if (num_outstanding_packets >= ((p->size - hdr_size) / (mss)))
+                num_outstanding_packets -= ((p->size - hdr_size) / (mss));
+            else
+                num_outstanding_packets = 0;
+            received_bytes += (p->size - hdr_size);
+        } else {
+            duplicated_packets_received += 1;
+        }
+        if (p->seq_no > max_seq_no_recv) {
+            max_seq_no_recv = p->seq_no;
+        }
     }
     // Determing which ack to send
     uint64_t s = recv_till;
@@ -241,6 +250,10 @@ void D3Flow::receive_data_pkt(Packet* p) {
         s += mss;
     }
 
+    if (params.debug_event_info) {
+        std::cout << "Flow[" << id << "] receive_data_pkt: max_seq_no_recv = " << max_seq_no_recv << "; data pkt seq no = " << p->seq_no
+            << "; recv_till (seq for next ACK) = " << recv_till << std::endl;
+    }
     //std::cout << "Flow[" << id << "] receive_data_pkt: received_count = " << received_count << "; received_bytes = " << received_bytes << std::endl;
     send_ack_d3(recv_till, sack_list, p->start_ts, p); // Cumulative Ack
 }

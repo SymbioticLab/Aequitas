@@ -74,7 +74,7 @@ class Flow {
         std::unordered_map<uint64_t, bool> received;
         uint32_t received_bytes;
         uint64_t recv_till;
-        uint64_t max_seq_no_recv;
+        uint64_t max_seq_no_recv;       // Yiwen: TBH, I think the name should be 'max_seq_recv' based on the logic implemented in this simulator
         std::vector<uint64_t> received_seq;
 
         uint32_t total_pkt_sent;

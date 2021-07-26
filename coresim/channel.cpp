@@ -303,7 +303,8 @@ void Channel::receive_data_pkt(Packet* p) {
     }
 
     if (params.debug_event_info) {
-        std::cout << "Channel[" << id << "] receive_data_pkt (seq=" << p->seq_no << "): next_end_seq = " << next_end_seq_to_receive << "; received_bytes = " << received_bytes << std::endl;
+        std::cout << "Channel[" << id << "] receive_data_pkt (seq=" << p->seq_no << "): next_end_seq = " << next_end_seq_to_receive << "; received_bytes = " << received_bytes 
+            << "; max_seq_no_recv = " << max_seq_no_recv << "; data pkt seq no = " << p->seq_no << "; recv_till (seq for next ACK) = " << recv_till << std::endl;
     }
     send_ack(recv_till, sack_list, p->start_ts, flow_to_receive);
 }
