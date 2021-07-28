@@ -34,7 +34,7 @@ void D3Queue::enque(Packet *packet) {
     Queue::enque(packet);
 }
 
-// TODO: make D3's deque a batch deque
+// TODO: even in the case of dropping a data pkt, should process its rrq packet info first
 Packet *D3Queue::deque(double deque_time) {
     // since in D3 some packets has 0 size (e.g., syn, syn_ack, empty data pkts), we can't check with bytes_in_queue
     //if (bytes_in_queue > 0) {
@@ -45,8 +45,8 @@ Packet *D3Queue::deque(double deque_time) {
         p_departures += 1;
         b_departures += p->size;
 
-        // calculate allocated rate (a_{t+1}) for this packet
-        if (p->type == SYN_PACKET || p->type == NORMAL_PACKET || p->type == FIN_PACKET) {
+        // calculate allocated rate (a_{t+1}) if the packet is an RRQ (SYN/FIN/first_DATA_pkt_per_RTT)
+        if (p->has_rrq) {
             allocate_rate(p);
         }
         return p;
@@ -57,6 +57,7 @@ Packet *D3Queue::deque(double deque_time) {
 // rtt ~ 300 us in original D3 paper?
 // D3Queue::allocate_rate() follows "Snippet 1" in the original D3 paper
 void D3Queue::allocate_rate(Packet *packet) {
+    assert(packet->type != ACK_PACKET && packet->type != SYN_ACK_PACKET);
     double rate_to_allocate = 0;
     double left_capacity = 0;
     double fair_share = 0;
@@ -66,7 +67,10 @@ void D3Queue::allocate_rate(Packet *packet) {
     allocation_counter -= packet->prev_allocated_rate;
     demand_counter = demand_counter - packet->prev_desired_rate + packet->desired_rate;
     left_capacity = rate - allocation_counter;
-    assert(allocation_counter > 0 && demand_counter > 0 && left_capacity >= 0);
+    //assert(allocation_counter >= 0 && demand_counter >= 0 && left_capacity >= 0);
+    if (allocation_counter < 0 || demand_counter < 0 || left_capacity < 0) {
+        std::cout << "PUPU" << std::endl;
+    }
     fair_share = (rate - demand_counter) / num_active_flows;
     if (fair_share < 0) {   // happens when demand_counter is > rate
         fair_share = 0;
@@ -89,7 +93,7 @@ void D3Queue::allocate_rate(Packet *packet) {
     rate_to_allocate = std::max(rate_to_allocate, base_rate);
     if (rate_to_allocate == base_rate) {
         packet->marked_base_rate = true;    // this happens when 'rate_to_allocate' = 0 (because 'base_rate' is set to 0)
-        std::cout << "PUPU: When rate_to_allocate is equal to base_rate, rate_to_allocate = " << rate_to_allocate << std::endl;
+        //std::cout << "PUPU: When rate_to_allocate is equal to base_rate, rate_to_allocate = " << rate_to_allocate << std::endl;
     }
     // Yiwen: set base_rate value to be 0 to prevent allocation_counter > rate; otherwise left_capacity becomes negative in next RTT
     allocation_counter += rate_to_allocate;
@@ -103,21 +107,18 @@ void D3Queue::allocate_rate(Packet *packet) {
         if (packet->type == NORMAL_PACKET) {    // for DATA packet, remove its data payload and make it a header-only packet (so it becomes a RRQ packet)
             packet->size = 0;   // remove payload; seq_no remains the same
         }
-    }   // if packet is assigned 'base_rate', rate_to_allocate is '0' here. But it will be assigned 'real_base_rate' in D3Queue::get_transmissiong_delay().
+        // if packet is assigned 'base_rate', update rate_to_allocate to 'real_base_rate' so that sender can send out the hdr-only packet for rate request
+        rate_to_allocate = real_base_rate;
+    }
     packet->curr_rates_per_hop.push_back(rate_to_allocate); 
 }
 
 double D3Queue::get_transmission_delay(Packet *packet) {
-    // NOTE: Assume the packet has been enqueud when D3Queue::get_transmission_delay() is called.
     double td;
-    if (packet->type == ACK_PACKET || packet->type == SYN_ACK_PACKET || packet->type == SYN_PACKET || packet->type == FIN_PACKET) {
-        td = params.hdr_size / rate;  // we couldn't use packet->size for D3 related RRQ pkts because we set its size to be 0 in order to avoid dropping them (for simplicity)
-    } else if (packet->type == NORMAL_PACKET && packet->marked_base_rate) {
-        std::cout << "packet[" << packet->unique_id << "]->curr_rates_per_hop[packet->hop_count] = " << packet->curr_rates_per_hop[packet->hop_count] /1e9 << std::endl;
-        assert(packet->curr_rates_per_hop[packet->hop_count] == 0);
-        td = params.hdr_size / real_base_rate;
-    } else {
-        td = packet->size * 8.0 / packet->curr_rates_per_hop[packet->hop_count];
+    if (packet->has_rrq && packet->size == 0) { // add back hdr_size when handling hdr_only RRQ packets (their packet->size is set to 0 to avoid dropping)
+        td = params.hdr_size * 8.0 / rate;
+    } else {    // D3 router forwards other packet normally
+        td = packet->size * 8.0 / rate;
     }
     return td;
 }

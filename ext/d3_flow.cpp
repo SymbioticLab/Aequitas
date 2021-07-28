@@ -161,6 +161,7 @@ Packet *D3Flow::send_with_delay(uint64_t seq, double delay) {
     // Note at this time we have already received the SYN_ACK packet
     if (!has_sent_rrq_this_rtt) {
         p->data_pkt_with_rrq = true;
+        p->has_rrq = true;
         p->prev_desired_rate = prev_desired_rate;
         p->prev_allocated_rate = prev_allocated_rate;
         double desired_rate = calculate_desired_rate();     // calculate desired rate at the beginning of every RTT

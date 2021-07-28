@@ -36,6 +36,7 @@ Packet::Packet(
     this->marked_base_rate = false;
     this->data_pkt_with_rrq = false;
     this->ack_pkt_with_rrq = false;
+    this->has_rrq = false;      // D3 manually sets 'has_rrq' for the first DATA pkt per RTT
 }
 
 Packet::~Packet() {}
@@ -57,6 +58,7 @@ Syn::Syn(double sending_time, double desired_rate, Flow *flow, uint32_t size, Ho
     this->type = SYN_PACKET;
     this->desired_rate = desired_rate;  // set the desired rate (for D3)
     this->start_ts = sending_time;      // start_ts is only used for RTT measurements; it's a don't-care for Syn pkts
+    this->has_rrq = true;
 }
 
 Fin::Fin(double sending_time, double prev_desired_rate, double prev_allocated_rate, Flow *flow, uint32_t size, Host *src, Host *dst)
@@ -65,6 +67,7 @@ Fin::Fin(double sending_time, double prev_desired_rate, double prev_allocated_ra
     this->desired_rate = 0;                             // Fin's desired_rate must be set to 0
     this->prev_desired_rate = prev_desired_rate;        // return prev desired rate
     this->prev_allocated_rate = prev_allocated_rate;    // return prev allocated rate
+    this->has_rrq = true;
 }
 
 RTSCTS::RTSCTS(bool type, double sending_time, Flow *f, uint32_t size, Host *src, Host *dst) : Packet(sending_time, f, 0, 0, f->hdr_size, src, dst) {
