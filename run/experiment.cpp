@@ -1211,14 +1211,6 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
         uint64_t bytes_passed = 0;
         for (uint32_t j = 0; j < flows_by_init_prio[i].size(); j++) {
             sum_bytes += flows_by_init_prio[i][j]->size;
-            //double flow_completion_time;
-            //if (!params.print_normalized_result && params.normalized_lat) {
-            //    flow_completion_time = flows_by_init_prio[i][j]->flow_completion_time / flows_by_init_prio[i][j]->size_in_pkt;
-            //} else {
-            //    flow_completion_time = flows_by_init_prio[i][j]->flow_completion_time;
-            //}
-            //double flow_completion_time = flows_by_init_prio[i][j]->flow_completion_time / flows_by_init_prio[i][j]->size_in_pkt;
-            //if (flows_by_init_prio[i][j]->finished && flow_completion_time * 1e6 <= params.hardcoded_targets[i]) {
             if (flows_by_init_prio[i][j]->finished && flows_by_init_prio[i][j]->flow_completion_time * 1e6 <= params.targets[i]) {
                 bytes_passed += flows_by_init_prio[i][j]->size;
                 num_RPCs_passed++;
@@ -1226,14 +1218,34 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
         }
         pctg_passed_bytes = (double) bytes_passed / sum_bytes * 100;
         pctg_passed_num_rpcs = (double) num_RPCs_passed / num_RPCs * 100;
-        //std::cout << "bytse_passed = " << bytes_passed << "; sum_bytes = " << sum_bytes << std::endl;
-        //std::cout << pctg_passed << "% out of Priority[" << i << "] traffic (bytes) passed the target(" << params.hardcoded_targets[i] << " us)" << std::endl;
-        std::cout << pctg_passed_num_rpcs << "% out of Priority[" << i << "] RPCs passed the target(" << params.targets[i] << " us)" << std::endl;
-        std::cout << pctg_passed_bytes << "% out of Priority[" << i << "] traffic (bytes) passed the target(" << params.targets[i] << " us)" << std::endl;
-        //std::cout << pctg_passed_num_rpcs << "% out of Priority[" << i << "] RPCs passed the target(" << params.hardcoded_targets[i] << " us)" << std::endl;
-        //std::cout << pctg_passed_bytes << "% out of Priority[" << i << "] traffic (bytes) passed the target(" << params.hardcoded_targets[i] << " us)" << std::endl;
+        std::cout << pctg_passed_num_rpcs << "% out of Priority[" << i << "] RPCs passed the final target(" << params.targets[i] << " us)" << std::endl;
+        std::cout << pctg_passed_bytes << "% out of Priority[" << i << "] traffic (bytes) passed the final target(" << params.targets[i] << " us)" << std::endl;
     }
-
+    
+    // method (4) : same as (3) but compare per-packet target instead of final targets
+    if (params.normalized_lat)
+    if (!params.print_normalized_result && params.normalized_lat) {
+        for (uint32_t i = 0; i < params.num_qos_level - 1; i++) {
+            uint32_t num_RPCs = flows_by_init_prio[i].size();
+            uint64_t sum_bytes = 0;
+            double pctg_passed_bytes = 0;
+            double pctg_passed_num_rpcs = 0;
+            uint32_t num_RPCs_passed = 0;
+            uint64_t bytes_passed = 0;
+            for (uint32_t j = 0; j < flows_by_init_prio[i].size(); j++) {
+                sum_bytes += flows_by_init_prio[i][j]->size;
+                double flow_completion_time = flows_by_init_prio[i][j]->flow_completion_time / flows_by_init_prio[i][j]->size_in_pkt;
+                if (flows_by_init_prio[i][j]->finished && flow_completion_time * 1e6 <= params.hardcoded_targets[i]) {
+                    bytes_passed += flows_by_init_prio[i][j]->size;
+                    num_RPCs_passed++;
+                }
+            }
+            pctg_passed_bytes = (double) bytes_passed / sum_bytes * 100;
+            pctg_passed_num_rpcs = (double) num_RPCs_passed / num_RPCs * 100;
+            std::cout << pctg_passed_num_rpcs << "% out of Priority[" << i << "] RPCs passed the per-packet target(" << params.hardcoded_targets[i] << " us)" << std::endl;
+            std::cout << pctg_passed_bytes << "% out of Priority[" << i << "] traffic (bytes) passed the per-packet target(" << params.hardcoded_targets[i] << " us)" << std::endl;
+        }
+    }
 
     double sum_inst_load = 0;
     for (const auto &x: switch_max_inst_load) {
