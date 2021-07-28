@@ -112,8 +112,12 @@ void D3Queue::allocate_rate(Packet *packet) {
         if (params.debug_event_info) {
             std::cout << "assign packet[" << packet->unique_id << "] from Flow[" << packet->flow->id << "] base rate" << std::endl;
         }
-    }
-    // Yiwen: set base_rate value to be 0 to prevent allocation_counter > rate; otherwise left_capacity becomes negative in next RTT
+    } // Yiwen: set base_rate value to be 0 to prevent allocation_counter > rate; otherwise left_capacity becomes negative in next RTT
+
+    if (packet->type == FIN_PACKET) {   // FIN packet should not be assigned rate and add to allocation_counter;
+        rate_to_allocate = 0;       // otherwise it can be assigned with fare share rate
+    }   // Yiwen: decrement of num_active_flows for routers along the path is done all at once when FIN packet is received. This is to prevent any surprises caused by async
+
     allocation_counter += rate_to_allocate;
     if (params.debug_event_info) {
         std::cout << "rate_to_allocate = " << rate_to_allocate/1e9 << " Gbps; allocation counter = " << allocation_counter/1e9 << " Gbps." << std::endl;
