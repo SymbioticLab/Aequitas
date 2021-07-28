@@ -46,7 +46,7 @@ Packet *D3Queue::deque(double deque_time) {
         b_departures += p->size;
 
         // calculate allocated rate (a_{t+1}) for this packet
-        if (p->type == SYN_PACKET || p->type == NORMAL_PACKET) {    // only do this for SYN and DATA pkts
+        if (p->type == SYN_PACKET || p->type == NORMAL_PACKET || p->type == FIN_PACKET) {
             allocate_rate(p);
         }
         return p;
@@ -66,7 +66,7 @@ void D3Queue::allocate_rate(Packet *packet) {
     allocation_counter -= packet->prev_allocated_rate;
     demand_counter = demand_counter - packet->prev_desired_rate + packet->desired_rate;
     left_capacity = rate - allocation_counter;
-    assert(left_capacity >= 0);
+    assert(allocation_counter > 0 && demand_counter > 0 && left_capacity >= 0);
     fair_share = (rate - demand_counter) / num_active_flows;
     if (fair_share < 0) {   // happens when demand_counter is > rate
         fair_share = 0;
@@ -94,7 +94,7 @@ void D3Queue::allocate_rate(Packet *packet) {
     // Yiwen: set base_rate value to be 0 to prevent allocation_counter > rate; otherwise left_capacity becomes negative in next RTT
     allocation_counter += rate_to_allocate;
     if (params.debug_event_info) {
-        std::cout << "rate_to_allocate = " << rate_to_allocate/1e9 << " Gbps; desired_rate = " << packet->desired_rate/1e9 << " Gbps." << std::endl;
+        std::cout << "rate_to_allocate = " << rate_to_allocate/1e9 << " Gbps; allocation counter = " << allocation_counter/1e9 << " Gbps." << std::endl;
         std::cout << std::setprecision(15) << std::fixed;
     }
 
@@ -112,7 +112,7 @@ double D3Queue::get_transmission_delay(Packet *packet) {
     double td;
     if (packet->type == ACK_PACKET || packet->type == SYN_ACK_PACKET || packet->type == SYN_PACKET || packet->type == FIN_PACKET) {
         td = params.hdr_size / rate;  // we couldn't use packet->size for D3 related RRQ pkts because we set its size to be 0 in order to avoid dropping them (for simplicity)
-    } else if (packet->type == NORMAL_PACKET & packet->marked_base_rate) {
+    } else if (packet->type == NORMAL_PACKET && packet->marked_base_rate) {
         std::cout << "packet[" << packet->unique_id << "]->curr_rates_per_hop[packet->hop_count] = " << packet->curr_rates_per_hop[packet->hop_count] /1e9 << std::endl;
         assert(packet->curr_rates_per_hop[packet->hop_count] == 0);
         td = params.hdr_size / real_base_rate;
