@@ -31,7 +31,23 @@ D3Queue::D3Queue(uint32_t id, double rate, uint32_t limit_bytes, int location)
 
 void D3Queue::enque(Packet *packet) {
     packet->hop_count++;        // hop_count starts from -1
-    Queue::enque(packet);
+    p_arrivals += 1;
+    b_arrivals += packet->size;
+    if (bytes_in_queue + packet->size <= limit_bytes) {
+        packets.push_back(packet);
+        bytes_in_queue += packet->size;
+    } else {
+        // We will still keep the header (with 0 size) if the packet contains rate request
+        if (packet->has_rrq && packet->size != 0) {
+            assert(packet->type == NORMAL_PACKET);
+            packet->size = 0;
+            packets.push_back(packet);
+        }
+
+        pkt_drop++;
+        drop(packet);       // drop the payload; also count as 'drop'
+    }
+    packet->enque_queue_size = b_arrivals;
 }
 
 // TODO: even in the case of dropping a data pkt, should process its rrq packet info first

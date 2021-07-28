@@ -214,9 +214,8 @@ void D3Flow::receive_data_pkt(Packet* p) {
     }
     last_data_pkt_receive_time = get_current_time();
 
-    if (p->marked_base_rate) {  // for header-only data pkt whose payload is removed
+    if (p->has_rrq && p->size == 0) {  // for header-only data pkt whose payload is removed
         std::cout << "receive data pkt with zero payload." << std::endl;
-        assert(p->size == 0);
         if (num_outstanding_packets > 0) {
             num_outstanding_packets--;
         }
