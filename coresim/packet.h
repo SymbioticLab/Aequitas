@@ -55,12 +55,15 @@ class Packet {
         uint32_t enque_queue_size;    // in terms of # of bytes enqueued
 
         // for D3
-        double prev_allocated_rate;                 // min of allocated rates from last RTT; to be used in the rate allocation algo next
-        std::vector<double> curr_rates_per_hop;     // rate allocated in the current RTT per hop (queue) 
+        std::vector<double> curr_rates_per_hop;     // rate allocated in the current RTT per hop (queue) by the router
+        double allocated_rate;                      // rate to use for the current RTT; assigned by the router (min of curr_rates_per_hop) via RRQ and sent via ACK or SYN_ACK pkt
         int hop_count;                              // used to index curr_rates_per_hop when calculation transmission delay
-        double desired_rate;
-        double prev_desired_rate;
+        double desired_rate;                        // desired rate for the current RTT; used by the router to assign rates
+        double prev_allocated_rate;                 // past info used by the router; carried by RRQ pkt
+        double prev_desired_rate;                   // past info used by the router; carried by RRQ pkt
         bool marked_base_rate;                      // so that D3queue takes special care of it
+        bool data_pkt_with_rrq;                     // whether a data pkt is piggybacked with an RRQ (rate request) packet
+        bool ack_pkt_with_rrq;                      // true if it is an ack pkt of the data pkt piggbybacked with an RRQ
         std::vector<Queue *> traversed_queues;      // stored by ACK pkt; used by D3Queue to decrement num_active_flows when the final ACK is received
 };
 

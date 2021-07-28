@@ -34,6 +34,8 @@ Packet::Packet(
     this->prev_desired_rate = 0;
     this->hop_count = -1;
     this->marked_base_rate = false;
+    this->data_pkt_with_rrq = false;
+    this->ack_pkt_with_rrq = false;
 }
 
 Packet::~Packet() {}

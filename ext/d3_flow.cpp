@@ -25,7 +25,8 @@ D3Flow::D3Flow(uint32_t id, double start_time, uint32_t size, Host *s,
                          Host *d, uint32_t flow_priority)
     : Flow(id, start_time, size, s, d, flow_priority) {
     // D3Flow does not use conventional congestion control; all CC related OPs (inc/dec cwnd; timeout events, etc) are removed
-    this->cwnd_mss = params.max_cwnd;
+    this->cwnd_mss = params.max_cwnd;       // TODO: remove this after impl of rate-limiting
+    this->has_sent_rrq_this_rtt = false;
 }
 
 void D3Flow::start_flow() {
@@ -34,7 +35,6 @@ void D3Flow::start_flow() {
     //send_pending_data();      // can't send data pkts yet; only after received the syn_ack pkt
 }
 
-// TODO: for D3Flow, make syn pkt not counting hdr_size (or maybe not; tes
 // send out the SYN (first "Rate Request packet" in D3)
 // later RRQ pkts are "piggybacked in data pkts" so only need the first one
 // send_syn_pkt() is called right after start_flow() so it's going to be ahead of all other data pkts
@@ -62,16 +62,19 @@ void D3Flow::send_fin_pkt() {
 // Note we mark flow completion when ACK of the last data pkt is received (as usual) instead of after the FIN packet is processed or the ACK of it is received (and this is no ACK to the FIN pkt)
 // like other header-only packet, FIN can not be dropped since its size is set to 0.
 void D3Flow::send_syn_pkt() {
+    double desired_rate = calculate_desired_rate();
     Packet *p = new Syn(
             get_current_time(),
-            calculate_desired_rate(),
+            desired_rate,
             this,
             ////hdr_size,
             0,  // made it 0 size so it can't be dropped 
             src,
             dst
             );
-    // at this point, prev_desired_rate & prev_allocated_rate should both be 0
+    p->prev_allocated_rate = 0;
+    p->prev_desired_rate = 0;
+    prev_desired_rate = desired_rate;       // sender host updates past info
     Queue *next_hop = topology->get_next_hop(p, src->queue);
     PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);  // adding a pd since we skip the source queue
     //PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time(), p, src->queue);
@@ -154,9 +157,16 @@ Packet *D3Flow::send_with_delay(uint64_t seq, double delay) {
     this->total_pkt_sent++;
     p->start_ts = get_current_time();
 
-    p->prev_desired_rate = prev_desired_rate;
-    p->prev_allocated_rate = prev_allocated_rate;
-    p->desired_rate = calculate_desired_rate();
+    // piggyback RRQ info in the first data pkt in current RTT
+    // Note at this time we have already received the SYN_ACK packet
+    if (!has_sent_rrq_this_rtt) {
+        p->data_pkt_with_rrq = true;
+        p->prev_desired_rate = prev_desired_rate;
+        p->prev_allocated_rate = prev_allocated_rate;
+        double desired_rate = calculate_desired_rate();     // calculate desired rate at the beginning of every RTT
+        p->desired_rate = desired_rate;     
+        prev_desired_rate = desired_rate;       // sender host updates past info
+    }
 
     Queue *next_hop = topology->get_next_hop(p, src->queue);
     if (params.debug_event_info) {
@@ -173,11 +183,6 @@ void D3Flow::receive(Packet *p) {
     if (finished) {
         delete p;
         return;
-    }
-
-    if (p->type == ACK_PACKET || p->type == SYN_ACK_PACKET) {
-        prev_desired_rate = p->desired_rate;
-        prev_allocated_rate = p->prev_allocated_rate;
     }
 
     if (p->type == ACK_PACKET) {
@@ -262,16 +267,18 @@ void D3Flow::receive_syn_pkt(Packet *syn_pkt) {
     // basically calling send_ack_d3(), but send a SynAck pkt instead of a normal Ack.
     ////Packet *p = new SynAck(this, 0, hdr_size, dst, src);  //Acks are dst->src
     Packet *p = new SynAck(this, 0, 0, dst, src);  //Acks are dst->src; made its size=0
-    p->prev_allocated_rate = *std::min_element(syn_pkt->curr_rates_per_hop.begin(), syn_pkt->curr_rates_per_hop.end());
-    p->desired_rate = syn_pkt->desired_rate;
+    p->allocated_rate = *std::min_element(syn_pkt->curr_rates_per_hop.begin(), syn_pkt->curr_rates_per_hop.end());
 
-    p->pf_priority = 0; // D3 does not have notion of priority. so whatever
+    p->pf_priority = 0; // DC; D3 does not have notion of priority.
     Queue *next_hop = topology->get_next_hop(p, dst->queue);
     PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);  // skip src queue, include dst queue; add a pd delay
     add_to_event_queue(event);
 }
 
 void D3Flow::receive_syn_ack_pkt(Packet *p) {
+    // update assigned rate for the current RTT
+    prev_allocated_rate = allocated_rate;   // sender host updates past info
+    allocated_rate = p->allocated_rate;
     send_pending_data();
 }
 
@@ -281,11 +288,15 @@ void D3Flow::receive_fin_pkt(Packet *p) {
 }
 
 // D3's version of send_ack(), which takes an addition input parameter (data_pkt) to send the allocated_rate back to the source via ACK pkt
+// Note the original paper sends back the entire allocation vector. Here I simply calculate the min rate of the vector first at the receiver,
+// and send it back directly to the sender
 void D3Flow::send_ack_d3(uint64_t seq, std::vector<uint64_t> sack_list, double pkt_start_ts, Packet *data_pkt) {
-    // log the min of all allocated rates in this RTT and send back via ACK pkt
     Packet *p = new Ack(this, seq, sack_list, hdr_size, dst, src);  //Acks are dst->src
-    p->prev_allocated_rate = *std::min_element(data_pkt->curr_rates_per_hop.begin(), data_pkt->curr_rates_per_hop.end());
-    p->desired_rate = data_pkt->desired_rate;
+    if (data_pkt->data_pkt_with_rrq) {
+        // log the min of all allocated rates in this RTT and send back via ACK pkt
+        p->allocated_rate = *std::min_element(data_pkt->curr_rates_per_hop.begin(), data_pkt->curr_rates_per_hop.end());
+        p->ack_pkt_with_rrq = true;
+    }
 
     p->pf_priority = 0; // D3 does not have notion of priority. so whatever
     p->start_ts = pkt_start_ts; // carry the orig packet's start_ts back to the sender for RTT measurement
@@ -297,9 +308,16 @@ void D3Flow::send_ack_d3(uint64_t seq, std::vector<uint64_t> sack_list, double p
     add_to_event_queue(event);
 }
 
-
 // pass in extra ACK pkt pointer to be able to decrement num_active_flows
 void D3Flow::receive_ack_d3(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sack_list) {
+    // update current assigned rate if received the ACK to the data pkt with RRQ (piggybacked in the first data pkt of every RTT)
+    if (ack_pkt->ack_pkt_with_rrq) {
+        // receive the allocated rate to use for the current RTT at the sender
+        prev_allocated_rate = allocated_rate;   // sender host updates past info
+        allocated_rate = ack_pkt->allocated_rate;
+        has_sent_rrq_this_rtt = false;      
+    }
+
     //this->scoreboard_sack_bytes = sack_list.size() * mss;
     this->scoreboard_sack_bytes = 0;  // sack_list is non-empty. Manually set sack_bytes to 0 for now since we don't support SACK yet.
 

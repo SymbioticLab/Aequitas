@@ -27,6 +27,9 @@ class D3Flow : public Flow {
                   double pkt_start_ts, Packet* data_pkt); // to replace the original send_ack
     void receive_ack_d3(Ack *ack_pkt, uint64_t ack,
                   std::vector<uint64_t> sack_list); // to replace the original receive_ack
+
+    bool has_sent_rrq_this_rtt;   // whether the RRQ is sent (piggybacked in the first data pkt) during the current RTT
+    // TODO: rate limiting based on rate allocated (do flow-level rate limting for now)
 };
 
 #endif  // EXT_D3_FLOW_H

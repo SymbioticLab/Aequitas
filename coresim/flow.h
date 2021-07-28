@@ -104,9 +104,10 @@ class Flow {
         //Channel *ack_channel;
 
         // for D3
-        double prev_desired_rate;       // desired_rate in the prev RTT
-        double prev_allocated_rate;     // min allocated rate in the prev RTT
-        bool has_ddl;                 // tell apart from non-ddl flows
+        double prev_desired_rate;       // desired_rate in the prev RTT (past info required by the router)
+        double prev_allocated_rate;     // allocated_rate in the prev RTT (past info required by the router)
+        double allocated_rate;          // rate to send in the current RTT (assigned by router)
+        bool has_ddl;                   // tell apart from non-ddl flows
 
         // QID: specifies which EventQueue this flow's events should go to
         uint32_t qid;
