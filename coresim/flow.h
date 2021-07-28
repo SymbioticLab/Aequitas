@@ -105,12 +105,11 @@ class Flow {
 
         // for D3
         double prev_desired_rate;       // desired_rate in the prev RTT (past info required by the router)
-        double prev_allocated_rate;     // allocated_rate in the prev RTT (past info required by the router)
-        double allocated_rate;          // rate to send in the current RTT (assigned by router)
+        double allocated_rate;          // rate to send in the current RTT (assigned by router during last RTT)
         bool has_ddl;                   // tell apart from non-ddl flows
 
         // QID: specifies which EventQueue this flow's events should go to
-        uint32_t qid;
+        uint32_t qid;       //TOOD: completely remove
 };
 
 #endif // CORESIM_FLOW_H

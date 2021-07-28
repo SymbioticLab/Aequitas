@@ -45,7 +45,7 @@ void D3Flow::send_fin_pkt() {
     Packet *p = new Fin(
             get_current_time(),
             prev_desired_rate,
-            prev_allocated_rate,
+            allocated_rate,
             this,
             0,  // made it 0 size so it can't be dropped 
             src,
@@ -125,7 +125,7 @@ void D3Flow::send_pending_data() {
             p->data_pkt_with_rrq = true;
             p->has_rrq = true;
             p->prev_desired_rate = prev_desired_rate;
-            p->prev_allocated_rate = prev_allocated_rate;
+            p->prev_allocated_rate = allocated_rate;
             double desired_rate = calculate_desired_rate();     // calculate desired rate at the beginning of every RTT
             p->desired_rate = desired_rate;     
             prev_desired_rate = desired_rate;       // sender host updates past info
@@ -202,7 +202,7 @@ Packet *D3Flow::send_with_delay(uint64_t seq, double delay) {
         p->data_pkt_with_rrq = true;
         p->has_rrq = true;
         p->prev_desired_rate = prev_desired_rate;
-        p->prev_allocated_rate = prev_allocated_rate;
+        p->prev_allocated_rate = allocated_rate;
         double desired_rate = calculate_desired_rate();     // calculate desired rate at the beginning of every RTT
         p->desired_rate = desired_rate;     
         prev_desired_rate = desired_rate;       // sender host updates past info
@@ -311,6 +311,21 @@ void D3Flow::receive_syn_pkt(Packet *syn_pkt) {
     p->allocated_rate = *std::min_element(syn_pkt->curr_rates_per_hop.begin(), syn_pkt->curr_rates_per_hop.end());
     p->marked_base_rate = syn_pkt->marked_base_rate;
 
+    if (params.debug_event_info) {
+        std::cout << std::setprecision(2) << std::fixed;
+        std::cout << "Receiving SYN packet["<< syn_pkt->unique_id << "] from Flow[" << id << "]. allocated rate assigned = " << p->allocated_rate / 1e9;
+        if (p->marked_base_rate) {
+            std::cout << " (marked with base rate)";
+        }
+        std::cout << "; sending out SYN_ACK packet[" << p->unique_id << "]" << std::endl;
+        std::cout << "curr_rates_per_hop:";
+        for (const auto &x: syn_pkt->curr_rates_per_hop) {
+            std::cout << x / 1e9 << " ";
+        }
+        std::cout << std::endl;
+        std::cout << std::setprecision(15) << std::fixed;
+    }
+
     p->pf_priority = 0; // DC; D3 does not have notion of priority.
     Queue *next_hop = topology->get_next_hop(p, dst->queue);
     PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);  // skip src queue, include dst queue; add a pd delay
@@ -319,8 +334,7 @@ void D3Flow::receive_syn_pkt(Packet *syn_pkt) {
 
 void D3Flow::receive_syn_ack_pkt(Packet *p) {
     // update assigned rate for the current RTT
-    prev_allocated_rate = allocated_rate;   // sender host updates past info
-    allocated_rate = p->allocated_rate;
+    allocated_rate = p->allocated_rate;     // rate assigned by router from last RTT
     if (p->marked_base_rate) {
         assigned_base_rate = true;
     } else {
@@ -344,6 +358,21 @@ void D3Flow::send_ack_d3(uint64_t seq, std::vector<uint64_t> sack_list, double p
         p->allocated_rate = *std::min_element(data_pkt->curr_rates_per_hop.begin(), data_pkt->curr_rates_per_hop.end());
         p->ack_pkt_with_rrq = true;
         p->marked_base_rate = data_pkt->marked_base_rate;
+
+        if (params.debug_event_info) {
+            std::cout << std::setprecision(2) << std::fixed;
+            std::cout << "Received DATA packet["<< data_pkt->unique_id << "] with RRQ from Flow[" << id << "]. allocated rate assigned = " << p->allocated_rate / 1e9;
+            if (p->marked_base_rate) {
+                std::cout << " (marked with base rate)";
+            }
+            std::cout << "; sending out ACK packet[" << p->unique_id << "]" << std::endl;
+            std::cout << "curr_rates_per_hop:";
+            for (const auto &x: data_pkt->curr_rates_per_hop) {
+                std::cout << x / 1e9 << " ";
+            }
+            std::cout << std::endl;
+            std::cout << std::setprecision(15) << std::fixed;
+        }
     }
 
     p->pf_priority = 0; // D3 does not have notion of priority. so whatever
@@ -361,8 +390,7 @@ void D3Flow::receive_ack_d3(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sa
     // update current assigned rate if received the ACK to the data pkt with RRQ (piggybacked in the first data pkt of every RTT)
     if (ack_pkt->ack_pkt_with_rrq) {
         // receive the allocated rate to use for the current RTT at the sender
-        prev_allocated_rate = allocated_rate;   // sender host updates past info
-        allocated_rate = ack_pkt->allocated_rate;
+        allocated_rate = ack_pkt->allocated_rate;   // rate assigned by router from last RTT
         has_sent_rrq_this_rtt = false;      
         if (ack_pkt->marked_base_rate) {
             assigned_base_rate = true;

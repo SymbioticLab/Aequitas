@@ -88,7 +88,7 @@ Flow::Flow(uint32_t id, double start_time, uint32_t size, Host *s, Host *d) {
     this->last_hop_departure = 0;
 
     this->prev_desired_rate = 0;
-    this->prev_allocated_rate = 0;
+    this->allocated_rate = 0;
     this->has_ddl = false;
 }
 
