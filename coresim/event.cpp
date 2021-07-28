@@ -483,10 +483,10 @@ PacketQueuingEvent::~PacketQueuingEvent() {
 void PacketQueuingEvent::process_event() {
     //this->packet->flow->current_event_time = time;
     if (params.debug_event_info) {
-        std::cout << "At time: " << get_current_time() << ", Queue[" << queue->unique_id << "] PacketQueuingEvent{" << qid << "}(packet[" << packet->unique_id << "]" << "<" << packet->type << ">{" << packet->seq_no << "}) from Flow[" << packet->flow->id << "]" << std::endl;
+        std::cout << "At time: " << get_current_time() << ", Queue[" << queue->unique_id << "] PacketQueuingEvent[" << unique_id << "] (packet[" << packet->unique_id << "]" << "<" << packet->type << ">{" << packet->seq_no << "}) from Flow[" << packet->flow->id << "]" << std::endl;
     }
     if (params.enable_flow_lookup && packet->flow->id == params.flow_lookup_id) {
-        std::cout << "At time: " << get_current_time() << ", Queue[" << queue->unique_id << "] PacketQueuingEvent (packet[" << packet->unique_id << "]" << "<" << packet->type << ">{" << packet->seq_no << "}) from Flow[" << packet->flow->id << "]" << std::endl;
+        std::cout << "At time: " << get_current_time() << ", Queue[" << queue->unique_id << "] PacketQueuingEvent[" << unique_id << "] (packet[" << packet->unique_id << "]" << "<" << packet->type << ">{" << packet->seq_no << "}) from Flow[" << packet->flow->id << "]" << std::endl;
     }
     if (params.debug_event_info) {
         if (queue->busy) {
@@ -523,11 +523,8 @@ void PacketQueuingEvent::process_event() {
         }
     }
 
-    if (packet->type == ACK_PACKET) {
-        // inc num_hops traverved for an ACK pkt (used for scaling in qd estimation from rtt (QoS Downgrade))
-        packet->num_hops++;     //TODO: remove. not used anymore
-
-        // (for D3) keep note of queues traversed
+    if (packet->type == FIN_PACKET) {
+        // (for D3) keep note of queues traversed to perform decrement num_active_flows when FIN packet is received
         if (params.flow_type == D3_FLOW) {
             packet->traversed_queues.push_back(queue);
         }
@@ -584,16 +581,8 @@ QueueProcessingEvent::~QueueProcessingEvent() {
 void QueueProcessingEvent::process_event() {
     //assert(queue);
     if (params.debug_event_info) {
-        std::cout << "At time: " << get_current_time() << ", Queue[" << queue->unique_id << "] QueueProcessingEvent{" << qid << "}[" << unique_id << "]" << std::endl;
+        std::cout << "At time: " << get_current_time() << ", Queue[" << queue->unique_id << "] QueueProcessingEvent[" << unique_id << "]" << std::endl;
     }
-    //// broadcast events
-    //if (params.multi_threading) {
-    //    Packet *temp = queue->try_deque();
-    //    if (temp != nullptr && temp->flow->qid != qid) {
-    //        return;
-    //    }
-    //}
-    ////
 
     Packet *packet = queue->deque(get_current_time());
     if (packet) {
@@ -606,39 +595,23 @@ void QueueProcessingEvent::process_event() {
         }
 
         queue->busy = true;
-        ////queue->busy_events.clear();
         queue->packet_transmitting = packet;
         Queue *next_hop = topology->get_next_hop(packet, queue);
         double td = queue->get_transmission_delay(packet);
         double pd = queue->propagation_delay;
-        //double additional_delay = 1e-10;
 
         queue->queue_proc_event = new QueueProcessingEvent(get_current_time() + td, queue, packet->flow->qid);
         add_to_event_queue(queue->queue_proc_event);
 
 
-        ////queue->busy_events.push_back(queue->queue_proc_event);
         if (next_hop == NULL) {
-            //std::cout << "PUPU next_hop = NULL" << std::endl;
-            //if (packet->type == NORMAL_PACKET) {
-            //    std::cout << "NORMAL pkt" << std::endl;
-            //} else if (packet->type == ACK_PACKET) {
-            //    std::cout << "ACK pkt" << std::endl;
-            //}
             ////Event* arrival_evt = new PacketArrivalEvent(time + td + pd, packet);
             Event* arrival_evt = new PacketArrivalEvent(get_current_time() + td, packet);  // NOTE: when we include dst queues, no more pd is included here
             if (params.debug_event_info) {
                 std::cout << "Queue[" << queue->unique_id << "] adding a PacketArrivalEvent[" << arrival_evt->unique_id << "] with start time:" << arrival_evt->time << std::endl;
             }
             add_to_event_queue(arrival_evt);
-            ////queue->busy_events.push_back(arrival_evt);
         } else {
-            //std::cout << "PUPU next_hop queue: " << next_hop->unique_id << std::endl;
-            //if (packet->type == NORMAL_PACKET) {
-            //    std::cout << "NORMAL pkt" << std::endl;
-            //} else if (packet->type == ACK_PACKET) {
-            //    std::cout << "ACK pkt" << std::endl;
-            //}
             Event* queuing_evt = NULL;
             if (params.cut_through == 1) {
                 double cut_through_delay =
@@ -650,11 +623,9 @@ void QueueProcessingEvent::process_event() {
             }
 
             add_to_event_queue(queuing_evt);
-            ////queue->busy_events.push_back(queuing_evt);
         }
     } else {
         queue->busy = false;
-        ////queue->busy_events.clear();
         queue->packet_transmitting = NULL;
         queue->queue_proc_event = NULL;
     }

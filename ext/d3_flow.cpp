@@ -220,6 +220,10 @@ Packet *D3Flow::send_with_delay(uint64_t seq, double delay) {
 }
 
 void D3Flow::receive(Packet *p) {
+    // call receive_fin_pkt() early since at this point flow->finished is marked true
+    if (p->type == FIN_PACKET) {
+        receive_fin_pkt(p);
+    }
     if (finished) {
         delete p;
         return;
@@ -235,8 +239,6 @@ void D3Flow::receive(Packet *p) {
         receive_syn_pkt(p);
     } else if (p->type == SYN_ACK_PACKET) {
         receive_syn_ack_pkt(p);
-    } else if (p->type == FIN_PACKET) {
-        receive_fin_pkt(p);
     } else {
         assert(false);
     }
@@ -344,8 +346,13 @@ void D3Flow::receive_syn_ack_pkt(Packet *p) {
 }
 
 void D3Flow::receive_fin_pkt(Packet *p) {
-    // nothing to do here since we decide to mark flow completion early at the receive of the last data ACK
     assert(finished);
+    std::cout << "receiving FIN packet" << std::endl;
+    // decrement num_active_flows
+    for (int i = 0; i < p->traversed_queues.size(); i++) {
+        p->traversed_queues[i]->num_active_flows--;
+        std::cout << "decrement num_active_flows at Queue[" << p->traversed_queues[i]->unique_id << "]. num_active_flows = " << p->traversed_queues[i]->num_active_flows << std::endl;
+    }
 }
 
 // D3's version of send_ack(), which takes an addition input parameter (data_pkt) to send the allocated_rate back to the source via ACK pkt
@@ -385,7 +392,6 @@ void D3Flow::send_ack_d3(uint64_t seq, std::vector<uint64_t> sack_list, double p
     add_to_event_queue(event);
 }
 
-// pass in extra ACK pkt pointer to be able to decrement num_active_flows
 void D3Flow::receive_ack_d3(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sack_list) {
     // update current assigned rate if received the ACK to the data pkt with RRQ (piggybacked in the first data pkt of every RTT)
     if (ack_pkt->ack_pkt_with_rrq) {
@@ -440,11 +446,6 @@ void D3Flow::receive_ack_d3(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sa
         flow_completion_time = finish_time - start_time;
         FlowFinishedEvent *ev = new FlowFinishedEvent(get_current_time(), this);
         add_to_event_queue(ev);
-
-        // decrement num_active_flows
-        for (int i = 0; i < ack_pkt->traversed_queues.size(); i++) {
-            ack_pkt->traversed_queues[i]->num_active_flows--;
-        }
 
         // send out a FIN pkt to return the desired and allocated rate of this flow during the last RTT to the routers(queues) on its path
         send_fin_pkt();
