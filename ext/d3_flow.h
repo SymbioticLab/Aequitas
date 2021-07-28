@@ -29,6 +29,8 @@ class D3Flow : public Flow {
                   std::vector<uint64_t> sack_list); // to replace the original receive_ack
 
     bool has_sent_rrq_this_rtt;   // whether the RRQ is sent (piggybacked in the first data pkt) during the current RTT
+    double real_base_rate;        // rate to use when getting assigned base rate by the router; 'allocated_rate' info is still 0 not to affect router calculation
+    bool assigned_base_rate;      // when true, host will send a header-only RRQ for this RTT
     // TODO: rate limiting based on rate allocated (do flow-level rate limting for now)
 };
 

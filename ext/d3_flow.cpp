@@ -27,6 +27,8 @@ D3Flow::D3Flow(uint32_t id, double start_time, uint32_t size, Host *s,
     // D3Flow does not use conventional congestion control; all CC related OPs (inc/dec cwnd; timeout events, etc) are removed
     this->cwnd_mss = params.max_cwnd;       // TODO: remove this after impl of rate-limiting
     this->has_sent_rrq_this_rtt = false;
+    this->real_base_rate = 0.05 * params.bandwidth;   // D3Flow will use this rate when getting assigned "base_rate"
+    this->assigned_base_rate = false;
 }
 
 void D3Flow::start_flow() {
@@ -102,8 +104,44 @@ double D3Flow::calculate_desired_rate() {
 }
 
 // TODO: send data in a rate that is determined by the router.
-// The router can further determine the rate allocation there, but at the hosts the rate sending out should be proper rate-limited.
 void D3Flow::send_pending_data() {
+    // if assigned base rate, only send out a header-only RRQ (with real_base_rate) during this RTT
+    if (assigned_base_rate) {
+        if (!has_sent_rrq_this_rtt) {
+            has_sent_rrq_this_rtt = true;
+            Packet *p = NULL;
+            p = new Packet(
+                    get_current_time(),
+                    this,
+                    next_seq_no,
+                    flow_priority,
+                    0,
+                    src,
+                    dst
+                    );
+            this->total_pkt_sent++;
+            p->start_ts = get_current_time();
+
+            p->data_pkt_with_rrq = true;
+            p->has_rrq = true;
+            p->prev_desired_rate = prev_desired_rate;
+            p->prev_allocated_rate = prev_allocated_rate;
+            double desired_rate = calculate_desired_rate();     // calculate desired rate at the beginning of every RTT
+            p->desired_rate = desired_rate;     
+            prev_desired_rate = desired_rate;       // sender host updates past info
+
+            Queue *next_hop = topology->get_next_hop(p, src->queue);
+            if (params.debug_event_info) {
+                std::cout << "Host[" << src->id << "] sends out header-only RRQ Packet[" << p->unique_id << "] from flow[" << id << "] at time: " << get_current_time() << std::endl;
+            }
+            //PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time(), p, next_hop);
+            PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);  // adding a pd since we skip the source queue
+            add_to_event_queue(event);
+        }
+        return;
+    }
+
+
     uint32_t pkts_sent = 0;
     uint64_t seq = next_seq_no;
     uint32_t window = cwnd_mss * mss + scoreboard_sack_bytes;
@@ -160,6 +198,7 @@ Packet *D3Flow::send_with_delay(uint64_t seq, double delay) {
     // piggyback RRQ info in the first data pkt in current RTT
     // Note at this time we have already received the SYN_ACK packet
     if (!has_sent_rrq_this_rtt) {
+        has_sent_rrq_this_rtt = true;
         p->data_pkt_with_rrq = true;
         p->has_rrq = true;
         p->prev_desired_rate = prev_desired_rate;
@@ -219,6 +258,8 @@ void D3Flow::receive_data_pkt(Packet* p) {
         if (num_outstanding_packets > 0) {
             num_outstanding_packets--;
         }
+        // Since we don't update 'max_seq_no_recv' here, 'recv_till' won't change.
+        // so calling send_ack_d3() will just ask for the correct missing data pkt
     } else {
         if (received.count(p->seq_no) == 0) {
             received[p->seq_no] = true;
@@ -268,6 +309,7 @@ void D3Flow::receive_syn_pkt(Packet *syn_pkt) {
     ////Packet *p = new SynAck(this, 0, hdr_size, dst, src);  //Acks are dst->src
     Packet *p = new SynAck(this, 0, 0, dst, src);  //Acks are dst->src; made its size=0
     p->allocated_rate = *std::min_element(syn_pkt->curr_rates_per_hop.begin(), syn_pkt->curr_rates_per_hop.end());
+    p->marked_base_rate = syn_pkt->marked_base_rate;
 
     p->pf_priority = 0; // DC; D3 does not have notion of priority.
     Queue *next_hop = topology->get_next_hop(p, dst->queue);
@@ -279,6 +321,11 @@ void D3Flow::receive_syn_ack_pkt(Packet *p) {
     // update assigned rate for the current RTT
     prev_allocated_rate = allocated_rate;   // sender host updates past info
     allocated_rate = p->allocated_rate;
+    if (p->marked_base_rate) {
+        assigned_base_rate = true;
+    } else {
+        assigned_base_rate = false;
+    }
     send_pending_data();
 }
 
@@ -296,6 +343,7 @@ void D3Flow::send_ack_d3(uint64_t seq, std::vector<uint64_t> sack_list, double p
         // log the min of all allocated rates in this RTT and send back via ACK pkt
         p->allocated_rate = *std::min_element(data_pkt->curr_rates_per_hop.begin(), data_pkt->curr_rates_per_hop.end());
         p->ack_pkt_with_rrq = true;
+        p->marked_base_rate = data_pkt->marked_base_rate;
     }
 
     p->pf_priority = 0; // D3 does not have notion of priority. so whatever
@@ -316,6 +364,11 @@ void D3Flow::receive_ack_d3(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sa
         prev_allocated_rate = allocated_rate;   // sender host updates past info
         allocated_rate = ack_pkt->allocated_rate;
         has_sent_rrq_this_rtt = false;      
+        if (ack_pkt->marked_base_rate) {
+            assigned_base_rate = true;
+        } else {
+            assigned_base_rate = false;
+        }
     }
 
     //this->scoreboard_sack_bytes = sack_list.size() * mss;

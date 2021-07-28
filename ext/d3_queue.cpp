@@ -24,7 +24,6 @@ D3Queue::D3Queue(uint32_t id, double rate, uint32_t limit_bytes, int location)
         this->allocation_counter = 0;
         this->base_rate = 0;        // base_rate is a very small value that can only send out a header-only pkt;
         // We set the value of base_rate used in the rate allocation algo to be set to 0 to prevent allocation_counter > rate
-        this->real_base_rate = 0.1 * rate;   // D3queue will use this rate to when a pkt gets assigned "base_rate"
     }
 
 //D3Queue::~D3Queue() {};
@@ -61,7 +60,7 @@ Packet *D3Queue::deque(double deque_time) {
         p_departures += 1;
         b_departures += p->size;
 
-        // calculate allocated rate (a_{t+1}) if the packet is an RRQ (SYN/FIN/first_DATA_pkt_per_RTT)
+        // calculate allocated rate (a_{t+1}) if the packet is an RRQ (SYN/FIN/DATA_pkt_with_rrq)
         if (p->has_rrq) {
             allocate_rate(p);
         }
@@ -107,9 +106,12 @@ void D3Queue::allocate_rate(Packet *packet) {
         rate_to_allocate = left_capacity;   // when desired_rate can't be satisfied, do in a greedy way (FCFS)
     }
     rate_to_allocate = std::max(rate_to_allocate, base_rate);
-    if (rate_to_allocate == base_rate) {
-        packet->marked_base_rate = true;    // this happens when 'rate_to_allocate' = 0 (because 'base_rate' is set to 0)
-        //std::cout << "PUPU: When rate_to_allocate is equal to base_rate, rate_to_allocate = " << rate_to_allocate << std::endl;
+    if (rate_to_allocate == base_rate) {    // this happens when 'rate_to_allocate' = 0
+        packet->marked_base_rate = true;    
+        // if a flow is assigned 'base_rate', the sender will use 'real_base_rate' to send out the hdr-only packet for rate request
+        if (params.debug_event_info) {
+            std::cout << "assign packet[" << packet->unique_id << "] from Flow[" << packet->flow->id << "] base rate" << std::endl;
+        }
     }
     // Yiwen: set base_rate value to be 0 to prevent allocation_counter > rate; otherwise left_capacity becomes negative in next RTT
     allocation_counter += rate_to_allocate;
@@ -118,14 +120,6 @@ void D3Queue::allocate_rate(Packet *packet) {
         std::cout << std::setprecision(15) << std::fixed;
     }
 
-    if (packet->marked_base_rate) {
-        std::cout << "assign packet[" << packet->unique_id << "] base rate" << std::endl;
-        if (packet->type == NORMAL_PACKET) {    // for DATA packet, remove its data payload and make it a header-only packet (so it becomes a RRQ packet)
-            packet->size = 0;   // remove payload; seq_no remains the same
-        }
-        // if packet is assigned 'base_rate', update rate_to_allocate to 'real_base_rate' so that sender can send out the hdr-only packet for rate request
-        rate_to_allocate = real_base_rate;
-    }
     packet->curr_rates_per_hop.push_back(rate_to_allocate); 
 }
 
@@ -153,6 +147,9 @@ void D3Queue::drop(Packet *packet) {
     }
     if (packet->type == ACK_PACKET) {
         packet->flow->ack_pkt_drop++;
+        if (packet->ack_pkt_with_rrq) {
+            assert(false);
+        }
     }
     if (location != 0 && packet->type == NORMAL_PACKET) {
         dead_packets += 1;

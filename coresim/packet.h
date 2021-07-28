@@ -61,7 +61,7 @@ class Packet {
         double desired_rate;                        // desired rate for the current RTT; used by the router to assign rates
         double prev_allocated_rate;                 // past info used by the router; carried by RRQ pkt
         double prev_desired_rate;                   // past info used by the router; carried by RRQ pkt
-        bool has_rrq;                               // true if it is an RRQ packet (SYN/FIN/first_DATA_pkt_per_RTT); router uses this flag to decide whether to enter rate_allocation algo
+        bool has_rrq;                               // true if it is an RRQ packet (SYN/FIN/DATA_pkt_with_rrq); router uses this flag to decide whether to enter rate_allocation algo
         bool marked_base_rate;                      // so that D3queue takes special care of it
         bool data_pkt_with_rrq;                     // whether a data pkt is piggybacked with an RRQ (rate request) packet
         bool ack_pkt_with_rrq;                      // true if it is an ack pkt of the data pkt piggbybacked with an RRQ
