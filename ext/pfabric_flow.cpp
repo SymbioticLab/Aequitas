@@ -49,7 +49,7 @@ void PFabricFlow::send_pending_data() {
         (seq + mss <= last_unacked_seq + window) &&
         ((seq + mss <= size) || (seq != size && (size - seq < mss)))
     ) {
-        send_with_delay(seq, 1e-9 * (pkts_sent + 1));    // inc by 1 ns each pkt
+        send_with_delay(seq, 1e-12 * (pkts_sent + 1));    // inc by 1 ps each pkt
         pkts_sent++;
 
         if (seq + mss < size) {
