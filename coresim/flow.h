@@ -13,6 +13,7 @@ class RetxTimeoutEvent;
 class FlowProcessingEvent;
 class Channel;
 class AggChannel;
+class RateLimitingEvent;
 
 class Flow {
     public:
@@ -27,6 +28,7 @@ class Flow {
         //virtual void send_one_pkt();
         virtual uint32_t send_pkts();
         virtual Packet *send(uint64_t seq);
+        virtual void send_next_pkt();    // D3Flow overrides this
         virtual void send_ack(uint64_t seq, std::vector<uint64_t> sack_list, double pkt_start_ts);
         virtual void receive_ack(uint64_t ack, std::vector<uint64_t> sack_list, double pkt_start_ts, uint32_t priority, uint32_t num_hops);
         virtual void receive_data_pkt(Packet* p);
@@ -43,6 +45,7 @@ class Flow {
         virtual double get_avg_inter_pkt_spacing_in_us();
         virtual uint32_t get_remaining_flow_size();
         virtual double get_remaining_deadline();
+        virtual void cancel_rate_limit_event();
 
         //double get_current_time() {
         //    return current_event_time;
@@ -107,6 +110,7 @@ class Flow {
         double prev_desired_rate;       // desired_rate in the prev RTT (past info required by the router)
         double allocated_rate;          // rate to send in the current RTT (assigned by router during last RTT)
         bool has_ddl;                   // tell apart from non-ddl flows
+        RateLimitingEvent *rate_limit_event;        // points to the next RateLimitingEvent; maintains this so we can cancel it when base rate is assigned
 
         // QID: specifies which EventQueue this flow's events should go to
         uint32_t qid;       //TOOD: completely remove

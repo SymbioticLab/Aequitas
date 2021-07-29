@@ -90,6 +90,7 @@ Flow::Flow(uint32_t id, double start_time, uint32_t size, Host *s, Host *d) {
     this->prev_desired_rate = 0;
     this->allocated_rate = 0;
     this->has_ddl = false;
+    this->rate_limit_event = nullptr;
 }
 
 Flow::Flow(uint32_t id, double start_time, uint32_t size, Host *s, Host *d, uint32_t flow_priority) :
@@ -237,6 +238,10 @@ Packet *Flow::send(uint64_t seq) {
 
     add_to_event_queue(new PacketQueuingEvent(get_current_time(), p, src->queue));
     return p;
+}
+
+void Flow::send_next_pkt() {
+    assert(false);
 }
 
 void Flow::send_ack(uint64_t seq, std::vector<uint64_t> sack_list, double pkt_start_ts) {
@@ -418,6 +423,12 @@ void Flow::cancel_retx_event() {
     retx_event = nullptr;
 }
 
+void Flow::cancel_rate_limit_event() {
+    if (rate_limit_event) {
+        rate_limit_event->cancelled = true;
+    }
+    rate_limit_event = nullptr;
+}
 
 uint32_t Flow::get_priority(uint64_t seq) {
     if (params.flow_type == NORMAL_FLOW) {

@@ -21,6 +21,7 @@
 #define CHANNEL_RETX_TIMEOUT 10
 #define NIC_PROCESSING 11
 #define QJUMP_EPOCH 12
+#define RATE_LIMITING 13
 
 class Flow;
 class Host;
@@ -195,18 +196,28 @@ class ChannelRetxTimeoutEvent : public Event {
 
 class NICProcessingEvent : public Event {
     public:
-        NICProcessingEvent(double time, NIC* nic);
+        NICProcessingEvent(double time, NIC *nic);
         ~NICProcessingEvent();
-        NIC* nic;
+        NIC *nic;
         void process_event();
 };
 
 class QjumpEpochEvent : public Event {
     public:
-        QjumpEpochEvent(double time, Host* host, uint32_t priority);
+        QjumpEpochEvent(double time, Host *host, uint32_t priority);
         ~QjumpEpochEvent();
-        Host* host;
+        Host *host;
         uint32_t priority;
+        void process_event();
+};
+
+// rate limiter at the flow level; make flow send packets at a certain rate
+// here we don't pass in an input called rate; instead we will use 'allocated_rate' in Flow class
+class RateLimitingEvent : public Event {
+    public:
+        RateLimitingEvent(double time, Flow* flow);
+        ~RateLimitingEvent();
+        Flow *flow;
         void process_event();
 };
 

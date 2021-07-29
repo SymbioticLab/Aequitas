@@ -25,16 +25,16 @@ D3Flow::D3Flow(uint32_t id, double start_time, uint32_t size, Host *s,
                          Host *d, uint32_t flow_priority)
     : Flow(id, start_time, size, s, d, flow_priority) {
     // D3Flow does not use conventional congestion control; all CC related OPs (inc/dec cwnd; timeout events, etc) are removed
-    this->cwnd_mss = params.max_cwnd;       // TODO: remove this after impl of rate-limiting
+    this->cwnd_mss = params.initial_cwnd;
     this->has_sent_rrq_this_rtt = false;
     this->real_base_rate = 0.05 * params.bandwidth;   // D3Flow will use this rate when getting assigned "base_rate"
     this->assigned_base_rate = false;
 }
 
+// send out a SYN packet once flow starts; cannot send data pkts until receiving the SYN ACK pkt (with allocated rate)
 void D3Flow::start_flow() {
     run_priority = flow_priority;
     send_syn_pkt();
-    //send_pending_data();      // can't send data pkts yet; only after received the syn_ack pkt
 }
 
 // send out the SYN (first "Rate Request packet" in D3)
@@ -52,8 +52,8 @@ void D3Flow::send_fin_pkt() {
             dst
             );
     Queue *next_hop = topology->get_next_hop(p, src->queue);
+    // For FIN pkt its sending rate doesn't matter because by design we have marked flow completion before sending out the FIN pkt. So just send it immediately
     PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);  // adding a pd since we skip the source queue
-    //PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time(), p, src->queue);
     add_to_event_queue(event);
     if (params.debug_event_info) {
         std::cout << "Host[" << src->id << "] sends out Fin Packet[" << p->unique_id << "] from Flow[" << id << "] at time: " << get_current_time() << std::endl;
@@ -78,8 +78,8 @@ void D3Flow::send_syn_pkt() {
     p->prev_desired_rate = 0;
     prev_desired_rate = desired_rate;       // sender host updates past info
     Queue *next_hop = topology->get_next_hop(p, src->queue);
+    // Note we will send the first SYN pkt immediately
     PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);  // adding a pd since we skip the source queue
-    //PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time(), p, src->queue);
     add_to_event_queue(event);
     if (params.debug_event_info) {
         std::cout << "Host[" << src->id << "] sends out Syn Packet[" << p->unique_id << "] from Flow[" << id << "] at time: " << get_current_time() << std::endl;
@@ -103,10 +103,13 @@ double D3Flow::calculate_desired_rate() {
     return curr_desired_rate;
 }
 
-// TODO: send data in a rate that is determined by the router.
-void D3Flow::send_pending_data() {
+void D3Flow::send_next_pkt() {
     // if assigned base rate, only send out a header-only RRQ (with real_base_rate) during this RTT
     if (assigned_base_rate) {
+        // cancel the current rate limiting event since now we are not allowed to send more data pkts during this RTT
+        cancel_rate_limit_event();
+
+        // send the header-only RRQ if we haven't 
         if (!has_sent_rrq_this_rtt) {
             has_sent_rrq_this_rtt = true;
             Packet *p = NULL;
@@ -134,24 +137,23 @@ void D3Flow::send_pending_data() {
             if (params.debug_event_info) {
                 std::cout << "Host[" << src->id << "] sends out header-only RRQ Packet[" << p->unique_id << "] from flow[" << id << "] at time: " << get_current_time() << std::endl;
             }
-            //PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time(), p, next_hop);
-            PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);  // adding a pd since we skip the source queue
+
+            // send the header-only RRQ with real_base_rate; use params.hdr_size since p->size is set to 0 (again, to prevent from being dropped!)
+            double td = params.hdr_size * 8.0 / real_base_rate;
+            PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + td + next_hop->propagation_delay, p, next_hop);  // adding a pd since we skip the source queue
             add_to_event_queue(event);
         }
         return;
     }
 
-
-    uint32_t pkts_sent = 0;
+    // send pkt one at a time with allocated_rate
     uint64_t seq = next_seq_no;
-    uint32_t window = cwnd_mss * mss + scoreboard_sack_bytes;
-
-    while (
+    uint32_t window = cwnd_mss * mss;       // cwnd_mss is fixed at params.init_cwnd; its value is actually DC as long as it's >= 1
+    if (
         (seq + mss <= last_unacked_seq + window) &&
         ((seq + mss <= size) || (seq != size && (size - seq < mss)))
     ) {
-        send_with_delay(seq, 1e-9 * (pkts_sent + 1));    // inc by 1 ns each pkt
-        pkts_sent++;
+        send_with_delay(seq, 1e-12);    // actually the tiny delay is not needed here since pkts are sent one at a time; let's just stay consistent
 
         if (seq + mss < size) {
             next_seq_no = seq + mss;
@@ -160,16 +162,17 @@ void D3Flow::send_pending_data() {
             next_seq_no = size;
             seq = size;
         }
-
     }
     if (params.debug_event_info) {
-        std::cout << "Flow[" << id << "] sends " << pkts_sent << " pkts." << std::endl;
+        std::cout << "Flow[" << id << "] sends 1 pkt." << std::endl;
     }
 }
 
+void D3Flow::send_pending_data() {
+    assert(false);    
+}
+
 uint32_t D3Flow::send_pkts() {
-    std::cout << "D3Flow::send_pkts() should be never called."
-        << std::endl;
     assert(false);
 }
 
@@ -212,10 +215,11 @@ Packet *D3Flow::send_with_delay(uint64_t seq, double delay) {
     if (params.debug_event_info) {
         std::cout << "Host[" << src->id << "] sends out Packet[" << p->unique_id << "] from flow[" << id << "] at time: " << get_current_time() + delay << " (base=" << get_current_time() << "; delay=" << delay << ")" << std::endl;
     }
-    //PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + delay, p, next_hop);
-    PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay + delay, p, next_hop);  // adding a pd since we skip the source queue
+    double td = p->size * 8.0 / allocated_rate;         // send the pkt with allocated_rate (assigned by the router)
+    add_to_event_queue(new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay + delay, p, next_hop));      // adding a pd since we skip the source queue
+    RateLimitingEvent *event = new RateLimitingEvent(get_current_time() + td, this);
     add_to_event_queue(event);
-
+    rate_limit_event = event;
     return p;
 }
 
@@ -342,7 +346,7 @@ void D3Flow::receive_syn_ack_pkt(Packet *p) {
     } else {
         assigned_base_rate = false;
     }
-    send_pending_data();
+    send_next_pkt();
 }
 
 void D3Flow::receive_fin_pkt(Packet *p) {
@@ -389,7 +393,6 @@ void D3Flow::send_ack_d3(uint64_t seq, std::vector<uint64_t> sack_list, double p
     p->start_ts = pkt_start_ts; // carry the orig packet's start_ts back to the sender for RTT measurement
     //std::cout << "Flow[" << id << "] with priority " << run_priority << " send ack: " << seq << std::endl;
     Queue *next_hop = topology->get_next_hop(p, dst->queue);
-    ////PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time(), p, next_hop);  // skip src queue, include dst queue
     PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);  // skip src queue, include dst queue; add a pd delay
     ////PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time(), p, dst->queue);  // orig version (include src queue, skip dst queue)
     add_to_event_queue(event);
@@ -413,9 +416,6 @@ void D3Flow::receive_ack_d3(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sa
         }
     }
 
-    //this->scoreboard_sack_bytes = sack_list.size() * mss;
-    this->scoreboard_sack_bytes = 0;  // sack_list is non-empty. Manually set sack_bytes to 0 for now since we don't support SACK yet.
-
     // On timeouts; next_seq_no is updated to the last_unacked_seq;
     // In such cases, the ack can be greater than next_seq_no; update it
     if (next_seq_no < ack) {
@@ -435,7 +435,7 @@ void D3Flow::receive_ack_d3(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sa
         //increase_cwnd();  // Don't involve normal CC behavior
 
         // Send the remaining data
-        send_pending_data();
+        send_next_pkt();
 
         /*  no timeout events
         // Update the retx timer
@@ -449,7 +449,7 @@ void D3Flow::receive_ack_d3(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sa
         }
         */
     } else if (ack == last_unacked_seq && ack_pkt->ack_to_rrq_no_payload) {  // in D3 we need to consider another case: when the data pkt's payload gets removed, we need to resend the last packet
-        send_pending_data();
+        send_next_pkt();
     }
 
     // Yiwen: since we don't implement FIN packet for other work, I will still use the last DATA ACK to mark the completion of a flow for D3 as a courtesy
@@ -467,3 +467,68 @@ void D3Flow::receive_ack_d3(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sa
     }
 }
 
+
+/* Orig send_pending_data() before the impl of rate limiting; now completely replaced by D3Flow::send_next_pkt()
+void D3Flow::send_pending_data() {
+    // if assigned base rate, only send out a header-only RRQ (with real_base_rate) during this RTT
+    if (assigned_base_rate) {
+        if (!has_sent_rrq_this_rtt) {
+            has_sent_rrq_this_rtt = true;
+            Packet *p = NULL;
+            p = new Packet(
+                    get_current_time(),
+                    this,
+                    next_seq_no,
+                    flow_priority,
+                    0,
+                    src,
+                    dst
+                    );
+            this->total_pkt_sent++;
+            p->start_ts = get_current_time();
+
+            p->data_pkt_with_rrq = true;
+            p->has_rrq = true;
+            p->prev_desired_rate = prev_desired_rate;
+            p->prev_allocated_rate = allocated_rate;
+            double desired_rate = calculate_desired_rate();     // calculate desired rate at the beginning of every RTT
+            p->desired_rate = desired_rate;     
+            prev_desired_rate = desired_rate;       // sender host updates past info
+
+            Queue *next_hop = topology->get_next_hop(p, src->queue);
+            if (params.debug_event_info) {
+                std::cout << "Host[" << src->id << "] sends out header-only RRQ Packet[" << p->unique_id << "] from flow[" << id << "] at time: " << get_current_time() << std::endl;
+            }
+            //PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time(), p, next_hop);
+            PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);  // adding a pd since we skip the source queue
+            add_to_event_queue(event);
+        }
+        return;
+    }
+
+
+    uint32_t pkts_sent = 0;
+    uint64_t seq = next_seq_no;
+    uint32_t window = cwnd_mss * mss + scoreboard_sack_bytes;
+
+    while (
+        (seq + mss <= last_unacked_seq + window) &&
+        ((seq + mss <= size) || (seq != size && (size - seq < mss)))
+    ) {
+        send_with_delay(seq, 1e-12 * (pkts_sent + 1));    // inc by 1 ns each pkt
+        pkts_sent++;
+
+        if (seq + mss < size) {
+            next_seq_no = seq + mss;
+            seq += mss;
+        } else {
+            next_seq_no = size;
+            seq = size;
+        }
+
+    }
+    if (params.debug_event_info) {
+        std::cout << "Flow[" << id << "] sends " << pkts_sent << " pkts." << std::endl;
+    }
+}
+*/

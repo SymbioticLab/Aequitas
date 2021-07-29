@@ -829,3 +829,26 @@ void QjumpEpochEvent::process_event() {
     host->send_next_pkt(priority);
 }
 
+/* Rate Limiting */
+RateLimitingEvent::RateLimitingEvent(double time, Flow *flow)
+        : Event(RATE_LIMITING, time) {
+    this->time = time;
+    this->flow = flow;
+}
+
+RateLimitingEvent::~RateLimitingEvent() {
+    if (flow->rate_limit_event == this) {
+        flow->rate_limit_event = NULL;
+    }
+}
+
+void RateLimitingEvent::process_event() {
+    if (params.debug_event_info) {
+        std::cout << "At time: " << get_current_time() << ", Flow[" << flow->id << "] process RateLimitingEvent with allocated_rate = ";
+        std::cout << std::setprecision(2) << std::fixed;
+        std::cout << flow->allocated_rate / 1e9 << std::endl;
+        std::cout << std::setprecision(15) << std::fixed;
+    }
+    flow->send_next_pkt();
+}
+

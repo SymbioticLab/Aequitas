@@ -15,6 +15,7 @@ class D3Flow : public Flow {
     void send_syn_pkt();
     void send_fin_pkt();
     double calculate_desired_rate();
+    void send_next_pkt() override;
     void send_pending_data() override;
     uint32_t send_pkts() override;
     Packet *send_with_delay(uint64_t seq, double delay);
