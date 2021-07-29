@@ -260,7 +260,6 @@ void D3Flow::receive_data_pkt(Packet* p) {
     last_data_pkt_receive_time = get_current_time();
 
     if (p->has_rrq && p->size == 0) {  // for header-only data pkt whose payload is removed
-        std::cout << "receive data pkt with zero payload." << std::endl;
         if (num_outstanding_packets > 0) {
             num_outstanding_packets--;
         }
@@ -351,7 +350,7 @@ void D3Flow::receive_syn_ack_pkt(Packet *p) {
 
 void D3Flow::receive_fin_pkt(Packet *p) {
     assert(finished);
-    std::cout << "receiving FIN packet" << std::endl;
+    // nothing to do here. 'num_active_flows' are decremented when FIN packet traverse thru the network
 }
 
 // D3's version of send_ack(), which takes an addition input parameter (data_pkt) to send the allocated_rate back to the source via ACK pkt
@@ -444,7 +443,6 @@ void D3Flow::receive_ack_d3(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sa
         }
         */
     } else if (ack == last_unacked_seq && ack_pkt->ack_to_rrq_no_payload) {  // in D3 we need to consider another case: when the data pkt's payload gets removed, we need to resend the last packet
-        std::cout << "PUPUPU" << std::endl;
         send_next_pkt();
     }
 

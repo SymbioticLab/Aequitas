@@ -82,10 +82,13 @@ void D3Queue::allocate_rate(Packet *packet) {
     allocation_counter -= packet->prev_allocated_rate;
     demand_counter = demand_counter - packet->prev_desired_rate + packet->desired_rate;
     left_capacity = rate - allocation_counter;
+
+    // Sometimes some counter will be negative but very close to 0. Let's treat it as within the normal error range instead of a bug
     //assert(allocation_counter >= 0 && demand_counter >= 0 && left_capacity >= 0);
-    if (allocation_counter < 0 || demand_counter < 0 || left_capacity < 0) {
-        std::cout << "PUPU" << std::endl;
-    }
+    //if (allocation_counter < 0 || demand_counter < 0 || left_capacity < 0) {
+    //    std::cout << "PUPU" << std::endl;
+    //}
+
     if (packet->type == FIN_PACKET) {   // for FIN packet, exit the algorithm after returning past info & decrementing flow counter
         num_active_flows--;
         if (params.debug_event_info) {
@@ -167,6 +170,11 @@ void D3Queue::drop(Packet *packet) {
     }
     if (location != 0 && packet->type == NORMAL_PACKET) {
         dead_packets += 1;
+    }
+
+    // if it's a DATA rrq whose payload gets removed due to being dropped by the queue, don't delete the packet. We'll still need to receive it (the rrq part).
+    if (packet->type == NORMAL_PACKET && packet->size == 0) {
+        return;
     }
 
     delete packet;

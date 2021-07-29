@@ -7,7 +7,7 @@ bandwidth: 100000000000.0
 host_type: 1
 queue_type: 8
 flow_type: 8
-num_flow: 10
+num_flow: 2000
 num_hosts: 2
 flow_trace: ./CDF_uniform_32K.txt
 cut_through: 0
@@ -15,7 +15,7 @@ pfabric_priority_type: size
 mean_flow_size: 0
 load_balancing: 0
 preemptive_queue: 0
-debug_event_info: 1
+debug_event_info: 0
 enable_flow_lookup: 0
 flow_lookup_id: 1
 priority_downgrade: 1
