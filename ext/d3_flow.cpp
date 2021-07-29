@@ -365,6 +365,9 @@ void D3Flow::send_ack_d3(uint64_t seq, std::vector<uint64_t> sack_list, double p
         p->allocated_rate = *std::min_element(data_pkt->curr_rates_per_hop.begin(), data_pkt->curr_rates_per_hop.end());
         p->ack_pkt_with_rrq = true;
         p->marked_base_rate = data_pkt->marked_base_rate;
+        if (data_pkt->size == 0) {  // this implies it is a "header-only" packet
+            p->ack_to_rrq_no_payload = true;
+        }
 
         if (params.debug_event_info) {
             std::cout << std::setprecision(2) << std::fixed;
@@ -403,6 +406,11 @@ void D3Flow::receive_ack_d3(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sa
         } else {
             assigned_base_rate = false;
         }
+        if (params.debug_event_info) {
+            std::cout << std::setprecision(2) << std::fixed;
+            std::cout << "Flow[" << id << "] at Host[" << src->id << "] received ACK packet[" << ack_pkt->unique_id << "] with RRQ. assigned rate = " << allocated_rate /1e9 << std::endl;
+            std::cout << std::setprecision(15) << std::fixed;
+        }
     }
 
     //this->scoreboard_sack_bytes = sack_list.size() * mss;
@@ -412,6 +420,11 @@ void D3Flow::receive_ack_d3(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sa
     // In such cases, the ack can be greater than next_seq_no; update it
     if (next_seq_no < ack) {
         next_seq_no = ack;
+    }
+
+    if (params.debug_event_info) {
+        std::cout << "Flow[" << id << "] at Host[" << src->id << "] received ACK packet[" << ack_pkt->unique_id
+            << "]; ack = " << ack << ", next_seq_no = " << next_seq_no << ", last_unacked_seq = " << last_unacked_seq << std::endl;
     }
 
     // New ack!
@@ -435,6 +448,8 @@ void D3Flow::receive_ack_d3(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sa
             }
         }
         */
+    } else if (ack == last_unacked_seq && ack_pkt->ack_to_rrq_no_payload) {  // in D3 we need to consider another case: when the data pkt's payload gets removed, we need to resend the last packet
+        send_pending_data();
     }
 
     // Yiwen: since we don't implement FIN packet for other work, I will still use the last DATA ACK to mark the completion of a flow for D3 as a courtesy

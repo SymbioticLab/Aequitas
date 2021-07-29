@@ -36,6 +36,7 @@ Packet::Packet(
     this->marked_base_rate = false;
     this->data_pkt_with_rrq = false;
     this->ack_pkt_with_rrq = false;
+    this->ack_to_rrq_no_payload = false;
     this->has_rrq = false;      // D3 manually sets 'has_rrq' for the first DATA pkt per RTT
 }
 
