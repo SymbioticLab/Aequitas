@@ -157,15 +157,15 @@ void D3Queue::drop(Packet *packet) {
     }
 
     if (packet->type == SYN_PACKET) {
-        assert(false);  //TODO: impl syn pkt retransmission if this ever happens; -> made syn pkt zero byte so it can't be dropped
+        assert(false);
     }
     if (packet->type == SYN_ACK_PACKET) {
-        assert(false);  //TODO: impl syn_ack pkt retransmission if this ever happens -> made it zero byte so it can't be dropped
+        assert(false);
     }
     if (packet->type == ACK_PACKET) {
         packet->flow->ack_pkt_drop++;
         if (packet->ack_pkt_with_rrq) {
-            assert(false);
+            assert(false);      // TODO: otherwise have to handle this case
         }
     }
     if (location != 0 && packet->type == NORMAL_PACKET) {
