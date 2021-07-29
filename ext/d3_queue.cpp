@@ -86,6 +86,20 @@ void D3Queue::allocate_rate(Packet *packet) {
     if (allocation_counter < 0 || demand_counter < 0 || left_capacity < 0) {
         std::cout << "PUPU" << std::endl;
     }
+    if (packet->type == FIN_PACKET) {   // for FIN packet, exit the algorithm after returning past info & decrementing flow counter
+        num_active_flows--;
+        if (params.debug_event_info) {
+            std::cout << "At D3 Queue[" << unique_id << "]: handling FIN packet[" << packet->unique_id << " from Flow[" << packet->flow->id << "]" << std::endl;
+            std::cout << std::setprecision(2) << std::fixed;
+            std::cout << "num_active_flows = " << num_active_flows << "; prev allocated = " << packet->prev_allocated_rate/1e9
+                << "; prev desired = " << packet->prev_desired_rate/1e9 << "; desired = " << packet->desired_rate/1e9 << std::endl;
+            std::cout << "allocation_counter = " << allocation_counter/1e9
+                << "; demand_counter = " << demand_counter/1e9 << "; left_capacity = " << left_capacity/1e9 << std::endl;
+            std::cout << std::setprecision(15) << std::fixed;
+        }
+        return;
+    }
+
     fair_share = (rate - demand_counter) / num_active_flows;
     if (fair_share < 0) {   // happens when demand_counter is > rate
         fair_share = 0;
@@ -113,10 +127,6 @@ void D3Queue::allocate_rate(Packet *packet) {
             std::cout << "assign packet[" << packet->unique_id << "] from Flow[" << packet->flow->id << "] base rate" << std::endl;
         }
     } // Yiwen: set base_rate value to be 0 to prevent allocation_counter > rate; otherwise left_capacity becomes negative in next RTT
-
-    if (packet->type == FIN_PACKET) {   // FIN packet should not be assigned rate and add to allocation_counter;
-        rate_to_allocate = 0;       // otherwise it can be assigned with fare share rate
-    }   // Yiwen: decrement of num_active_flows for routers along the path is done all at once when FIN packet is received. This is to prevent any surprises caused by async
 
     allocation_counter += rate_to_allocate;
     if (params.debug_event_info) {

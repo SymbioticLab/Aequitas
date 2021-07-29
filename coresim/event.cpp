@@ -523,13 +523,6 @@ void PacketQueuingEvent::process_event() {
         }
     }
 
-    if (packet->type == FIN_PACKET) {
-        // (for D3) keep note of queues traversed to perform decrement num_active_flows when FIN packet is received
-        if (params.flow_type == D3_FLOW) {
-            packet->traversed_queues.push_back(queue);
-        }
-    }
-
     queue->enque(packet);
 }
 //// For Toy Example: PacketQueuingEvent does not trigger QueueProcessingEvent (it only calls enque() now)

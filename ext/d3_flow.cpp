@@ -131,7 +131,7 @@ void D3Flow::send_next_pkt() {
             p->prev_allocated_rate = allocated_rate;
             double desired_rate = calculate_desired_rate();     // calculate desired rate at the beginning of every RTT
             p->desired_rate = desired_rate;     
-            prev_desired_rate = desired_rate;       // sender host updates past info
+            prev_desired_rate = desired_rate;       // sender host updates past info    ; TODO: check this line
 
             Queue *next_hop = topology->get_next_hop(p, src->queue);
             if (params.debug_event_info) {
@@ -224,7 +224,7 @@ Packet *D3Flow::send_with_delay(uint64_t seq, double delay) {
 }
 
 void D3Flow::receive(Packet *p) {
-    // call receive_fin_pkt() early since at this point flow->finished is marked true
+    // call receive_fin_pkt() early since at this point flow->finished has been marked true
     if (p->type == FIN_PACKET) {
         receive_fin_pkt(p);
     }
@@ -352,11 +352,6 @@ void D3Flow::receive_syn_ack_pkt(Packet *p) {
 void D3Flow::receive_fin_pkt(Packet *p) {
     assert(finished);
     std::cout << "receiving FIN packet" << std::endl;
-    // decrement num_active_flows
-    for (int i = 0; i < p->traversed_queues.size(); i++) {
-        p->traversed_queues[i]->num_active_flows--;
-        std::cout << "decrement num_active_flows at Queue[" << p->traversed_queues[i]->unique_id << "]. num_active_flows = " << p->traversed_queues[i]->num_active_flows << std::endl;
-    }
 }
 
 // D3's version of send_ack(), which takes an addition input parameter (data_pkt) to send the allocated_rate back to the source via ACK pkt
@@ -411,7 +406,7 @@ void D3Flow::receive_ack_d3(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sa
         }
         if (params.debug_event_info) {
             std::cout << std::setprecision(2) << std::fixed;
-            std::cout << "Flow[" << id << "] at Host[" << src->id << "] received ACK packet[" << ack_pkt->unique_id << "] with RRQ. assigned rate = " << allocated_rate /1e9 << std::endl;
+            std::cout << "Flow[" << id << "] at Host[" << src->id << "] received ACK packet[" << ack_pkt->unique_id << "] with RRQ. allocated rate = " << allocated_rate /1e9 << std::endl;
             std::cout << std::setprecision(15) << std::fixed;
         }
     }
@@ -449,6 +444,7 @@ void D3Flow::receive_ack_d3(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sa
         }
         */
     } else if (ack == last_unacked_seq && ack_pkt->ack_to_rrq_no_payload) {  // in D3 we need to consider another case: when the data pkt's payload gets removed, we need to resend the last packet
+        std::cout << "PUPUPU" << std::endl;
         send_next_pkt();
     }
 

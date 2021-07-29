@@ -7,7 +7,7 @@ bandwidth: 100000000000.0
 host_type: 1
 queue_type: 8
 flow_type: 8
-num_flow: 100000
+num_flow: 10
 num_hosts: 2
 flow_trace: ./CDF_uniform_32K.txt
 cut_through: 0
@@ -53,7 +53,7 @@ disable_poisson_arrival: 0
 test_fairness: 0
 track_qosh_dwnds: 0
 load: 0.8
-use_dynamic_load: 1
+use_dynamic_load: 0
 burst_load: 1.4
 burst_size: 4
 num_pctl: 10

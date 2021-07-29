@@ -66,7 +66,6 @@ class Packet {
         bool data_pkt_with_rrq;                     // whether a data pkt is piggybacked with an RRQ (rate request) packet
         bool ack_pkt_with_rrq;                      // true if it is an ack pkt of the data pkt piggbybacked with an RRQ
         bool ack_to_rrq_no_payload;                 // true if it is an ack pkt of the data RRQ packet whose payload is removed
-        std::vector<Queue *> traversed_queues;      // stored by ACK pkt; used by D3Queue to decrement num_active_flows when the final ACK is received
 };
 
 class PlainAck : public Packet {
