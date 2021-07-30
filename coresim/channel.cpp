@@ -195,6 +195,7 @@ Packet *Channel::send_one_pkt(uint64_t seq, uint32_t pkt_size, double delay, Flo
         double td = src->queue->get_transmission_delay(p);
         double pd = src->queue->propagation_delay;
         //std::cout << "Channel[" << id << "] td = " << td << "; pd = " << pd << std::endl;
+        // TODO(yiwen): check whether 'td' is needed at PacketQueuingEvent
         add_to_event_queue(new PacketQueuingEvent(get_current_time() + pd + td, p, next_hop));  // tiny delay should be uncessary in this case; TODO: check later
         add_to_event_queue(new NICProcessingEvent(get_current_time() + td, src->nic));
     }

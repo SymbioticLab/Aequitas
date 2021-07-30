@@ -114,7 +114,8 @@ Packet *QjumpChannel::send_one_pkt(uint64_t seq, uint32_t pkt_size, double delay
         std::cout << "Qjump sending out Packet[" << p->unique_id << "] (seq=" << seq << ") at time: " << get_current_time() + delay << " (base=" << get_current_time() << "; delay=" << delay << ")" << std::endl;
     }
     Queue *next_hop = topology->get_next_hop(p, src->queue);
-    add_to_event_queue(new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay + network_epoch, p, next_hop));
+    ////add_to_event_queue(new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay + network_epoch, p, next_hop));
+    add_to_event_queue(new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop));
     add_to_event_queue(new QjumpEpochEvent(get_current_time() + network_epoch, src, priority));
     return p;
 }
