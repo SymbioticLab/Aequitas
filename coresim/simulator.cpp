@@ -33,6 +33,8 @@ std::vector<std::vector<double>> per_pkt_lat;
 std::vector<std::vector<double>> per_pkt_rtt;
 std::vector<std::vector<uint32_t>> cwnds;
 std::vector<std::vector<uint32_t>> dwnds;
+std::vector<double> D3_allocation_counter_per_queue;
+std::vector<uint32_t> D3_num_allocations_per_queue;
 double total_time_period = 0;
 uint32_t total_num_periods = 0;
 //std::vector<double> time_spent_send_data;

@@ -16,6 +16,8 @@ extern void add_to_event_queue(Event* ev);
 extern uint32_t dead_packets;
 extern DCExpParams params;
 
+extern std::vector<double> D3_allocation_counter_per_queue;
+extern std::vector<uint32_t> D3_num_allocations_per_queue;
 
 /* D3Queues */
 D3Queue::D3Queue(uint32_t id, double rate, uint32_t limit_bytes, int location)
@@ -91,8 +93,8 @@ void D3Queue::allocate_rate(Packet *packet) {
 
     if (packet->type == FIN_PACKET) {   // for FIN packet, exit the algorithm after returning past info & decrementing flow counter
         num_active_flows--;
-        if (params.debug_event_info) {
-            std::cout << "At D3 Queue[" << unique_id << "]: handling FIN packet[" << packet->unique_id << " from Flow[" << packet->flow->id << "]" << std::endl;
+        if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == packet->flow->id)) {
+            std::cout << "At D3 Queue[" << unique_id << "]: handling FIN packet[" << packet->unique_id << "] from Flow[" << packet->flow->id << "]" << std::endl;
             std::cout << std::setprecision(2) << std::fixed;
             std::cout << "num_active_flows = " << num_active_flows << "; prev allocated = " << packet->prev_allocated_rate/1e9
                 << "; prev desired = " << packet->prev_desired_rate/1e9 << "; desired = " << packet->desired_rate/1e9 << std::endl;
@@ -107,10 +109,11 @@ void D3Queue::allocate_rate(Packet *packet) {
     if (fair_share < 0) {   // happens when demand_counter is > rate
         fair_share = 0;
     }
-    if (params.debug_event_info) {
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == packet->flow->id)) {
         std::cout << std::setprecision(2) << std::fixed;
         std::cout << "At D3 Queue[" << unique_id << "]:" << std::endl;
-        std::cout << "allocate rate for Packet[" << packet->unique_id << "] from Flow["<< packet->flow->id << "]; type = " << packet->type << " at Queue[" << unique_id << "]" << std::endl;
+        std::cout << "allocate rate for Packet[" << packet->unique_id << "]{" << packet->seq_no << "} from Flow["<< packet->flow->id << "]; type = "
+            << packet->type << "; size = " << packet->size << " at Queue[" << unique_id << "]" << std::endl;
         std::cout << "num_active_flows = " << num_active_flows << "; prev allocated = " << packet->prev_allocated_rate/1e9
             << "; prev desired = " << packet->prev_desired_rate/1e9 << "; desired = " << packet->desired_rate/1e9 << std::endl;
         std::cout << "allocation_counter = " << allocation_counter/1e9
@@ -126,15 +129,32 @@ void D3Queue::allocate_rate(Packet *packet) {
     if (rate_to_allocate == base_rate) {    // this happens when 'rate_to_allocate' = 0
         packet->marked_base_rate = true;    
         // if a flow is assigned 'base_rate', the sender will use 'real_base_rate' to send out the hdr-only packet for rate request
-        if (params.debug_event_info) {
+        if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == packet->flow->id)) {
             std::cout << "assign packet[" << packet->unique_id << "] from Flow[" << packet->flow->id << "] base rate" << std::endl;
         }
     } // Yiwen: set base_rate value to be 0 to prevent allocation_counter > rate; otherwise left_capacity becomes negative in next RTT
 
     allocation_counter += rate_to_allocate;
-    if (params.debug_event_info) {
+
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == packet->flow->id)) {
         std::cout << "rate_to_allocate = " << rate_to_allocate/1e9 << " Gbps; allocation counter = " << allocation_counter/1e9 << " Gbps." << std::endl;
         std::cout << std::setprecision(15) << std::fixed;
+    }
+    // logging
+    if (params.big_switch && params.traffic_pattern == 1) {
+        D3_allocation_counter_per_queue[unique_id] += (allocation_counter/1e9);
+        D3_num_allocations_per_queue[unique_id]++;
+        if (allocation_counter/1e9 > 1000) {     // watch for unusual allocation counter value
+            std::cout << "PUPU: allocation counter = " << allocation_counter/1e9 << std::endl;
+            std::cout << std::setprecision(2) << std::fixed;
+            std::cout << "At D3 Queue[" << unique_id << "]:" << std::endl;
+            std::cout << "allocate rate for Packet[" << packet->unique_id << "] from Flow["<< packet->flow->id << "]; type = " << packet->type << " at Queue[" << unique_id << "]" << std::endl;
+            std::cout << "num_active_flows = " << num_active_flows << "; prev allocated = " << packet->prev_allocated_rate/1e9
+                << "; prev desired = " << packet->prev_desired_rate/1e9 << "; desired = " << packet->desired_rate/1e9 << std::endl;
+            std::cout << "; demand_counter = " << demand_counter/1e9 << "; left_capacity = " << left_capacity/1e9 << "; fair_share = " << fair_share/1e9 << std::endl;
+            std::cout << "rate_to_allocate = " << rate_to_allocate/1e9 << " Gbps; allocation counter = " << allocation_counter/1e9 << " Gbps." << std::endl;
+            std::cout << std::setprecision(15) << std::fixed;
+        }
     }
 
     packet->curr_rates_per_hop.push_back(rate_to_allocate); 

@@ -41,6 +41,8 @@ extern std::vector<std::vector<double>> per_pkt_lat;
 extern std::vector<std::vector<double>> per_pkt_rtt;
 extern std::vector<std::vector<uint32_t>> cwnds;
 extern std::vector<std::vector<uint32_t>> dwnds;
+extern std::vector<double> D3_allocation_counter_per_queue;
+extern std::vector<uint32_t> D3_num_allocations_per_queue;
 extern std::vector<uint32_t> num_timeouts;
 extern double total_time_period;
 extern uint32_t total_num_periods;
@@ -233,6 +235,10 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
 
     cwnds.resize(params.weights.size());
     dwnds.resize(params.weights.size());
+    if (params.flow_type == D3_FLOW && params.big_switch && params.traffic_pattern == 1) {
+        D3_allocation_counter_per_queue.resize(params.num_hosts * 2, 0);
+        D3_num_allocations_per_queue.resize(params.num_hosts * 2, 0);
+    }
     num_timeouts.resize(params.weights.size(), 0);
     pkt_drops_per_prio.resize(params.weights.size(), 0);
     pkt_drops_per_agg_sw.resize(params.num_agg_switches, 0);
@@ -764,8 +770,20 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
     //    }
     //}
 
+    if (params.flow_type == D3_FLOW && params.big_switch && params.traffic_pattern == 1) {
+        uint32_t num_queues = D3_num_allocations_per_queue.size();
+        double sum_avg_allocations_by_queue = 0;
+        for (uint32_t i = 0; i < num_queues; i++) {
+            double avg_allocations_by_queue = D3_allocation_counter_per_queue[i] / D3_num_allocations_per_queue[i];
+            //std::cout << "avg allocations at Queue[" << i << "]: " << avg_allocations_by_queue << std::endl;
+            //std::cout << "num allocations at Queue[" << i << "]: " << D3_num_allocations_per_queue[i] << std::endl;
+            sum_avg_allocations_by_queue += avg_allocations_by_queue;
+        }
+        std::cout << "Avg allocation counter: " << sum_avg_allocations_by_queue / num_queues << " Gbps" << std::endl;
+    }
 
-    if (params.flow_type != QJUMP_FLOW) {
+
+    if (params.flow_type != QJUMP_FLOW && params.flow_type != D3_FLOW) {
         std::vector<double> final_avg_qos_dist;
         std::cout << "Final QoS Dist: ";
         std::cout << std::setprecision(1) << std::fixed;
