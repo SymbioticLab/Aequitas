@@ -128,7 +128,6 @@ void D3Queue::allocate_rate(Packet *packet) {
     rate_to_allocate = std::max(rate_to_allocate, base_rate);
     if (rate_to_allocate == base_rate) {    // this happens when 'rate_to_allocate' = 0
         packet->marked_base_rate = true;    
-        // if a flow is assigned 'base_rate', the sender will use 'real_base_rate' to send out the hdr-only packet for rate request
         if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == packet->flow->id)) {
             std::cout << "assign packet[" << packet->unique_id << "] from Flow[" << packet->flow->id << "] base rate" << std::endl;
         }
@@ -200,8 +199,3 @@ void D3Queue::drop(Packet *packet) {
     delete packet;
 }
 
-/*  // PDQ may need to re-implement this 
-void Queue::preempt_current_transmission() {
-    assert(false);
-}
-*/
