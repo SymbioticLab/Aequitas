@@ -64,7 +64,7 @@ void PFabricFlow::send_pending_data() {
             set_timeout(get_current_time() + retx_timeout);
         }
     }
-    if (params.debug_event_info) {
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
         std::cout << "Flow[" << id << "] sends " << pkts_sent << " pkts." << std::endl;
     }
 }
@@ -102,7 +102,7 @@ Packet *PFabricFlow::send_with_delay(uint64_t seq, double delay) {
     p->start_ts = get_current_time();
 
     Queue *next_hop = topology->get_next_hop(p, src->queue);
-    if (params.debug_event_info) {
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
         std::cout << "sending out Packet[" << p->unique_id << "] at time: " << get_current_time() + delay << " (base=" << get_current_time() << "; delay=" << delay << ")" << std::endl;
     }
     //PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + delay, p, next_hop);
@@ -167,6 +167,11 @@ void PFabricFlow::receive_ack(uint64_t ack, std::vector<uint64_t> sack_list,
     // In such cases, the ack can be greater than next_seq_no; update it
     if (next_seq_no < ack) {
         next_seq_no = ack;
+    }
+
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
+        std::cout << "Flow[" << id << "] at Host[" << src->id << "] received ACK packet"
+            << "; ack = " << ack << ", next_seq_no = " << next_seq_no << ", last_unacked_seq = " << last_unacked_seq << std::endl;
     }
 
     // New ack!

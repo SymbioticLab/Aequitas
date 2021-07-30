@@ -55,7 +55,7 @@ void D3Flow::send_fin_pkt() {
     // For FIN pkt its sending rate doesn't matter because by design we have marked flow completion before sending out the FIN pkt. So just send it immediately
     PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);  // adding a pd since we skip the source queue
     add_to_event_queue(event);
-    if (params.debug_event_info) {
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
         std::cout << "Host[" << src->id << "] sends out Fin Packet[" << p->unique_id << "] from Flow[" << id << "] at time: " << get_current_time() << std::endl;
     }
 }
@@ -81,7 +81,7 @@ void D3Flow::send_syn_pkt() {
     // Note we will send the first SYN pkt immediately
     PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);  // adding a pd since we skip the source queue
     add_to_event_queue(event);
-    if (params.debug_event_info) {
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
         std::cout << "Host[" << src->id << "] sends out Syn Packet[" << p->unique_id << "] from Flow[" << id << "] at time: " << get_current_time() << std::endl;
     }
 }
@@ -109,6 +109,12 @@ void D3Flow::send_next_pkt() {
         // cancel the current rate limiting event since now we are not allowed to send more data pkts during this RTT
         cancel_rate_limit_event();
 
+        // There exist one case where we don't need to send the header-only rrq packet this RTT -- when we received the last ack (=size) and the flow is completed
+        // We need this extra check because the logic of sending this header-only rrq packet is before the logic of sending normal data pkts, and the latter logic includes this check
+        if (last_unacked_seq == size) {
+            return;
+        }
+
         // send the header-only RRQ if we haven't 
         if (!has_sent_rrq_this_rtt) {
             has_sent_rrq_this_rtt = true;
@@ -134,7 +140,7 @@ void D3Flow::send_next_pkt() {
             prev_desired_rate = desired_rate;       // sender host updates past info    ; TODO: check this line
 
             Queue *next_hop = topology->get_next_hop(p, src->queue);
-            if (params.debug_event_info) {
+            if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
                 std::cout << "Host[" << src->id << "] sends out header-only RRQ Packet[" << p->unique_id << "] from flow[" << id << "] at time: " << get_current_time() << std::endl;
             }
 
@@ -162,9 +168,6 @@ void D3Flow::send_next_pkt() {
             next_seq_no = size;
             seq = size;
         }
-    }
-    if (params.debug_event_info) {
-        std::cout << "Flow[" << id << "] sends 1 pkt." << std::endl;
     }
 }
 
@@ -212,7 +215,7 @@ Packet *D3Flow::send_with_delay(uint64_t seq, double delay) {
     }
 
     Queue *next_hop = topology->get_next_hop(p, src->queue);
-    if (params.debug_event_info) {
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
         std::cout << "Host[" << src->id << "] sends out Packet[" << p->unique_id << "] from flow[" << id << "] at time: " << get_current_time() + delay << " (base=" << get_current_time() << "; delay=" << delay << ")" << std::endl;
     }
     double td = p->size * 8.0 / allocated_rate;         // send the pkt with allocated_rate (assigned by the router)
@@ -301,7 +304,7 @@ void D3Flow::receive_data_pkt(Packet* p) {
         s += mss;
     }
 
-    if (params.debug_event_info) {
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
         std::cout << "Flow[" << id << "] receive_data_pkt: max_seq_no_recv = " << max_seq_no_recv << "; data pkt seq no = " << p->seq_no
             << "; recv_till (seq for next ACK) = " << recv_till << std::endl;
     }
@@ -316,7 +319,7 @@ void D3Flow::receive_syn_pkt(Packet *syn_pkt) {
     p->allocated_rate = *std::min_element(syn_pkt->curr_rates_per_hop.begin(), syn_pkt->curr_rates_per_hop.end());
     p->marked_base_rate = syn_pkt->marked_base_rate;
 
-    if (params.debug_event_info) {
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
         std::cout << std::setprecision(2) << std::fixed;
         std::cout << "Receiving SYN packet["<< syn_pkt->unique_id << "] from Flow[" << id << "]. allocated rate assigned = " << p->allocated_rate / 1e9;
         if (p->marked_base_rate) {
@@ -367,7 +370,7 @@ void D3Flow::send_ack_d3(uint64_t seq, std::vector<uint64_t> sack_list, double p
             p->ack_to_rrq_no_payload = true;
         }
 
-        if (params.debug_event_info) {
+        if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
             std::cout << std::setprecision(2) << std::fixed;
             std::cout << "Received DATA packet["<< data_pkt->unique_id << "] with RRQ from Flow[" << id << "]. allocated rate assigned = " << p->allocated_rate / 1e9;
             if (p->marked_base_rate) {
@@ -403,7 +406,7 @@ void D3Flow::receive_ack_d3(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sa
         } else {
             assigned_base_rate = false;
         }
-        if (params.debug_event_info) {
+        if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
             std::cout << std::setprecision(2) << std::fixed;
             std::cout << "Flow[" << id << "] at Host[" << src->id << "] received ACK packet[" << ack_pkt->unique_id << "] with RRQ. allocated rate = " << allocated_rate /1e9 << std::endl;
             std::cout << std::setprecision(15) << std::fixed;
@@ -413,10 +416,11 @@ void D3Flow::receive_ack_d3(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sa
     // On timeouts; next_seq_no is updated to the last_unacked_seq;
     // In such cases, the ack can be greater than next_seq_no; update it
     if (next_seq_no < ack) {
+        assert(false);      // shouldn't enter since there's no timeout
         next_seq_no = ack;
     }
 
-    if (params.debug_event_info) {
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
         std::cout << "Flow[" << id << "] at Host[" << src->id << "] received ACK packet[" << ack_pkt->unique_id
             << "]; ack = " << ack << ", next_seq_no = " << next_seq_no << ", last_unacked_seq = " << last_unacked_seq << std::endl;
     }
@@ -442,7 +446,10 @@ void D3Flow::receive_ack_d3(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sa
             }
         }
         */
-    } else if (ack == last_unacked_seq && ack_pkt->ack_to_rrq_no_payload) {  // in D3 we need to consider another case: when the data pkt's payload gets removed, we need to resend the last packet
+    } else if (ack == last_unacked_seq && ack_pkt->ack_to_rrq_no_payload) {  // in D3 : when the data pkt's payload gets removed, we need to resend the last packet
+        if (params.enable_flow_lookup && params.flow_lookup_id == id) {
+            std::cout << "Ready to resend last data pkt: ack = " << ack << "; last_unacked_seq = " << last_unacked_seq << "; size = " << size << std::endl;
+        }
         send_next_pkt();
     }
 
@@ -455,6 +462,9 @@ void D3Flow::receive_ack_d3(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sa
         flow_completion_time = finish_time - start_time;
         FlowFinishedEvent *ev = new FlowFinishedEvent(get_current_time(), this);
         add_to_event_queue(ev);
+
+        // cancel current RateLimitingEvent if there is any
+        cancel_rate_limit_event();
 
         // send out a FIN pkt to return the desired and allocated rate of this flow during the last RTT to the routers(queues) on its path
         send_fin_pkt();

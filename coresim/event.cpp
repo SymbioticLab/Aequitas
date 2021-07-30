@@ -675,8 +675,8 @@ void FlowFinishedEvent::process_event() {
 
     total_finished_flows++;
     ////
-    if (params.debug_event_info) {
-        std::cout << "At time: " << get_current_time() << ", Flow[" << flow->id << "](" << flow->flow_priority << ") FlowFinishedEvent{" << qid << "}; FCT = "
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == flow->id)) {
+        std::cout << "At time: " << get_current_time() << ", Flow[" << flow->id << "](" << flow->flow_priority << ") FlowFinishedEvent; FCT = "
             << flow->flow_completion_time * 1e6 << std::endl;
                 //<< " us; avg_queuing_delay = " << flow->get_avg_queuing_delay_in_us() << std::endl;
     }
@@ -837,7 +837,7 @@ RateLimitingEvent::~RateLimitingEvent() {
 }
 
 void RateLimitingEvent::process_event() {
-    if (params.debug_event_info) {
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == flow->id)) {
         std::cout << "At time: " << get_current_time() << ", Flow[" << flow->id << "] process RateLimitingEvent with allocated_rate = ";
         std::cout << std::setprecision(2) << std::fixed;
         std::cout << flow->allocated_rate / 1e9 << std::endl;
