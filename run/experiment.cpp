@@ -47,6 +47,7 @@ extern std::vector<uint32_t> num_timeouts;
 extern double total_time_period;
 extern uint32_t total_num_periods;
 extern uint32_t total_finished_flows;
+extern uint32_t num_early_termination;
 
 extern std::map<std::pair<uint32_t, uint32_t>, double> time_spent_send_data;
 extern std::map<std::pair<uint32_t, uint32_t>, double> burst_start_time;
@@ -433,6 +434,9 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
     }
     std::cout << "Unfinished Flows: " << num_unfinished_flows << std::endl;
     std::cout << "Finished Flows: " << flows_sorted.size() - num_unfinished_flows << std::endl;
+    if (params.early_termination) {
+        std::cout << "Terminated Flows: " << num_early_termination << std::endl;
+    }
     //std::cout << "Num 4K RPCs: " << num_4K_RPCs << std::endl;
     std::cout << "Num 16K RPCs: " << num_16K_RPCs << std::endl;
     std::cout << "Num 32K RPCs: " << num_32K_RPCs << std::endl;

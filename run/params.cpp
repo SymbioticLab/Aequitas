@@ -78,6 +78,7 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
     params.nic_use_WF = 0;
     params.qjump_cumulative_pd = 1;
     params.qjump_tput_factor = std::vector<int>();
+    params.early_termination = 0;
     //params.enable_initial_shift = 0;
     //params.dynamic_load = std::vector<double>();
     while (std::getline(input, line)) {
@@ -525,6 +526,9 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
                 std::cout << i << " ";
             }
             std::cout << std::endl;
+        }
+        else if (key == "early_termination") {
+            lineStream >> params.early_termination;
         }
         //else if (key == "dynamic_load") {
         //    std::string temp_str;

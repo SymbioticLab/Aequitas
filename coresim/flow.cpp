@@ -91,6 +91,7 @@ Flow::Flow(uint32_t id, double start_time, uint32_t size, Host *s, Host *d) {
     this->allocated_rate = 0;
     this->has_ddl = false;
     this->rate_limit_event = nullptr;
+    this->terminated = false;
 }
 
 Flow::Flow(uint32_t id, double start_time, uint32_t size, Host *s, Host *d, uint32_t flow_priority) :

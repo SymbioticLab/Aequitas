@@ -21,6 +21,7 @@ extern Topology* topology;
 extern uint32_t num_outstanding_packets;
 extern uint32_t max_outstanding_packets;
 extern uint32_t duplicated_packets_received;
+extern uint32_t num_early_termination;
 
 D3Flow::D3Flow(uint32_t id, double start_time, uint32_t size, Host *s,
                          Host *d, uint32_t flow_priority)
@@ -102,6 +103,23 @@ double D3Flow::calculate_desired_rate() {
 }
 
 void D3Flow::send_next_pkt() {
+    if (terminated) {
+        return;
+    }
+    if (params.early_termination) {
+        // D3's flow quenching check (D3 paper Section 6.1.3)
+        // (1) desired_rate exceeds uplink capacity (2) the deadline has already expired
+        if (calculate_desired_rate() > params.bandwidth || get_remaining_deadline() < 0) {
+            terminated = true;
+            num_early_termination++;
+            send_syn_pkt();
+            if (params.debug_event_info) {
+                std::cout << "Terminate Flow[" << id << "]: desired_rate = " << calculate_desired_rate() / 1e9 << "; remaining_deadline = " << get_remaining_deadline() << std::endl;
+            }
+            return;
+        }
+    }
+
     // if we have already sent the only header-only RRQ during this RTT, return early and don't bother with sending anything else
     if (assigned_base_rate && has_sent_rrq_this_rtt) {
         return;
@@ -200,7 +218,7 @@ void D3Flow::receive(Packet *p) {
     if (p->type == FIN_PACKET) {
         receive_fin_pkt(p);
     }
-    if (finished) {
+    if (finished || terminated) {
         delete p;
         return;
     }

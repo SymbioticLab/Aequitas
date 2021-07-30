@@ -111,6 +111,7 @@ class Flow {
         double allocated_rate;          // rate to send in the current RTT (assigned by router during last RTT)
         bool has_ddl;                   // tell apart from non-ddl flows
         RateLimitingEvent *rate_limit_event;        // points to the next RateLimitingEvent; maintains this so we can cancel it when base rate is assigned
+        bool terminated;                // PDQ might share this variable as well
 
         // QID: specifies which EventQueue this flow's events should go to
         uint32_t qid;       //TOOD: completely remove

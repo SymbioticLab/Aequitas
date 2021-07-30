@@ -106,6 +106,8 @@ class DCExpParams {
         double qjump_cumulative_pd;     // used when calculating qjump's network epoch; in uint of us; default to be 1us
         std::vector<int> qjump_tput_factor;    // specify the throughput factors of Qjump
 
+        uint32_t early_termination;     // used by D3; default off
+
         double reauth_limit;
 
         double magic_trans_slack;
