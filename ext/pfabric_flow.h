@@ -27,6 +27,7 @@ class PFabricFlow : public Flow {
  private:
   uint32_t ssthresh;
   uint32_t count_ack_additive_increase;
+  std::vector<uint32_t> priority_thresholds;  // used for pFabric with limited number of priority queues
 };
 
 #endif  // EXT_PFABRIC_FLOW_H

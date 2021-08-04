@@ -79,6 +79,7 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
     params.qjump_cumulative_pd = 1;
     params.qjump_tput_factor = std::vector<int>();
     params.early_termination = 0;
+    params.pfabric_limited_priority = 0;
     //params.enable_initial_shift = 0;
     //params.dynamic_load = std::vector<double>();
     while (std::getline(input, line)) {
@@ -542,6 +543,9 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
         //}
         else if (key == "pfabric_priority_type") {
             lineStream >> params.pfabric_priority_type;
+        }
+        else if (key == "pfabric_limited_priority") {
+            lineStream >> params.pfabric_limited_priority;
         }
         else {
             std::cout << "Unknown conf param: " << key << " in file: " << conf_filename << "\n";

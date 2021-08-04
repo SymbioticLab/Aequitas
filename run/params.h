@@ -147,6 +147,7 @@ class DCExpParams {
         //uint32_t dctcp_delayed_ack_freq;
 
         std::string pfabric_priority_type;
+        uint32_t pfabric_limited_priority;    // when true, using size thresholds instead of unlimited number of priority levels
 
         double get_full_pkt_tran_delay(uint32_t size_in_byte = 1500)
         {

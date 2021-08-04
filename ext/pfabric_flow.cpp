@@ -18,19 +18,31 @@ extern Topology* topology;
 
 PFabricFlow::PFabricFlow(uint32_t id, double start_time, uint32_t size, Host *s,
                          Host *d, uint32_t flow_priority)
-    : Flow(id, start_time, size, s, d, flow_priority) {
-  ssthresh = 100000;
-  count_ack_additive_increase = 0;
+        : Flow(id, start_time, size, s, d, flow_priority) {
+    ssthresh = 100000;
+    count_ack_additive_increase = 0;
+    priority_thresholds = {4096, 8192, 16384, 32768, 65536, 131072, 262144};
 }
 
 uint32_t PFabricFlow::get_pfabric_priority(uint64_t seq) {
-  if (params.pfabric_priority_type == "size") {
-    return size - last_unacked_seq - scoreboard_sack_bytes;
-  } else if (params.pfabric_priority_type == "qos") {
-    return flow_priority;
-  } else {
-    return 1;
-  }
+    if (params.pfabric_priority_type == "size") {
+        uint32_t priority_unlimited = size - last_unacked_seq - scoreboard_sack_bytes;
+        if (!params.pfabric_limited_priority) {
+            return priority_unlimited;
+        } else {
+            uint32_t priority_limited;
+            for (uint32_t i = 0; i < priority_thresholds.size(); i++) {
+                if (priority_unlimited <= priority_thresholds[i]) {
+                    return i;
+                }
+            }
+            return priority_thresholds.size();
+        }
+    } else if (params.pfabric_priority_type == "qos") {
+        return flow_priority;
+    } else {
+        return 1;
+    }
 }
 
 void PFabricFlow::start_flow() {
