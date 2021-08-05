@@ -20,13 +20,8 @@ extern double get_current_time();
 extern void add_to_event_queue(Event *);
 extern DCExpParams params;
 extern Topology* topology;
-extern std::vector<std::vector<uint32_t>> cwnds;
 extern std::vector<uint32_t> num_timeouts;
-extern uint32_t num_measurements_cleared;
-extern uint32_t total_measurements;
-extern std::vector<uint32_t> lat_cleared;
-extern uint32_t num_outstanding_packets;
-extern std::vector<std::vector<double>> per_pkt_rtt;
+//extern uint32_t num_outstanding_packets;
 extern uint32_t pkt_total_count;
 
 QjumpChannel::QjumpChannel(uint32_t id, Host *s, Host *d, uint32_t priority, AggChannel *agg_channel)
@@ -47,7 +42,6 @@ void QjumpChannel::add_to_channel(Flow *flow) {
 
 // Qjump sends one packet at a time instead of as many pkts as the cwnd allows
 // impl copied from Channel::nic_send_next_pkt()
-//TODO: assert when choosing Qjump; param.real_nic must be 0
 int QjumpChannel::send_pkts() {
     uint32_t pkts_sent = 0;
     uint64_t seq = next_seq_no;
@@ -81,7 +75,6 @@ int QjumpChannel::send_pkts() {
                 << ") to send a packet[" << p->unique_id <<"] (seq=" << seq << "), last_unacked_seq = " << last_unacked_seq << "; window = " << window
                 << "; Flow start_seq = " << flow_to_send->start_seq_no << "; flow end_seq = " << flow_to_send->end_seq_no << std::endl;
         }
-        seq = next_seq_no;  // unnecessary here; remote later
         pkts_sent++;
 
         if (retx_event == NULL) {
@@ -95,6 +88,65 @@ int QjumpChannel::send_pkts() {
     pkt_total_count += pkts_sent;
 
     return pkts_sent;
+}
+
+void QjumpChannel::receive_ack(uint64_t ack, Flow *flow, std::vector<uint64_t> sack_list, double pkt_start_ts) {
+    if (params.debug_event_info) {
+        std::cout << "Channel[" << id << "] with priority " << priority << " receive ack: " << ack << std::endl;
+    }
+    if (params.enable_flow_lookup && flow->id == params.flow_lookup_id) {
+        std::cout << "Channel[" << id << "] Flow[" << flow->id << "] with priority " << priority
+            << " receive ack: " << ack << "; last_unacked_seq: " << last_unacked_seq
+            << "; Flow's end seq = " << flow->end_seq_no << ", start_seq = " << flow->start_seq_no << std::endl;
+    }
+    //this->scoreboard_sack_bytes = sack_list.size() * mss;
+    this->scoreboard_sack_bytes = 0;        // ignore SACK for now
+
+    // On timeouts; next_seq_no is updated to last_unacked_seq;
+    // In such cases, the ack can be greater than next_seq_no; update it
+    if (next_seq_no < ack) {
+        next_seq_no = ack;
+    }
+
+    // New ack!
+    if (ack > last_unacked_seq) {
+        // Update the last unacked seq
+        last_unacked_seq = ack;
+
+        // Send the remaining data
+        send_pkts();
+
+        // Update the retx timer
+        if (retx_event != NULL) { // Try to move
+            cancel_retx_event();
+            if (last_unacked_seq < end_seq_no) {
+                // Move the timeout to last_unacked_seq
+                double timeout = get_current_time() + retx_timeout;
+                set_timeout(timeout);
+                if (params.enable_flow_lookup && flow->id == params.flow_lookup_id) {
+                    std::cout << "Flow[" << flow->id << "] at receive_ack(): set timeout at: " << timeout << std::endl;
+                }
+            }
+        }
+
+    }
+
+    if (ack == flow->end_seq_no && !flow->finished) {
+        flow->finished = true;
+        cleanup_after_finish(flow);
+        flow->finish_time = get_current_time();
+        double flow_completion_time = flow->finish_time - flow->start_time;
+        if (params.priority_downgrade) {
+            update_fct(flow_completion_time, flow->id, get_current_time(), flow->size_in_pkt);
+        }
+        if (params.enable_flow_lookup && flow->id == params.flow_lookup_id) {
+            std::cout << "Flow[" << flow->id << "] Finish time = "
+                << flow->finish_time << "; start time = " << flow->start_time
+                << "; completion time = " << flow_completion_time << std::endl;
+        }
+        FlowFinishedEvent *ev = new FlowFinishedEvent(get_current_time(), flow);
+        add_to_event_queue(ev);
+    }
 }
 
 // Note the tiny delay won't be used here since Qjump only send one packet at a time
@@ -121,3 +173,17 @@ Packet *QjumpChannel::send_one_pkt(uint64_t seq, uint32_t pkt_size, double delay
 }
 // We won't apply epoch on ACK pkts to prioritize them for Qjump's sake
 
+void QjumpChannel::set_timeout(double time) {
+    if (last_unacked_seq < end_seq_no) {
+        ChannelRetxTimeoutEvent *ev = new ChannelRetxTimeoutEvent(time, this);
+        add_to_event_queue(ev);
+        retx_event = ev;
+    }
+}
+
+void QjumpChannel::handle_timeout() {
+    num_timeouts[priority]++;
+    next_seq_no = last_unacked_seq;
+    send_pkts();
+    set_timeout(get_current_time() + retx_timeout);
+}

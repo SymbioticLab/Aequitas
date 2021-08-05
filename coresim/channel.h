@@ -27,11 +27,11 @@ class Channel {
         Flow *find_next_flow(uint64_t seq);
         void receive_data_pkt(Packet* p);
         void send_ack(uint64_t seq, std::vector<uint64_t> sack_list, double pkt_start_ts, Flow *flow);
-        void receive_ack(uint64_t ack, Flow *flow, std::vector<uint64_t> sack_list, double pkt_start_ts);
+        virtual void receive_ack(uint64_t ack, Flow *flow, std::vector<uint64_t> sack_list, double pkt_start_ts);
         void cleanup_after_finish(Flow *flow);
 
-        void set_timeout(double time);
-        void handle_timeout();
+        virtual void set_timeout(double time);
+        virtual void handle_timeout();
         void cancel_retx_event();
 
         double get_admit_prob();
