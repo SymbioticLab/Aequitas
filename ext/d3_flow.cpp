@@ -42,6 +42,7 @@ void D3Flow::start_flow() {
 // later RRQ pkts are "piggybacked in data pkts" so only need the first one
 // send_syn_pkt() is called right after start_flow() so it's going to be ahead of all other data pkts
 // SYN, SYN_ACK, FIN, and header-only DATA pkt (in this case, it is treated as a RRQ or Rate Request packet) all has 0 size so they can never be dropped
+// Update: ACK to DATA RRQ also has size 0 and can never be dropped
 void D3Flow::send_fin_pkt() {
     Packet *p = new Fin(
             get_current_time(),
@@ -143,6 +144,10 @@ void D3Flow::send_next_pkt() {
                 seq = size;
             }
         }
+
+        //if (retx_event == NULL) {
+        //    set_timeout(get_current_time() + retx_timeout);
+        //}
     }
 }
 
@@ -353,6 +358,7 @@ void D3Flow::send_ack_d3(uint64_t seq, std::vector<uint64_t> sack_list, double p
         p->allocated_rate = *std::min_element(data_pkt->curr_rates_per_hop.begin(), data_pkt->curr_rates_per_hop.end());
         p->ack_pkt_with_rrq = true;
         p->marked_base_rate = data_pkt->marked_base_rate;
+        p->size = 0;        // make this type of ACK not able to be dropped
         if (data_pkt->size == 0) {  // this implies it is a "header-only" packet
             p->ack_to_rrq_no_payload = true;
         }
@@ -403,7 +409,6 @@ void D3Flow::receive_ack_d3(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sa
     // On timeouts; next_seq_no is updated to the last_unacked_seq;
     // In such cases, the ack can be greater than next_seq_no; update it
     if (next_seq_no < ack) {
-        assert(false);      // shouldn't enter since there's no timeout
         next_seq_no = ack;
     }
 
@@ -422,8 +427,8 @@ void D3Flow::receive_ack_d3(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sa
         // Send the remaining data
         send_next_pkt();
 
-        /*  no timeout events
         // Update the retx timer
+        /*
         if (retx_event != nullptr) { // Try to move
             cancel_retx_event();
             if (last_unacked_seq < size) {
@@ -458,3 +463,18 @@ void D3Flow::receive_ack_d3(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sa
     }
 }
 
+void D3Flow::set_timeout(double time) {
+    assert(false);
+    if (last_unacked_seq < size) {
+        RetxTimeoutEvent *ev = new RetxTimeoutEvent(time, this);
+        add_to_event_queue(ev);
+        retx_event = ev;
+    }
+}
+
+void D3Flow::handle_timeout() {
+    assert(false);
+    next_seq_no = last_unacked_seq;
+    send_next_pkt();
+    set_timeout(get_current_time() + retx_timeout);
+}

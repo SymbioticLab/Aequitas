@@ -161,7 +161,8 @@ void D3Queue::allocate_rate(Packet *packet) {
 
 double D3Queue::get_transmission_delay(Packet *packet) {
     double td;
-    if (packet->has_rrq && packet->size == 0) { // add back hdr_size when handling hdr_only RRQ packets (their packet->size is set to 0 to avoid dropping)
+    if ((packet->has_rrq && packet->size == 0)      // add back hdr_size when handling hdr_only RRQ packets (their packet->size is set to 0 to avoid dropping)
+        || packet->ack_pkt_with_rrq) {         // ACK to DATA RRQ is also made 0 size 
         td = params.hdr_size * 8.0 / rate;
     } else {    // D3 router forwards other packet normally
         td = packet->size * 8.0 / rate;
@@ -184,7 +185,7 @@ void D3Queue::drop(Packet *packet) {
     if (packet->type == ACK_PACKET) {
         packet->flow->ack_pkt_drop++;
         if (packet->ack_pkt_with_rrq) {
-            assert(false);      // TODO: otherwise have to handle this case
+            assert(false);
         }
     }
     if (location != 0 && packet->type == NORMAL_PACKET) {
