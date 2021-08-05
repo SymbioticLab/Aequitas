@@ -27,6 +27,7 @@ extern uint32_t pkt_total_count;
 QjumpChannel::QjumpChannel(uint32_t id, Host *s, Host *d, uint32_t priority, AggChannel *agg_channel)
     : Channel(id, s, d, priority, agg_channel) {
         network_epoch = dynamic_cast<QjumpHost *>(s)->network_epoch[priority];   // assuming the host has figured out epoch value at this point
+        this->cwnd_mss = params.max_cwnd;
     }
 
 QjumpChannel::~QjumpChannel() {}
@@ -174,6 +175,9 @@ Packet *QjumpChannel::send_one_pkt(uint64_t seq, uint32_t pkt_size, double delay
 // We won't apply epoch on ACK pkts to prioritize them for Qjump's sake
 
 void QjumpChannel::set_timeout(double time) {
+    if (!params.enable_qjump_retransmission) {
+        return;
+    }
     if (last_unacked_seq < end_seq_no) {
         ChannelRetxTimeoutEvent *ev = new ChannelRetxTimeoutEvent(time, this);
         add_to_event_queue(ev);

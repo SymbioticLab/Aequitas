@@ -104,6 +104,7 @@ class DCExpParams {
         uint32_t print_normalized_result;  // in output log, print normalize latency measurement results; default off
 
         double qjump_cumulative_pd;     // used when calculating qjump's network epoch; in uint of us; default to be 1us
+        uint32_t enable_qjump_retransmission;  // whether to turn on basic packet retransmission for Qjump; default off
         std::vector<int> qjump_tput_factor;    // specify the throughput factors of Qjump
 
         uint32_t early_termination;     // used by D3; default off

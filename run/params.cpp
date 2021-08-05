@@ -77,6 +77,7 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
     params.real_nic = 0;
     params.nic_use_WF = 0;
     params.qjump_cumulative_pd = 1;
+    params.enable_qjump_retransmission = 0;
     params.qjump_tput_factor = std::vector<int>();
     params.early_termination = 0;
     params.pfabric_limited_priority = 0;
@@ -176,6 +177,9 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
         }
         else if (key == "qjump_cumulative_pd") {
             lineStream >> params.qjump_cumulative_pd;
+        }
+        else if (key == "enable_qjump_retransmission") {
+            lineStream >> params.enable_qjump_retransmission;
         }
         else if (key == "high_prio_lat_target") {
             lineStream >> params.high_prio_lat_target;
@@ -718,8 +722,6 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
         std::cout << "NIC egress speed may go beyond line rate (for theorey-related testing)." << std::endl;
     }
     if (params.flow_type == QJUMP_FLOW) {    // Qjump disables CC
-        params.disable_veritas_cc = 1;
-        std::cout << "Qjump disables CC." << std::endl;
         assert(params.channel_multiplexing && params.multiplex_constant == 1);
         assert(params.real_nic == 0);
         std::cout << "Qjump cumulative processing delay: " << params.qjump_cumulative_pd << " us." << std::endl;
