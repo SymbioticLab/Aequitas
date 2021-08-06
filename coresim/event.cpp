@@ -223,7 +223,8 @@ void FlowCreationForInitializationEvent::process_event() {
                 new_flow->deadline = 0;
             } else {
                 new_flow->has_ddl = true;
-                new_flow->deadline = params.hardcoded_targets[flow_priority];
+                //new_flow->deadline = params.hardcoded_targets[flow_priority];
+                new_flow->deadline = params.targets[flow_priority];
             }
         }
 
