@@ -42,7 +42,7 @@ void D3Flow::start_flow() {
 // later RRQ pkts are "piggybacked in data pkts" so only need the first one
 // send_syn_pkt() is called right after start_flow() so it's going to be ahead of all other data pkts
 // SYN, SYN_ACK, FIN, and header-only DATA pkt (in this case, it is treated as a RRQ or Rate Request packet) all has 0 size so they can never be dropped
-// Update: ACK to DATA RRQ also has size 0 and can never be dropped
+//// (Revoked) Update: ACK to DATA RRQ also has size 0 and can never be dropped
 void D3Flow::send_fin_pkt() {
     Packet *p = new Fin(
             get_current_time(),
@@ -358,7 +358,7 @@ void D3Flow::send_ack_d3(uint64_t seq, std::vector<uint64_t> sack_list, double p
         p->allocated_rate = *std::min_element(data_pkt->curr_rates_per_hop.begin(), data_pkt->curr_rates_per_hop.end());
         p->ack_pkt_with_rrq = true;
         p->marked_base_rate = data_pkt->marked_base_rate;
-        p->size = 0;        // make this type of ACK not able to be dropped
+        ////p->size = 0;        // make this type of ACK not able to be dropped
         if (data_pkt->size == 0) {  // this implies it is a "header-only" packet
             p->ack_to_rrq_no_payload = true;
         }
