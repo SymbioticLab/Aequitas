@@ -550,6 +550,11 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
         }
         else if (key == "pfabric_limited_priority") {
             lineStream >> params.pfabric_limited_priority;
+            if (params.pfabric_limited_priority) {
+                std::cout << "Pfabric uses limited priority levels." << std::endl;
+            } else {
+                std::cout << "Pfabric uses unlimited priority levels." << std::endl;
+            }
         }
         else {
             std::cout << "Unknown conf param: " << key << " in file: " << conf_filename << "\n";
