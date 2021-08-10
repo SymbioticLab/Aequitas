@@ -106,7 +106,7 @@ class Flow {
         AggChannel *agg_channel;
         //Channel *ack_channel;
 
-        // for D3
+        // for D3 &/ PDQ
         double prev_desired_rate;       // desired_rate in the prev RTT (past info required by the router)
         double allocated_rate;          // rate to send in the current RTT (assigned by router during last RTT)
         bool has_ddl;                   // tell apart from non-ddl flows

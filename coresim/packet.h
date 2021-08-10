@@ -9,6 +9,7 @@
 #define SYN_PACKET 2        // used by D3; SYN/First Rate Request packet
 #define SYN_ACK_PACKET 11   // used by D3; ACK to the SYN/First RR packet
 #define FIN_PACKET 12       // used by D3;
+#define PROBE_PACKET 13     // used by PDQ
 
 #define RTS_PACKET 3
 #define CTS_PACKET 4
@@ -54,7 +55,7 @@ class Packet {
 
         uint32_t enque_queue_size;    // in terms of # of bytes enqueued
 
-        // for D3
+        // for D3 &/ PDQ
         std::vector<double> curr_rates_per_hop;     // rate allocated in the current RTT per hop (queue) by the router
         double allocated_rate;                      // rate to use for the current RTT; assigned by the router (min of curr_rates_per_hop) via RRQ and sent via ACK or SYN_ACK pkt
         int hop_count;                              // used to index curr_rates_per_hop when calculation transmission delay
@@ -66,6 +67,8 @@ class Packet {
         bool data_pkt_with_rrq;                     // whether a data pkt is piggybacked with an RRQ (rate request) packet
         bool ack_pkt_with_rrq;                      // true if it is an ack pkt of the data pkt piggbybacked with an RRQ
         bool ack_to_rrq_no_payload;                 // true if it is an ack pkt of the data RRQ packet whose payload is removed
+        bool paused;                                // used by PDQ; same as "marked_base_rate" in D3
+        uint32_t pause_by;                          // record which switch paused the flow
 };
 
 class PlainAck : public Packet {
