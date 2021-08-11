@@ -33,7 +33,6 @@ class D3Flow : public Flow {
 
     bool has_sent_rrq_this_rtt;   // whether the RRQ is sent (piggybacked in the first data pkt) during the current RTT
     bool assigned_base_rate;      // when true, host will send a header-only RRQ for this RTT
-    // TODO: rate limiting based on rate allocated (do flow-level rate limting for now)
 };
 
 #endif  // EXT_D3_FLOW_H

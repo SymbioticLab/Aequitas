@@ -51,7 +51,6 @@ void D3Queue::enque(Packet *packet) {
     packet->enque_queue_size = b_arrivals;
 }
 
-// TODO: even in the case of dropping a data pkt, should process its rrq packet info first
 Packet *D3Queue::deque(double deque_time) {
     // since in D3 some packets has 0 size (e.g., syn, syn_ack, empty data pkts), we can't check with bytes_in_queue
     //if (bytes_in_queue > 0) {
@@ -64,7 +63,7 @@ Packet *D3Queue::deque(double deque_time) {
 
         // calculate allocated rate (a_{t+1}) if the packet is an RRQ (SYN/FIN/DATA_pkt_with_rrq)
         if (p->has_rrq) {
-            allocate_rate(p);
+            allocate_rate(p);       // Note: one can also allocate rate inside enque(), which doesn't affect performance (verified)
         }
         return p;
     }
