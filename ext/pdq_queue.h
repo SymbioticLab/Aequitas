@@ -4,15 +4,7 @@
 #include "../coresim/queue.h"
 
 class Packet;
-
-class FlowState {
-  public:
-    double rate;
-    uint32_t pause_sw_id;
-    double deadline;
-    double expected_trans_time;
-    double measured_rtt;
-};
+class Flow;
 
 // PDQ Queue (switch) maintains per-flow states (up to 2k) obtained from packets and
 // use these info to resolve flow contention by assigning rate to most critical flows
@@ -26,10 +18,12 @@ class PDQQueue : public Queue {
     void drop(Packet *packet) override;     // check if a SYN pkt gets dropped
     void dec_num_flows();
     void allocate_rate(Packet *packet);
+    void add_flow_to_list(Packet *packet);
     void perform_flow_control(Packet *packet);
     void perform_rate_control(Packet *packet);
     
-    std::vector<FlowState> flow_states;
+    uint32_t flow_idx;    // used to manage ring buffer 'active_flows'
+    std::vector<Flow *> active_flows;
 };
 
 #endif  // EXT_PDQ_QUEUE_H

@@ -475,3 +475,14 @@ uint32_t Flow::get_remaining_flow_size() {
 double Flow::get_remaining_deadline() {
     return start_time + deadline / 1e6 - get_current_time();
 }
+
+/* Flow State */
+FlowState::FlowState() {
+    this->rate = 0;
+    this->paused = false;
+    this->pause_sw_id = 0;
+    this->has_ddl = false;
+    this->deadline = 0;
+    this->expected_trans_time = 0;
+    this->measured_rtt = 0;
+}

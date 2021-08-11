@@ -15,6 +15,19 @@ class Channel;
 class AggChannel;
 class RateLimitingEvent;
 
+class FlowState {   // used by PDQ
+  public:
+    FlowState();
+
+    double rate;
+    bool paused;
+    uint32_t pause_sw_id;
+    bool has_ddl;
+    double deadline;
+    double expected_trans_time;
+    double measured_rtt;
+};
+
 class Flow {
     public:
         Flow(uint32_t id, double start_time, uint32_t size, Host *s, Host *d);
@@ -112,6 +125,8 @@ class Flow {
         bool has_ddl;                   // tell apart from non-ddl flows
         RateLimitingEvent *rate_limit_event;        // points to the next RateLimitingEvent; maintains this so we can cancel it when base rate is assigned
         bool terminated;                // PDQ might share this variable as well
+
+        FlowState flow_state;           // used by PDQ
 
         // QID: specifies which EventQueue this flow's events should go to
         uint32_t qid;       //TOOD: completely remove
