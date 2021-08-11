@@ -30,7 +30,6 @@ uint32_t PFabricFlow::get_pfabric_priority(uint64_t seq) {
         if (!params.pfabric_limited_priority) {
             return priority_unlimited;
         } else {
-            uint32_t priority_limited;
             for (uint32_t i = 0; i < priority_thresholds.size(); i++) {
                 if (priority_unlimited <= priority_thresholds[i]) {
                     return i;
