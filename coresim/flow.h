@@ -15,6 +15,7 @@ class Channel;
 class AggChannel;
 class RateLimitingEvent;
 
+// TODO: consider if we need a vector of FlowState so that each switch in the path has independent flow states
 class FlowState {   // used by PDQ
   public:
     FlowState();
@@ -26,6 +27,8 @@ class FlowState {   // used by PDQ
     double deadline;
     double expected_trans_time;
     double measured_rtt;
+    double inter_probing_time;
+    bool removed_from_pq;
 };
 
 class Flow {
@@ -59,6 +62,8 @@ class Flow {
         virtual uint32_t get_remaining_flow_size();
         virtual double get_remaining_deadline();
         virtual void cancel_rate_limit_event();
+
+        virtual double get_expected_trans_time();   // used by PDQ
 
         //double get_current_time() {
         //    return current_event_time;
@@ -119,14 +124,18 @@ class Flow {
         AggChannel *agg_channel;
         //Channel *ack_channel;
 
-        // for D3 &/ PDQ
+        // used by D3 and/or PDQ
         double prev_desired_rate;       // desired_rate in the prev RTT (past info required by the router)
         double allocated_rate;          // rate to send in the current RTT (assigned by router during last RTT)
         bool has_ddl;                   // tell apart from non-ddl flows
         RateLimitingEvent *rate_limit_event;        // points to the next RateLimitingEvent; maintains this so we can cancel it when base rate is assigned
-        bool terminated;                // PDQ might share this variable as well
+        bool terminated;                
+        bool paused;                    // PDQ
+        uint32_t pause_sw_id;           // PDQ; ID of the switch who has paused the flow
+        double inter_probing_time;      // PDQ
+        double measured_rtt;
 
-        FlowState flow_state;           // used by PDQ
+        FlowState sw_flow_state;     // used by PDQ; flow state maintained by the switch
 
         // QID: specifies which EventQueue this flow's events should go to
         uint32_t qid;       //TOOD: completely remove

@@ -39,7 +39,10 @@ Packet::Packet(
     this->ack_to_rrq_no_payload = false;
     this->has_rrq = false;      // D3 manually sets 'has_rrq' for the first DATA pkt per RTT
     this->paused = false;
-    this->pause_by = 0;
+    this->pause_sw_id = 0;
+    this->deadline = 0;
+    this->measured_rtt = 0;
+    this->expected_trans_time = 0;
 }
 
 Packet::~Packet() {}

@@ -68,7 +68,10 @@ class Packet {
         bool ack_pkt_with_rrq;                      // true if it is an ack pkt of the data pkt piggbybacked with an RRQ
         bool ack_to_rrq_no_payload;                 // true if it is an ack pkt of the data RRQ packet whose payload is removed
         bool paused;                                // used by PDQ; same as "marked_base_rate" in D3
-        uint32_t pause_by;                          // record which switch paused the flow
+        uint32_t pause_sw_id;                       // record which switch paused the flow
+        double deadline;
+        double measured_rtt;
+        double expected_trans_time;
 };
 
 class PlainAck : public Packet {

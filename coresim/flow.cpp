@@ -92,6 +92,12 @@ Flow::Flow(uint32_t id, double start_time, uint32_t size, Host *s, Host *d) {
     this->has_ddl = false;
     this->rate_limit_event = nullptr;
     this->terminated = false;
+    this->paused = false;
+    this->pause_sw_id = 0;
+    this->measured_rtt = 0;
+    this->inter_probing_time = 0;
+
+    this->sw_flow_state = FlowState();
 }
 
 Flow::Flow(uint32_t id, double start_time, uint32_t size, Host *s, Host *d, uint32_t flow_priority) :
@@ -476,6 +482,11 @@ double Flow::get_remaining_deadline() {
     return start_time + deadline / 1e6 - get_current_time();
 }
 
+
+double Flow::get_expected_trans_time() {
+    return get_remaining_flow_size() * 8.0 / params.bandwidth;
+}
+
 /* Flow State */
 FlowState::FlowState() {
     this->rate = 0;
@@ -485,4 +496,6 @@ FlowState::FlowState() {
     this->deadline = 0;
     this->expected_trans_time = 0;
     this->measured_rtt = 0;
+    this->inter_probing_time = 0;
+    this->removed_from_pq = false;
 }
