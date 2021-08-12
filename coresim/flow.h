@@ -135,7 +135,7 @@ class Flow {
         double inter_probing_time;      // PDQ
         double measured_rtt;
 
-        FlowState sw_flow_state;     // used by PDQ; flow state maintained by the switch
+        FlowState sw_flow_state;     // used by PDQ; flow states maintained by the switch; hosts should not modify them
 
         // QID: specifies which EventQueue this flow's events should go to
         uint32_t qid;       //TOOD: completely remove

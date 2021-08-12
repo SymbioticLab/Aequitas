@@ -32,17 +32,19 @@ class PDQQueue : public Queue {
     bool more_critical(Flow *a, Flow *b);
     double calculate_RCP_fair_share_rate();
     double calculate_available_bandwidth(Packet *packet);
+    uint32_t find_flow_index(Packet *packet);
     void perform_flow_control(Packet *packet);
     void perform_rate_control(Packet *packet);
     
     MoreCritical flow_comp;           // used by more_critical();
-    uint32_t constant_k;              // number of sending flows; used as threshold to remove the least critical flow in "Algorithm 1"
+    uint32_t constant_k;              // constant "k" used in "Algorithm 1"; threshold of # of sending flows before removing the least critical flow
+    uint32_t constant_early_start;    // constant "K" used in "Algorithm 2"; threshold of # of RTTs to finish for a flow; default to 2 according to PDQ paper
+    double constant_x;                // constant "X" used in "Algorithm 3"; threshold of a flow's min # of RTTs to finish for "Suppressed Probing"; default to 0.2 according to PDQ paper
     uint32_t max_num_active_flows;    // default to 2 * constant_k (following the original paper)
     std::map<uint32_t, Flow*> active_flows;   // use a map to search/remove flows more efficiently; use ordered map to fit "Algorithm 2"
     std::priority_queue<Flow*, std::vector<Flow*>, MoreCritical> active_flows_pq; // maintain a pq to remove the least critical flow efficiently
     double dampening_time_window;
     double time_accept_last_flow;
-    uint32_t constant_early_start;    // constant "K" used in "Algorithm 2"; default to 2 according to PDQ paper
 };
 
 #endif  // EXT_PDQ_QUEUE_H

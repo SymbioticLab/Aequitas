@@ -72,6 +72,7 @@ class Packet {
         double deadline;
         double measured_rtt;
         double expected_trans_time;
+        double inter_probing_time;
 };
 
 class PlainAck : public Packet {

@@ -43,6 +43,7 @@ Packet::Packet(
     this->deadline = 0;
     this->measured_rtt = 0;
     this->expected_trans_time = 0;
+    this->inter_probing_time = 0;
 }
 
 Packet::~Packet() {}

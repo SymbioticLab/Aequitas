@@ -34,10 +34,11 @@ bool MoreCritical::operator() (Flow *a, Flow *b) {
 PDQQueue::PDQQueue(uint32_t id, double rate, uint32_t limit_bytes, int location)
     : Queue(id, rate, limit_bytes, location) {
         this->constant_k = 100;   // set to 100 for now; TODO: set as a configuration parameter
+        this->constant_early_start = 2;
+        this->constant_x = 0.2;
         this->max_num_active_flows = 2 * this->constant_k;  // allow flow states (active_flows) up to 2 * k (according to PDQ paper)
         this->dampening_time_window = 10;   // in unit of us; TODO: pass in as config param; I haven't seen anywhere in the PDQ paper talking about the value they use
         this->time_accept_last_flow = 0;
-        this->constant_early_start = 2;
 }
 
 // For now, flow control packets can never be dropped
@@ -107,30 +108,46 @@ double PDQQueue::calculate_RCP_fair_share_rate() {
 
 // "Algorithm 2" ("Early Start")
 double PDQQueue::calculate_available_bandwidth(Packet *packet) {
-    uint32_t X = 0;
-    double A = 0;
-    for (const auto & f: active_flows) {
+    uint32_t count = 0;
+    double allocation = 0;
+    for (const auto &f : active_flows) {
         if (f.second->id == packet->flow->id) {
             break;
         }
         if (f.second->sw_flow_state.expected_trans_time / f.second->sw_flow_state.measured_rtt < constant_early_start
-            && X < constant_early_start) {
-            X += f.second->sw_flow_state.expected_trans_time / f.second->sw_flow_state.measured_rtt;
+            && count < constant_early_start) {
+            count += f.second->sw_flow_state.expected_trans_time / f.second->sw_flow_state.measured_rtt;
         } else {
-            A += f.second->sw_flow_state.rate;
+            allocation += f.second->sw_flow_state.rate;
         }
-        if (A >= rate) {
+        if (allocation >= rate) {
             return 0;
         }
     }
-    return rate - A;
+    return rate - allocation;
+}
+
+// They really ask for the flow index in the list... OK I'm not gonna give up the map implementation
+// Note: this function assumes/asserts packet->flow must be in the list
+uint32_t PDQQueue::find_flow_index(Packet *packet) {
+    uint32_t idx = 0, count = 0;
+    for (const auto &f : active_flows) {
+        if (f.second->id == packet->flow->id) {
+            count++;
+            break;
+        }
+        idx++;
+    }
+    
+    assert(count > 0);
+    return idx;
 }
 
 // TODO: check whether a flow is finished
 // TODO: measure RTT at PDQ host
 void PDQQueue::perform_flow_control(Packet *packet) {
     if (packet->type == NORMAL_PACKET) {        // "Algorithm 1"
-        if (packet->paused) {
+        if (packet->paused && packet->pause_sw_id != unique_id) {
             remove_flow_from_list(packet);
             return;
         }
@@ -183,7 +200,21 @@ void PDQQueue::perform_flow_control(Packet *packet) {
         }
 
     } else if (packet->type == ACK_PACKET) {    // "Algorithm 3"
-        //TODO
+        if (packet->paused && packet->pause_sw_id != unique_id) {
+            remove_flow_from_list(packet);
+        }
+
+        if (packet->paused) {
+            packet->allocated_rate = 0;
+        }
+
+        // "Suppressed Probing"
+        if (active_flows.count(packet->flow->id) > 0) {
+            packet->flow->sw_flow_state.paused = packet->paused;
+            packet->flow->sw_flow_state.pause_sw_id = packet->pause_sw_id;
+            packet->inter_probing_time = std::max(packet->inter_probing_time, constant_x * find_flow_index(packet));
+            packet->flow->sw_flow_state.rate = packet->allocated_rate;
+        }
     }
 }
 
@@ -211,11 +242,9 @@ void PDQQueue::drop(Packet *packet) {
 
     if (packet->type == SYN_PACKET) {
         assert(false);
-    }
-    if (packet->type == SYN_ACK_PACKET) {
+    } else if (packet->type == SYN_ACK_PACKET) {
         assert(false);
-    }
-    if (packet->type == ACK_PACKET) {
+    } else if (packet->type == ACK_PACKET) {
         packet->flow->ack_pkt_drop++;
         if (packet->ack_pkt_with_rrq) {
             assert(false);          // need to handle it if failed
@@ -244,7 +273,7 @@ Flow *PDQQueue::find_least_critical_flow() {
     double largest_ddl = 0;
     Flow *least_critical_flow = nullptr;
     bool found_non_ddl_flow = false;
-    for (const auto & f : active_flows) {
+    for (const auto &f : active_flows) {
         if (found_non_ddl_flow) {
             // in this casa, only compare among non-ddl flows
             if (!f.secodn->has_ddl) {
