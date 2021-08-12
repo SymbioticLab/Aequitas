@@ -37,6 +37,7 @@ PDQQueue::PDQQueue(uint32_t id, double rate, uint32_t limit_bytes, int location)
         this->max_num_active_flows = 2 * this->constant_k;  // allow flow states (active_flows) up to 2 * k (according to PDQ paper)
         this->dampening_time_window = 10;   // in unit of us; TODO: pass in as config param; I haven't seen anywhere in the PDQ paper talking about the value they use
         this->time_accept_last_flow = 0;
+        this->constant_early_start = 2;
 }
 
 // For now, flow control packets can never be dropped
@@ -104,8 +105,25 @@ double PDQQueue::calculate_RCP_fair_share_rate() {
     return rate;    
 }
 
-double PDQQueue::calculate_available_bandwidth() {
-    return rate;    //TODO: impl
+// "Algorithm 2" ("Early Start")
+double PDQQueue::calculate_available_bandwidth(Packet *packet) {
+    uint32_t X = 0;
+    double A = 0;
+    for (const auto & f: active_flows) {
+        if (f.second->id == packet->flow->id) {
+            break;
+        }
+        if (f.second->sw_flow_state.expected_trans_time / f.second->sw_flow_state.measured_rtt < constant_early_start
+            && X < constant_early_start) {
+            X += f.second->sw_flow_state.expected_trans_time / f.second->sw_flow_state.measured_rtt;
+        } else {
+            A += f.second->sw_flow_state.rate;
+        }
+        if (A >= rate) {
+            return 0;
+        }
+    }
+    return rate - A;
 }
 
 // TODO: check whether a flow is finished
@@ -144,10 +162,11 @@ void PDQQueue::perform_flow_control(Packet *packet) {
         active_flows[packet->flow->id]->sw_flow_state.expected_trans_time = packet->expected_trans_time;
         active_flows[packet->flow->id]->sw_flow_state.measured_rtt = packet->measured_rtt;
 
-        double rate_to_allocate = std::min(calculate_available_bandwidth(), packet->allocated_rate);
+        double rate_to_allocate = std::min(calculate_available_bandwidth(packet), packet->allocated_rate);
         if (rate_to_allocate > 0) {
             if (packet->flow->sw_flow_state.paused == true
                 && (get_current_time() - time_accept_last_flow) * 1e6 < dampening_time_window) {
+                // "Dampening"
                 packet->paused = true;
                 packet->pause_sw_id = unique_id;
                 packet->flow->sw_flow_state.paused = true;
