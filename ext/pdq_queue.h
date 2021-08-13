@@ -47,6 +47,7 @@ class PDQQueue : public Queue {
     double dampening_time_window;             // for dampening
     double time_accept_last_flow;             // for dampening
     double rate_capacity;                     // "C" in "Algorithm 2"; updated by the rate controller
+    double time_since_last_rate_control;      // used to control the frequency of perform_rate_control();
     double time_since_last_rcp_update;        // used to calculate RCP fair share rate
     double curr_rcp_fs_rate;                  // current RCP fair share rate
     double prev_rcp_fs_rate;                  // last RCP fair share rate

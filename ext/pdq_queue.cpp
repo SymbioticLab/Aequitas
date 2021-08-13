@@ -40,6 +40,7 @@ PDQQueue::PDQQueue(uint32_t id, double rate, uint32_t limit_bytes, int location)
         this->dampening_time_window = 10;   // in unit of us; TODO: pass in as config param; I haven't seen anywhere in the PDQ paper talking about the value they use
         this->time_accept_last_flow = 0;
         this->rate_capacity = rate;
+        this->time_since_last_rate_control = get_current_time();
         this->time_since_last_rcp_update = get_current_time();
         this->curr_rcp_fs_rate = 0;
         this->prev_rcp_fs_rate = 0;
@@ -71,8 +72,8 @@ void PDQQueue::enque(Packet *packet) {
 
     update_rtt_moving_avg(packet);
     update_RCP_fair_share_rate();       // update fs rate roughly roughly once per RTT
+    perform_rate_control(packet);       // perform rate control roughly once per 2 RTTs
     perform_flow_control(packet);       // shouldn't matter if we do in enque() or dequeu()
-    perform_rate_control(packet);       // do during enque() for now
 }
 
 Packet *PDQQueue::deque(double deque_time) {
@@ -137,13 +138,13 @@ void PDQQueue::update_rtt_moving_avg(Packet *packet) {
 // Note in original RCP, # of flows is estimated by "C/R(t-T)". But PDQ improves this by directly calculating the actual # of active flows
 // So we will follow what PDQ does, and the expression should be: R(t) = R(t-T) + (T/d0 * (alpha * (C - y(t)) - beta * q(t)/d0) / num_flows
 void PDQQueue::update_RCP_fair_share_rate() {
-    // don't update it too frequently
-    if (get_current_time() - time_since_last_rcp_update < 0.75 * rtt_moving_avg) { 
+    // don't update it too frequently; T is supposed to be less than or equal to rtt_moving_avg in RCP
+    double T = get_current_time() - time_since_last_rcp_update;
+    if (T < 0.9 * rtt_moving_avg) { 
         return;
     }
 
     double alpha = 0.1, beta = 1.0;
-    double T = get_current_time() - time_since_last_rcp_update;
     assert(T <= rtt_moving_avg);
     if (T > rtt_moving_avg) {   // try this in case the assertion fails
         T = rtt_moving_avg;     // can we do this?
@@ -268,6 +269,10 @@ void PDQQueue::perform_flow_control(Packet *packet) {
 }
 
 void PDQQueue::perform_rate_control(Packet *packet) {
+    // update every 2 RTT according to PDQ paper
+    if (get_current_time() - time_since_last_rate_control < 1.9 * rtt_moving_avg) { 
+        return;
+    }
     rate_capacity = std::max((double) 0, rate - bytes_in_queue * 8.0 / (2 * packet->flow->sw_flow_state.measured_rtt));
 }
 
