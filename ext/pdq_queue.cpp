@@ -40,6 +40,18 @@ PDQQueue::PDQQueue(uint32_t id, double rate, uint32_t limit_bytes, int location)
         this->dampening_time_window = 10;   // in unit of us; TODO: pass in as config param; I haven't seen anywhere in the PDQ paper talking about the value they use
         this->time_accept_last_flow = 0;
         this->rate_capacity = rate;
+        this->time_since_last_rcp_update = get_current_time();
+        this->curr_rcp_fs_rate = 0;
+        this->prev_rcp_fs_rate = 0;
+        this->bytes_since_last_rcp_update = 0;
+        this->rtt_moving_avg = 0;
+        this->rtt_measures = std::vector<double> (num_rtts_to_store); 
+        this->num_rtts_to_store = 10;   // store 10 RTT values for now
+        this->next_rtt_idx = 0;
+        this->sum_rtts = 0;
+        this->rtt_counts = 0;
+
+        // TODO: throw an RCP fs rate event
 }
 
 // For now, flow control packets can never be dropped
@@ -50,14 +62,17 @@ void PDQQueue::enque(Packet *packet) {
     if (bytes_in_queue + packet->size <= limit_bytes) {
         packets.push_back(packet);
         bytes_in_queue += packet->size;
+        bytes_since_last_rcp_update += packet->size;
     } else {
         pkt_drop++;
         drop(packet);
     }
     packet->enque_queue_size = b_arrivals;
 
+    update_rtt_moving_avg(packet);
+    update_RCP_fair_share_rate();       // update fs rate roughly roughly once per RTT
     perform_flow_control(packet);       // shouldn't matter if we do in enque() or dequeu()
-    perform_rate_control(packet);             // do during enque() for now
+    perform_rate_control(packet);       // do during enque() for now
 }
 
 Packet *PDQQueue::deque(double deque_time) {
@@ -100,10 +115,46 @@ bool PDQQueue::more_critical(Flow *a, Flow *b) {
     return flow_comp(a, b);
 }
 
-// TODO1: finish the impl
-// TODO2: perform this calc every RTT; call it everytime it needs the rate for now
-double PDQQueue::calculate_RCP_fair_share_rate() {
-    return rate;    
+void PDQQueue::update_rtt_moving_avg(Packet *packet) {
+    if (rtt_counts < num_rtts_to_store) {
+        sum_rtts += packet->measured_rtt;
+        rtt_counts++;
+        rtt_moving_avg = sum_rtts / rtt_counts;
+        rtt_measures[next_rtt_idx] = packet->measured_rtt;
+    } else {    // stop increment rtt_counts
+        sum_rtts -= rtt_measures[next_rtt_idx];
+        rtt_measures[next_rtt_idx] = packet->measured_rtt;
+        sum_rtts += packet->measured_rtt;
+        rtt_moving_avg = sum_rtts / num_rtts_to_store;
+    }
+
+    next_rtt_idx++;
+    if (next_rtt_idx == num_rtts_to_store) {
+        next_rtt_idx = 0;
+    }
+}
+
+// Note in original RCP, # of flows is estimated by "C/R(t-T)". But PDQ improves this by directly calculating the actual # of active flows
+// So we will follow what PDQ does, and the expression should be: R(t) = R(t-T) + (T/d0 * (alpha * (C - y(t)) - beta * q(t)/d0) / num_flows
+void PDQQueue::update_RCP_fair_share_rate() {
+    // don't update it too frequently
+    if (get_current_time() - time_since_last_rcp_update < 0.75 * rtt_moving_avg) { 
+        return;
+    }
+
+    double alpha = 0.1, beta = 1.0;
+    double T = get_current_time() - time_since_last_rcp_update;
+    assert(T <= rtt_moving_avg);
+    if (T > rtt_moving_avg) {   // try this in case the assertion fails
+        T = rtt_moving_avg;     // can we do this?
+    }
+    assert(rtt_moving_avg != 0);
+    double input_traffic_rate = bytes_since_last_rcp_update * 8.0 / T;
+    curr_rcp_fs_rate = prev_rcp_fs_rate
+        + (T / rtt_moving_avg * (alpha * (rate - input_traffic_rate) - beta * bytes_since_last_rcp_update * 8.0 / rtt_moving_avg)) / active_flows.size();
+    prev_rcp_fs_rate = curr_rcp_fs_rate;
+    bytes_since_last_rcp_update = 0;
+    time_since_last_rcp_update = get_current_time();
 }
 
 // "Algorithm 2" ("Early Start")
@@ -162,9 +213,7 @@ void PDQQueue::perform_flow_control(Packet *packet) {
                     remove_least_critical_flow();
                 }
             } else {
-                //TODO impl RCP fair share rate
-                double rcp_fs_rate = calculate_RCP_fair_share_rate();
-                packet->allocated_rate = rcp_fs_rate;
+                packet->allocated_rate = curr_rcp_fs_rate;
                 if (packet->allocated_rate == 0) {
                     packet->paused = true;
                     packet->pause_sw_id = unique_id;

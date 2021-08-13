@@ -221,4 +221,15 @@ class RateLimitingEvent : public Event {
         void process_event();
 };
 
+// Until we need to update RCP fs rate periodically
+/*
+class RCPFairShareRateEvent : public Event {
+    public:
+        RCPFairShareRateEvent(double time, PDQQueue *pdq_queue);
+        ~RCPFairShareRateEvent();
+        PDQQueue *pdq_queue;
+        void process_event();
+}
+*/
+
 #endif // CORESIM_EVENT_H
