@@ -28,7 +28,6 @@ PDQFlow::PDQFlow(uint32_t id, double start_time, uint32_t size, Host *s,
     : Flow(id, start_time, size, s, d, flow_priority) {
     // PDQFlow does not use conventional congestion control; all CC related OPs (inc/dec cwnd; timeout events, etc) are removed
     this->cwnd_mss = params.initial_cwnd;
-    this->has_sent_rrq_this_rtt = false;
     if (!this->has_ddl) {
         assert(this->deadline == 0);
     }
@@ -41,27 +40,12 @@ PDQFlow::PDQFlow(uint32_t id, double start_time, uint32_t size, Host *s,
 // send out a SYN packet once flow starts; cannot send data pkts until receiving the SYN ACK pkt (with allocated rate)
 void PDQFlow::start_flow() {
     run_priority = flow_priority;
-    send_syn_pkt();
+    // NOTE: since PDQ will still send out a probe pkt (its Rs is initalized to 0) after receiving the SYN_ACK pkt,
+    // we will skip the syn pkt (SYN in PDQ doesn't ask for rate) and directly send out the first probe pkt.
+    // Otherwise this is an unfair comparison with D3 especially when there are a lot of short flows in the workload.
+    send_probe_pkt();
 }
 
-// send out the SYN before sending DATA pkts (after receiving SYN_ACK)
-// In PDQ, SYN pkt does not request for rate so it does not go thru switch's flow control algorithm
-void PDQFlow::send_syn_pkt() {
-    Packet *p = new Syn(
-            get_current_time(),
-            0,
-            this,
-            0,
-            src,
-            dst
-            );
-    Queue *next_hop = topology->get_next_hop(p, src->queue);
-    PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);  // adding a pd since we skip the source queue
-    add_to_event_queue(event);
-    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
-        std::cout << "Host[" << src->id << "] sends out Syn Packet[" << p->unique_id << "] from Flow[" << id << "] at time: " << get_current_time() << std::endl;
-    }
-}
 
 // When allocated_rate becomes 0 (i.e., the flow is paused by the switch), PDQ sends out a PROBE packet every Is (inter-probing time) RTTs to request new rate info;
 // A PROBE packet is a DATA packet with no payload.
@@ -106,3 +90,28 @@ void PDQFlow::send_fin_pkt() {
     }
 }
 
+// Unused syn/syn_ack impl (to avoid unfair comparison with D3)
+/*
+void PDQFlow::send_syn_pkt() {
+    assert(false);
+    Packet *p = new Syn(
+            get_current_time(),
+            0,
+            this,
+            0,
+            src,
+            dst
+            );
+    Queue *next_hop = topology->get_next_hop(p, src->queue);
+    PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);  // adding a pd since we skip the source queue
+    add_to_event_queue(event);
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
+        std::cout << "Host[" << src->id << "] sends out Syn Packet[" << p->unique_id << "] from Flow[" << id << "] at time: " << get_current_time() << std::endl;
+    }
+}
+
+void PDQFlow::receive_syn_ack_pkt(Packet *p) {
+    assert(false);
+    send_probe_pkt();
+}
+*/

@@ -12,7 +12,7 @@ class PDQFlow : public Flow {
     PDQFlow(uint32_t id, double start_time, uint32_t size, Host *s, Host *d,
                 uint32_t flow_priority);
     void start_flow() override;
-    void send_syn_pkt();
+    //void send_syn_pkt();
     void send_fin_pkt();
     void send_probe_pkt();
     //void send_next_pkt() override;
@@ -29,10 +29,10 @@ class PDQFlow : public Flow {
     //void receive_ack_pdq(Ack *ack_pkt, uint64_t ack,
     //              std::vector<uint64_t> sack_list); // to replace the original receive_ack
 
-    bool has_sent_rrq_this_rtt;   // whether the RRQ is sent (piggybacked in the first data pkt) during the current RTT
-    bool paused;                    // PDQ
-    uint32_t pause_sw_id;           // PDQ; ID of the switch who has paused the flow
-    double inter_probing_time;      // PDQ
+    //bool has_sent_rrq_this_rtt;   // whether the RRQ is sent (piggybacked in the first data pkt) during the current RTT
+    bool paused;
+    uint32_t pause_sw_id;
+    double inter_probing_time;
     double measured_rtt;
 
 };
