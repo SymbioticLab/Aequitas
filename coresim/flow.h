@@ -24,10 +24,10 @@ class FlowState {   // used by PDQ
     bool paused;
     uint32_t pause_sw_id;
     bool has_ddl;
-    double deadline;
-    double expected_trans_time;
-    double measured_rtt;
-    double inter_probing_time;
+    double deadline;                    // in unit of sec
+    double expected_trans_time;         // in unit of sec
+    double measured_rtt;                // in unit of sec
+    double inter_probing_time;          // in unit of sec
     bool removed_from_pq;
 };
 

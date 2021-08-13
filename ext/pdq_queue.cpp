@@ -39,6 +39,7 @@ PDQQueue::PDQQueue(uint32_t id, double rate, uint32_t limit_bytes, int location)
         this->max_num_active_flows = 2 * this->constant_k;  // allow flow states (active_flows) up to 2 * k (according to PDQ paper)
         this->dampening_time_window = 10;   // in unit of us; TODO: pass in as config param; I haven't seen anywhere in the PDQ paper talking about the value they use
         this->time_accept_last_flow = 0;
+        this->rate_capacity = rate;
 }
 
 // For now, flow control packets can never be dropped
@@ -56,8 +57,7 @@ void PDQQueue::enque(Packet *packet) {
     packet->enque_queue_size = b_arrivals;
 
     perform_flow_control(packet);       // shouldn't matter if we do in enque() or dequeu()
-
-    // TODO: perform_rate_control()
+    perform_rate_control(packet);             // do during enque() for now
 }
 
 Packet *PDQQueue::deque(double deque_time) {
@@ -120,11 +120,11 @@ double PDQQueue::calculate_available_bandwidth(Packet *packet) {
         } else {
             allocation += f.second->sw_flow_state.rate;
         }
-        if (allocation >= rate) {
+        if (allocation >= rate_capacity) {
             return 0;
         }
     }
-    return rate - allocation;
+    return rate_capacity - allocation;
 }
 
 // They really ask for the flow index in the list... OK I'm not gonna give up the map implementation
@@ -219,6 +219,7 @@ void PDQQueue::perform_flow_control(Packet *packet) {
 }
 
 void PDQQueue::perform_rate_control(Packet *packet) {
+    rate_capacity = std::max((double) 0, rate - bytes_in_queue * 8.0 / (2 * packet->flow->sw_flow_state.measured_rtt));
 }
 
 // TODO: double check delay values for flow control packets

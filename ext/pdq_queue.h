@@ -43,8 +43,9 @@ class PDQQueue : public Queue {
     uint32_t max_num_active_flows;    // default to 2 * constant_k (following the original paper)
     std::map<uint32_t, Flow*> active_flows;   // use a map to search/remove flows more efficiently; use ordered map to fit "Algorithm 2"
     std::priority_queue<Flow*, std::vector<Flow*>, MoreCritical> active_flows_pq; // maintain a pq to remove the least critical flow efficiently
-    double dampening_time_window;
-    double time_accept_last_flow;
+    double dampening_time_window;     // for dampening
+    double time_accept_last_flow;     // for dampening
+    double rate_capacity;             // "C" in "Algorithm 2"; updated by the rate controller
 };
 
 #endif  // EXT_PDQ_QUEUE_H
