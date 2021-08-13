@@ -44,6 +44,7 @@ Packet::Packet(
     this->measured_rtt = 0;
     this->expected_trans_time = 0;
     this->inter_probing_time = 0;
+    this->is_probe = false;
 }
 
 Packet::~Packet() {}

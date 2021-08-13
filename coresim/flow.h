@@ -130,10 +130,6 @@ class Flow {
         bool has_ddl;                   // tell apart from non-ddl flows
         RateLimitingEvent *rate_limit_event;        // points to the next RateLimitingEvent; maintains this so we can cancel it when base rate is assigned
         bool terminated;                
-        bool paused;                    // PDQ
-        uint32_t pause_sw_id;           // PDQ; ID of the switch who has paused the flow
-        double inter_probing_time;      // PDQ
-        double measured_rtt;
 
         FlowState sw_flow_state;     // used by PDQ; flow states maintained by the switch; hosts should not modify them
 

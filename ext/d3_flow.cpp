@@ -38,11 +38,9 @@ void D3Flow::start_flow() {
     send_syn_pkt();
 }
 
-// send out the SYN (first "Rate Request packet" in D3)
-// later RRQ pkts are "piggybacked in data pkts" so only need the first one
-// send_syn_pkt() is called right after start_flow() so it's going to be ahead of all other data pkts
-// SYN, SYN_ACK, FIN, and header-only DATA pkt (in this case, it is treated as a RRQ or Rate Request packet) all has 0 size so they can never be dropped
-//// (Revoked) Update: ACK to DATA RRQ also has size 0 and can never be dropped
+// once the ACK of the last data pkt is received, send a FIN packet to return the flow's desired & allocated rate to all the D3queues on its path.
+// Note we mark flow completion when ACK of the last data pkt is received (as usual) instead of after the FIN packet is processed or the ACK of it is received (and this is no ACK to the FIN pkt)
+// like other header-only packet, FIN can not be dropped since its size is set to 0.
 void D3Flow::send_fin_pkt() {
     Packet *p = new Fin(
             get_current_time(),
@@ -61,9 +59,11 @@ void D3Flow::send_fin_pkt() {
     }
 }
 
-// once the ACK of the last data pkt is received, send a FIN packet to return the flow's desired & allocated rate to all the D3queues on its path.
-// Note we mark flow completion when ACK of the last data pkt is received (as usual) instead of after the FIN packet is processed or the ACK of it is received (and this is no ACK to the FIN pkt)
-// like other header-only packet, FIN can not be dropped since its size is set to 0.
+// send out the SYN (first "Rate Request packet" in D3)
+// later RRQ pkts are "piggybacked in data pkts" so only need the first one
+// send_syn_pkt() is called right after start_flow() so it's going to be ahead of all other data pkts
+// SYN, SYN_ACK, FIN, and header-only DATA pkt (in this case, it is treated as a RRQ or Rate Request packet) all has 0 size so they can never be dropped
+//// (Revoked) Update: ACK to DATA RRQ also has size 0 and can never be dropped
 void D3Flow::send_syn_pkt() {
     double desired_rate = calculate_desired_rate();
     Packet *p = new Syn(

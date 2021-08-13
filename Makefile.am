@@ -21,7 +21,8 @@ simulator_SOURCES =                              \
 					ext/veritas_flow.cpp         \
 					ext/pfabric_flow.cpp         \
 					ext/pfabric_queue.cpp        \
-					ext/pdq_queue.cpp			 \
+					ext/pdq_queue.cpp            \
+					ext/pdq_flow.cpp             \
 					ext/qjump_channel.cpp        \
 					ext/qjump_flow.cpp           \
 					ext/qjump_host.cpp           \

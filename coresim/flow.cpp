@@ -92,10 +92,6 @@ Flow::Flow(uint32_t id, double start_time, uint32_t size, Host *s, Host *d) {
     this->has_ddl = false;
     this->rate_limit_event = nullptr;
     this->terminated = false;
-    this->paused = false;
-    this->pause_sw_id = 0;
-    this->measured_rtt = 0;
-    this->inter_probing_time = 0;
 
     this->sw_flow_state = FlowState();
 }
