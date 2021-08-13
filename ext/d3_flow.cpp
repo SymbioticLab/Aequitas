@@ -34,7 +34,6 @@ D3Flow::D3Flow(uint32_t id, double start_time, uint32_t size, Host *s,
 
 // send out a SYN packet once flow starts; cannot send data pkts until receiving the SYN ACK pkt (with allocated rate)
 void D3Flow::start_flow() {
-    run_priority = flow_priority;
     send_syn_pkt();
 }
 

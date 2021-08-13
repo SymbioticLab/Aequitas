@@ -12,7 +12,7 @@ class PDQFlow : public Flow {
     PDQFlow(uint32_t id, double start_time, uint32_t size, Host *s, Host *d,
                 uint32_t flow_priority);
     void start_flow() override;
-    //void send_syn_pkt();
+    void send_syn_pkt();
     void send_fin_pkt();
     void send_probe_pkt();
     //void send_next_pkt() override;
@@ -22,7 +22,7 @@ class PDQFlow : public Flow {
     //void receive(Packet* p) override;
     //void receive_data_pkt(Packet* p) override;
     //void receive_syn_pkt(Packet *syn_pkt);
-    //void receive_syn_ack_pkt(Packet *p);
+    void receive_syn_ack_pkt(Packet *p);
     //void receive_fin_pkt(Packet *p);
     //void send_ack_pdq(uint64_t seq, std::vector<uint64_t> sack_list,
     //              double pkt_start_ts, Packet* data_pkt); // to replace the original send_ack
