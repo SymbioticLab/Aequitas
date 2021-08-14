@@ -65,7 +65,7 @@ Ack::Ack(Flow *flow, uint64_t seq_no_acked, std::vector<uint64_t> sack_list, uin
 Syn::Syn(double sending_time, double desired_rate, Flow *flow, uint32_t size, Host* src, Host *dst) : Packet(sending_time, flow, 0, 0, size, src, dst) {
     this->type = SYN_PACKET;
     this->desired_rate = desired_rate;  // set the desired rate (for D3)
-    this->start_ts = sending_time;      // start_ts is only used for RTT measurements; it's a don't-care for Syn pkts
+    this->start_ts = sending_time;
     this->has_rrq = true;
 }
 
