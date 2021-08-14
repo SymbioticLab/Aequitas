@@ -76,6 +76,7 @@ Packet *PDQFlow::send_probe_pkt() {
     return p;
 }
 
+// PDQQueue will not process SYN pkt, but we need to throw it into the network to be able to measure the rtt used in the first probe packet
 void PDQFlow::send_syn_pkt() {
     Packet *p = new Syn(
             get_current_time(),
@@ -203,7 +204,64 @@ uint32_t PDQFlow::send_pkts() {
     assert(false);
 }
 
+void PDQFlow::receive(Packet *p) {
+    // call receive_fin_pkt() early since at this point flow->finished has been marked true
+    if (p->type == FIN_PACKET) {
+        receive_fin_pkt(p);
+    }
+    if (finished || terminated) {
+        delete p;
+        return;
+    }
+
+    // record measured RTT if it's an ACK/SYN_ACK
+    if (p->type == ACK_PACKET || p->type == SYN_ACK_PACKET) {
+        measured_rtt = get_current_time() - p->start_ts;
+    }
+
+    if (p->type == ACK_PACKET) {                // TODO
+        /*
+        Ack *a = dynamic_cast<Ack *>(p);
+        receive_ack_d3(a, a->seq_no, a->sack_list);
+        */
+    }
+    else if(p->type == NORMAL_PACKET) {         // TODO
+        //receive_data_pkt(p);
+    } else if (p->type == SYN_PACKET) {
+        receive_syn_pkt(p);
+    } else if (p->type == SYN_ACK_PACKET) {     // TODO
+        receive_syn_ack_pkt(p);
+    } else {
+        assert(false);
+    }
+
+    delete p;
+}
+
+void PDQFlow::receive_syn_pkt(Packet *syn_pkt) {
+    // basically calling send_ack_d3(), but send a SynAck pkt instead of a normal Ack.
+    ////Packet *p = new SynAck(this, 0, hdr_size, dst, src);  //Acks are dst->src
+    Packet *p = new SynAck(this, 0, 0, dst, src);  //Acks are dst->src; made its size=0
+    p->marked_base_rate = syn_pkt->marked_base_rate;
+    p->start_ts = syn_pkt->start_ts;     // record syn pkt's start time so the sender can calculate RTT when receiving this syn ack
+
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
+        std::cout << "Receiving SYN packet["<< syn_pkt->unique_id << "] from Flow[" << id << "]; sending out SYN_ACK packet[" << p->unique_id << "]" << std::endl;
+    }
+
+    Queue *next_hop = topology->get_next_hop(p, dst->queue);
+    PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);  // skip src queue, include dst queue; add a pd delay
+    add_to_event_queue(event);
+}
 
 void PDQFlow::receive_syn_ack_pkt(Packet *p) {
     send_probe_pkt();
 }
+
+void PDQFlow::receive_fin_pkt(Packet *p) {
+    assert(finished);
+    // nothing to do here. 'num_active_flows' are decremented when FIN packet traverse thru the network
+}
+
+
+
