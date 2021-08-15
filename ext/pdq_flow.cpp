@@ -204,6 +204,37 @@ uint32_t PDQFlow::send_pkts() {
     assert(false);
 }
 
+void PDQFlow::send_ack_pdq(uint64_t seq, std::vector<uint64_t> sack_list, double pkt_start_ts, Packet *data_pkt) {
+    Packet *p = new Ack(this, seq, sack_list, hdr_size, dst, src);  //Acks are dst->src
+
+    // receive copies the scueduling header from each data pkt to its corresponding ACK
+    // in PDQ, each data pkt carries scheduling header, so we should perform the copying every time
+    p->allocated_rate = data_pkt->allocated_rate;
+    p->paused = data_pkt->paused;
+    p->pause_sw_id = data_pkt->pause_sw_id;
+    p->deadline = data_pkt->deadline;
+    p->expected_trans_time = data_pkt->expected_trans_time;
+    p->inter_probing_time = data_pkt->inter_probing_time;
+
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
+        std::cout << std::setprecision(2) << std::fixed;
+        std::cout << "Received DATA packet["<< data_pkt->unique_id << "] from Flow[" << id << "]. allocated rate assigned = " << p->allocated_rate / 1e9;
+        if (data_pkt->paused) {
+            std::cout << " (paused by switch[" << data_pkt->pause_sw_id << "])";
+        }
+        std::cout << "; sending out ACK packet[" << p->unique_id << "]" << std::endl;
+        std::cout << std::setprecision(15) << std::fixed;
+    }
+
+    p->pf_priority = 0; // DC
+    p->start_ts = pkt_start_ts; // carry the orig packet's start_ts back to the sender for RTT measurement
+    //std::cout << "Flow[" << id << "] with priority " << run_priority << " send ack: " << seq << std::endl;
+    Queue *next_hop = topology->get_next_hop(p, dst->queue);
+    PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);  // skip src queue, include dst queue; add a pd delay
+    ////PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time(), p, dst->queue);  // orig version (include src queue, skip dst queue)
+    add_to_event_queue(event);
+}
+
 void PDQFlow::receive(Packet *p) {
     // call receive_fin_pkt() early since at this point flow->finished has been marked true
     if (p->type == FIN_PACKET) {
@@ -254,6 +285,65 @@ void PDQFlow::receive_syn_pkt(Packet *syn_pkt) {
 
 void PDQFlow::receive_syn_ack_pkt(Packet *p) {
     send_probe_pkt();
+}
+
+void PDQFlow::receive_data_pkt(Packet* p) {
+    received_count++;
+    total_queuing_time += p->total_queuing_delay;
+    if (last_data_pkt_receive_time != 0) {
+        double inter_pkt_spacing = get_current_time() - last_data_pkt_receive_time;
+        total_inter_pkt_spacing += inter_pkt_spacing;
+    }
+    last_data_pkt_receive_time = get_current_time();
+
+    if (p->is_probe) {  
+        if (num_outstanding_packets > 0) {
+            num_outstanding_packets--;
+        }
+        // for probe pkts, don't update 'max_seq_no_recv' such that 'recv_till' won't change
+        // so calling send_ack_pdq() will just ask for the correct missing data pkt
+    } else {
+        if (received.count(p->seq_no) == 0) {
+            received[p->seq_no] = true;
+            if (num_outstanding_packets >= ((p->size - hdr_size) / (mss)))
+                num_outstanding_packets -= ((p->size - hdr_size) / (mss));
+            else
+                num_outstanding_packets = 0;
+            received_bytes += (p->size - hdr_size);
+        } else {
+            duplicated_packets_received += 1;
+        }
+        if (p->seq_no > max_seq_no_recv) {
+            max_seq_no_recv = p->seq_no;
+        }
+    }
+    // Determing which ack to send
+    uint64_t s = recv_till;
+    bool in_sequence = true;
+    std::vector<uint64_t> sack_list;
+    while (s <= max_seq_no_recv) {
+        if (received.count(s) > 0) {
+            if (in_sequence) {
+                if (recv_till + mss > this->size) {
+                    recv_till = this->size;
+                } else {
+                    recv_till += mss;
+                }
+            } else {
+                sack_list.push_back(s);
+            }
+        } else {
+            in_sequence = false;
+        }
+        s += mss;
+    }
+
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
+        std::cout << "Flow[" << id << "] receive_data_pkt: max_seq_no_recv = " << max_seq_no_recv << "; data pkt seq no = " << p->seq_no
+            << "; recv_till (seq for next ACK) = " << recv_till << std::endl;
+    }
+    //std::cout << "Flow[" << id << "] receive_data_pkt: received_count = " << received_count << "; received_bytes = " << received_bytes << std::endl;
+    send_ack_pdq(recv_till, sack_list, p->start_ts, p); // Cumulative Ack
 }
 
 void PDQFlow::receive_fin_pkt(Packet *p) {
