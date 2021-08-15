@@ -52,7 +52,7 @@ Packet *PDQFlow::send_probe_pkt() {
     Packet *p = new Packet(
             get_current_time(),
             this,
-            0,
+            next_seq_no,
             flow_priority,
             0,
             src,
@@ -229,7 +229,7 @@ void PDQFlow::receive(Packet *p) {
         //receive_data_pkt(p);
     } else if (p->type == SYN_PACKET) {
         receive_syn_pkt(p);
-    } else if (p->type == SYN_ACK_PACKET) {     // TODO
+    } else if (p->type == SYN_ACK_PACKET) {
         receive_syn_ack_pkt(p);
     } else {
         assert(false);
@@ -239,8 +239,6 @@ void PDQFlow::receive(Packet *p) {
 }
 
 void PDQFlow::receive_syn_pkt(Packet *syn_pkt) {
-    // basically calling send_ack_d3(), but send a SynAck pkt instead of a normal Ack.
-    ////Packet *p = new SynAck(this, 0, hdr_size, dst, src);  //Acks are dst->src
     Packet *p = new SynAck(this, 0, 0, dst, src);  //Acks are dst->src; made its size=0
     p->marked_base_rate = syn_pkt->marked_base_rate;
     p->start_ts = syn_pkt->start_ts;     // record syn pkt's start time so the sender can calculate RTT when receiving this syn ack
@@ -260,7 +258,6 @@ void PDQFlow::receive_syn_ack_pkt(Packet *p) {
 
 void PDQFlow::receive_fin_pkt(Packet *p) {
     assert(finished);
-    // nothing to do here. 'num_active_flows' are decremented when FIN packet traverse thru the network
 }
 
 

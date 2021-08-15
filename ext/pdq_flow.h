@@ -20,9 +20,9 @@ class PDQFlow : public Flow {
     void send_pending_data() override;
     uint32_t send_pkts() override;
     void receive(Packet* p) override;
-    //void receive_data_pkt(Packet* p) override;
     void receive_syn_pkt(Packet *syn_pkt);
     void receive_syn_ack_pkt(Packet *p);
+    //void receive_data_pkt(Packet* p) override;
     void receive_fin_pkt(Packet *p);
     //void send_ack_pdq(uint64_t seq, std::vector<uint64_t> sack_list,
     //              double pkt_start_ts, Packet* data_pkt); // to replace the original send_ack
