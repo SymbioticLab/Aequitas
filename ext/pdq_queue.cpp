@@ -38,7 +38,7 @@ PDQQueue::PDQQueue(uint32_t id, double rate, uint32_t limit_bytes, int location)
         this->constant_x = 0.2;
         this->max_num_active_flows = 2 * this->constant_k;  // allow flow states (active_flows) up to 2 * k (according to PDQ paper)
         this->dampening_time_window = 10;   // in unit of us; TODO: pass in as config param; I haven't seen anywhere in the PDQ paper talking about the value they use
-        this->time_accept_last_flow = 0;
+        this->time_accept_last_flow = get_current_time();
         this->rate_capacity = rate;
         this->time_since_last_rate_control = get_current_time();
         this->time_since_last_rcp_update = get_current_time();
@@ -46,13 +46,11 @@ PDQQueue::PDQQueue(uint32_t id, double rate, uint32_t limit_bytes, int location)
         this->prev_rcp_fs_rate = 0;
         this->bytes_since_last_rcp_update = 0;
         this->rtt_moving_avg = 0;
-        this->rtt_measures = std::vector<double> (num_rtts_to_store); 
         this->num_rtts_to_store = 10;   // store 10 RTT values for now
+        this->rtt_measures = std::vector<double> (num_rtts_to_store); 
         this->next_rtt_idx = 0;
         this->sum_rtts = 0;
         this->rtt_counts = 0;
-
-        // TODO: throw an RCP fs rate event
 }
 
 // For now, flow control packets can never be dropped
@@ -195,8 +193,6 @@ uint32_t PDQQueue::find_flow_index(Packet *packet) {
     return idx;
 }
 
-// TODO: check whether a flow is finished
-// TODO: measure RTT at PDQ host
 void PDQQueue::perform_flow_control(Packet *packet) {
     if (packet->type == NORMAL_PACKET) {        // "Algorithm 1"
         if (packet->paused && packet->pause_sw_id != unique_id) {
@@ -265,6 +261,9 @@ void PDQQueue::perform_flow_control(Packet *packet) {
             packet->inter_probing_time = std::max(packet->inter_probing_time, constant_x * find_flow_index(packet));
             packet->flow->sw_flow_state.rate = packet->allocated_rate;
         }
+    } else if (packet->type == FIN_PACKET) {
+        // remove flow from list
+        remove_flow_from_list(packet);
     }
 }
 
@@ -288,7 +287,6 @@ double PDQQueue::get_transmission_delay(Packet *packet) {
     return td;
 }
 
-// TODO: handle assertions for PDQ
 void PDQQueue::drop(Packet *packet) {
     packet->flow->pkt_drop++;
     if (packet->seq_no < packet->flow->size) {
@@ -301,9 +299,6 @@ void PDQQueue::drop(Packet *packet) {
         assert(false);
     } else if (packet->type == ACK_PACKET) {
         packet->flow->ack_pkt_drop++;
-        if (packet->ack_pkt_with_rrq) {
-            assert(false);          // need to handle it if failed
-        }
     }
     if (location != 0 && packet->type == NORMAL_PACKET) {
         dead_packets += 1;

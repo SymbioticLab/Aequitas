@@ -53,8 +53,8 @@ class PDQQueue : public Queue {
     double prev_rcp_fs_rate;                  // last RCP fair share rate
     uint32_t bytes_since_last_rcp_update;     // used to calculate RCP fair share rate
     double rtt_moving_avg;                    // used to calculate RCP fair share rate
-    std::vector<double> rtt_measures;         // store a moving window of rtt measurements; used to calculate moving avg of rtts
     uint32_t num_rtts_to_store;               // size of the above moving window
+    std::vector<double> rtt_measures;         // store a moving window of rtt measurements; used to calculate moving avg of rtts
     uint32_t next_rtt_idx;                    // helper index to maintain the above moving window
     double sum_rtts;                          // used to calculate moving avg of rtts
     uint32_t rtt_counts;                      // helper variable to maintain the above moving window
