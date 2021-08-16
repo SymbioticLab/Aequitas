@@ -137,7 +137,7 @@ void debug_flow_stats(std::deque<Flow *> flows){
 
 void assign_flow_deadline(std::deque<Flow *> flows)
 {
-    std::cout << "deadline feature should be turned off because D3Flow is using it." << std::endl;
+    std::cout << "deadline feature should be turned off because D3Flow/PDQ is using it." << std::endl;
     assert(false);
     ExponentialRandomVariable *nv_intarr = new ExponentialRandomVariable(params.avg_deadline);
     for(uint i = 0; i < flows.size(); i++)

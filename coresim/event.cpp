@@ -215,9 +215,9 @@ void FlowCreationForInitializationEvent::process_event() {
 
         Flow *new_flow = Factory::get_flow(id, time, size, src, dst, params.flow_type, flow_priority);
 
-        // setting flow deadline for D3
+        // setting flow deadline for D3/PDQ
         // let's do it using the qos targets for now
-        if (params.flow_type == D3_FLOW) {
+        if (params.flow_type == D3_FLOW || params.flow_type == PDQ_FLOW) {
             if (flow_priority == params.num_qos_level - 1) {    // lowest prio level has no deadline
                 new_flow->has_ddl = false;
                 new_flow->deadline = 0;
