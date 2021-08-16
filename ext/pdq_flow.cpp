@@ -245,9 +245,19 @@ void PDQFlow::receive(Packet *p) {
         return;
     }
 
-    // record measured RTT if it's an ACK/SYN_ACK
+    // update sender info based on receiving an acknowledgement pkt
+    // note the syn_ack packet only brings back the rtt info in PDQ
     if (p->type == ACK_PACKET || p->type == SYN_ACK_PACKET) {
         measured_rtt = get_current_time() - p->start_ts;
+        allocated_rate = p->allocated_rate;
+        pause_sw_id = p->pause_sw_id;
+        inter_probing_time = p->inter_probing_time;
+        // 'expected_trans_time' is obtained by calling get_expected_trans_time() anytime it's needed
+        if (p->type == ACK_PACKET && (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id))) {
+            std::cout << std::setprecision(2) << std::fixed;
+            std::cout << "Flow[" << id << "] at Host[" << src->id << "] received ACK packet[" << p->unique_id << "]. allocated rate = " << p->allocated_rate /1e9 << std::endl;
+            std::cout << std::setprecision(15) << std::fixed;
+        }
     }
 
     if (p->type == ACK_PACKET) {                // TODO
@@ -257,7 +267,7 @@ void PDQFlow::receive(Packet *p) {
         */
     }
     else if(p->type == NORMAL_PACKET) {         // TODO
-        //receive_data_pkt(p);
+        receive_data_pkt(p);
     } else if (p->type == SYN_PACKET) {
         receive_syn_pkt(p);
     } else if (p->type == SYN_ACK_PACKET) {
@@ -344,6 +354,58 @@ void PDQFlow::receive_data_pkt(Packet* p) {
     }
     //std::cout << "Flow[" << id << "] receive_data_pkt: received_count = " << received_count << "; received_bytes = " << received_bytes << std::endl;
     send_ack_pdq(recv_till, sack_list, p->start_ts, p); // Cumulative Ack
+}
+
+void PDQFlow::receive_ack_pdq(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sack_list) {
+    // On timeouts; next_seq_no is updated to the last_unacked_seq;
+    // In such cases, the ack can be greater than next_seq_no; update it
+    if (next_seq_no < ack) {
+        next_seq_no = ack;
+    }
+
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
+        std::cout << "Flow[" << id << "] at Host[" << src->id << "] received ACK packet[" << ack_pkt->unique_id
+            << "]; ack = " << ack << ", next_seq_no = " << next_seq_no << ", last_unacked_seq = " << last_unacked_seq << std::endl;
+    }
+
+    // New ack!
+    if (ack > last_unacked_seq) {
+        // Update the last unacked seq
+        last_unacked_seq = ack;
+
+        //increase_cwnd();  // Don't involve normal CC behavior
+
+        // Send the remaining data
+        send_next_pkt();
+
+        // Update the retx timer
+        /*
+        if (retx_event != nullptr) { // Try to move
+            cancel_retx_event();
+            if (last_unacked_seq < size) {
+                // Move the timeout to last_unacked_seq
+                double timeout = get_current_time() + retx_timeout;
+                set_timeout(timeout);
+            }
+        }
+        */
+    }
+
+    // same treatment for fin/flow_completion as in D3
+    if (ack == size && !finished) {
+        finished = true;
+        received.clear();
+        finish_time = get_current_time();
+        flow_completion_time = finish_time - start_time;
+        FlowFinishedEvent *ev = new FlowFinishedEvent(get_current_time(), this);
+        add_to_event_queue(ev);
+
+        // cancel current RateLimitingEvent if there is any
+        cancel_rate_limit_event();
+
+        // send out a FIN pkt to return the desired and allocated rate of this flow during the last RTT to the routers(queues) on its path
+        send_fin_pkt();
+    }
 }
 
 void PDQFlow::receive_fin_pkt(Packet *p) {

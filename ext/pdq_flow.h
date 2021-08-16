@@ -25,9 +25,9 @@ class PDQFlow : public Flow {
     void receive_syn_pkt(Packet *syn_pkt);
     void receive_syn_ack_pkt(Packet *p);
     void receive_data_pkt(Packet* p) override;
+    void receive_ack_pdq(Ack *ack_pkt, uint64_t ack,
+                  std::vector<uint64_t> sack_list); // to replace the original receive_ack
     void receive_fin_pkt(Packet *p);
-    //void receive_ack_pdq(Ack *ack_pkt, uint64_t ack,
-    //              std::vector<uint64_t> sack_list); // to replace the original receive_ack
 
     bool has_sent_probe_this_rtt;   // like what we did in D3; so that we don't send too many before the next ACK (next RTT)
     //bool paused;                  // not necessary; can tell from whether allocated_rate == 0 (hopefully)
