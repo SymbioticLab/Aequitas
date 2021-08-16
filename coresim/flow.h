@@ -131,7 +131,7 @@ class Flow {
         RateLimitingEvent *rate_limit_event;        // points to the next RateLimitingEvent; maintains this so we can cancel it when base rate is assigned
         bool terminated;                
 
-        FlowState sw_flow_state;     // used by PDQ; flow states maintained by the switch; hosts should not modify them
+        FlowState sw_flow_state;     // used by PDQ; flow states maintained by the switch; hosts should not modify them (except initialize flow ddl)
 
         // QID: specifies which EventQueue this flow's events should go to
         uint32_t qid;       //TOOD: completely remove

@@ -28,9 +28,6 @@ PDQFlow::PDQFlow(uint32_t id, double start_time, uint32_t size, Host *s,
     : Flow(id, start_time, size, s, d, flow_priority) {
     // PDQFlow does not use conventional congestion control; all CC related OPs (inc/dec cwnd; timeout events, etc) are removed
     this->cwnd_mss = params.initial_cwnd;
-    if (!this->has_ddl) {
-        assert(this->deadline == 0);
-    }
     this->has_sent_probe_this_rtt = false;
     //this->paused = false;
     this->pause_sw_id = 0;
@@ -42,7 +39,13 @@ PDQFlow::PDQFlow(uint32_t id, double start_time, uint32_t size, Host *s,
 // we will skip the syn pkt (SYN in PDQ doesn't ask for rate) and directly send out the first probe pkt.
 // Otherwise this is an unfair comparison with D3 especially when there are a lot of short flows in the workload.
 void PDQFlow::start_flow() {
-    send_probe_pkt();
+    if (!this->has_ddl) {
+        assert(this->deadline == 0);        // we don't check in constructor b/c by then the ddl has not been set yet
+    }
+    // also set deadline in sw flow state
+    sw_flow_state.deadline = deadline;
+    
+    send_next_pkt();        // since allocated_rate is initialzied to 0, this is essentially calling send_probe_pkt();
 }
 
 // When allocated_rate becomes 0 (i.e., the flow is paused by the switch), PDQ sends out a PROBE packet every Is (inter-probing time) RTTs to request new rate info;
@@ -141,7 +144,7 @@ void PDQFlow::send_next_pkt() {
     ) {
         Packet *p = send_with_delay(seq, 1e-12);    // actually the tiny delay is not needed here since pkts are sent one at a time; let's just stay consistent
 
-        if (p->size != 0) {     // Only update seq_no if we sent a normal data pkt, not a header-only RRQ (with base rate)
+        if (p->is_probe) {     // Only update seq_no if we sent a normal data pkt, not a probe packet
             if (seq + mss < size) {
                 next_seq_no = seq + mss;
                 seq += mss;
