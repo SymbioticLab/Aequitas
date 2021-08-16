@@ -76,19 +76,14 @@ Flow* Factory::get_flow(
         //    break;
         case VERITAS_FLOW:
             return new VeritasFlow(id, start_time, size, src, dst, flow_priority);
-            break;
         case PFABRIC_FLOW:
             return new PFabricFlow(id, start_time, size, src, dst, flow_priority);
-            break;
         case QJUMP_FLOW:
             return new QjumpFlow(id, start_time, size, src, dst, flow_priority);
-            break;
         case D3_FLOW:
             return new D3Flow(id, start_time, size, src, dst, flow_priority);
-            break;
         case PDQ_FLOW:
             return new PDQFlow(id, start_time, size, src, dst, flow_priority);
-            break;
     }
     assert(false);
     return NULL;
@@ -105,7 +100,6 @@ Channel *Factory::get_channel(
         switch (flow_type) {
             case QJUMP_FLOW:
                 return new QjumpChannel(id, s, d, priority, agg_channel);
-                break;
             default:
                 return new Channel(id, s, d, priority, agg_channel);
         }
@@ -122,10 +116,8 @@ Host* Factory::get_host(
     switch (host_type) {
         case NORMAL_HOST:
             return new Host(id, rate, queue_type, NORMAL_HOST);
-            break;
         case QJUMP_HOST:
             return new QjumpHost(id, rate, queue_type, QJUMP_HOST);
-            break;
     }
 
     std::cerr << host_type << " unknown\n";
