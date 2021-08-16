@@ -48,7 +48,8 @@ void PDQFlow::start_flow() {
 // When allocated_rate becomes 0 (i.e., the flow is paused by the switch), PDQ sends out a PROBE packet every Is (inter-probing time) RTTs to request new rate info;
 // A PROBE packet is a DATA packet with no payload.
 Packet *PDQFlow::send_probe_pkt() {
-    assert(allocated_rate == 0);
+    assert(allocated_rate == 0 && !has_sent_probe_this_rtt);
+    has_sent_probe_this_rtt = true;
     Packet *p = new Packet(
             get_current_time(),
             this,
