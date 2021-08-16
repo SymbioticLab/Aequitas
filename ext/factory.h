@@ -12,6 +12,7 @@
 #define WF_QUEUE 6
 #define QJUMP_QUEUE 7
 #define D3_QUEUE 8
+#define PDQ_QUEUE 9
 
 /* Flow types */
 #define NORMAL_FLOW 1
@@ -19,6 +20,7 @@
 #define VERITAS_FLOW 6
 #define QJUMP_FLOW 7
 #define D3_FLOW 8
+#define PDQ_FLOW 9
 #define VANILLA_TCP_FLOW 42
 #define DCTCP_FLOW 43
 #define CAPABILITY_FLOW 112
