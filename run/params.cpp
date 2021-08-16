@@ -28,6 +28,7 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
     params.buffer_carving = std::vector<int>();
     params.use_dynamic_load = 0;
     params.use_random_jitter = 0;
+    params.first_flow_start_time = 1.0;     // just need to be put into a para to make it consistent in all places
     //params.random_flow_start = 1;
     params.early_pkt_in_highest_prio = 0;
     //params.load_change_freq = 100;

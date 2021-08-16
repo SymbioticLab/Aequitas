@@ -50,7 +50,7 @@ void FlowGenerator::write_flows_to_file(std::deque<Flow *> flows, std::string fi
 void FlowGenerator::make_flows() {
     EmpiricalRandomVariable *nv_bytes = new EmpiricalRandomVariable(filename);
     ExponentialRandomVariable *nv_intarr = new ExponentialRandomVariable(0.0000001);
-    add_to_event_queue(new FlowCreationForInitializationEvent(1.0, topo->hosts[0], topo->hosts[1], nv_bytes, nv_intarr));
+    add_to_event_queue(new FlowCreationForInitializationEvent(params.first_flow_start_time, topo->hosts[0], topo->hosts[1], nv_bytes, nv_intarr));
 
     while (event_queue.size() > 0) {
         Event *ev = event_queue.top();
@@ -102,7 +102,7 @@ void PoissonFlowGenerator::make_flows() {
     for (uint32_t i = 0; i < topo->hosts.size(); i++) {
         for (uint32_t j = 0; j < topo->hosts.size(); j++) {
             if (i != j) {
-                double first_flow_time = 1.0 + nv_intarr->value();
+                double first_flow_time = params.first_flow_start_time + nv_intarr->value();
                 add_to_event_queue(
                     new FlowCreationForInitializationEvent(
                         first_flow_time,
@@ -204,7 +204,8 @@ void FlowBytesGenerator::make_flows() {
     //}
 
 
-    double first_flow_time = 1.0;
+    //double first_flow_time = 1.0;
+    double first_flow_time = params.first_flow_start_time;
     if (params.traffic_pattern == 0) {
         // INCAST pattern: for N hosts. The first (N-1) hosts send flows to the last host.
         double initial_shift = 0;

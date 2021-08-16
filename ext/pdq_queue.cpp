@@ -38,10 +38,10 @@ PDQQueue::PDQQueue(uint32_t id, double rate, uint32_t limit_bytes, int location)
         this->constant_x = 0.2;
         this->max_num_active_flows = 2 * this->constant_k;  // allow flow states (active_flows) up to 2 * k (according to PDQ paper)
         this->dampening_time_window = 10;   // in unit of us; TODO: pass in as config param; I haven't seen anywhere in the PDQ paper talking about the value they use
-        this->time_accept_last_flow = get_current_time();
+        this->time_accept_last_flow = params.first_flow_start_time;
         this->rate_capacity = rate;
-        this->time_since_last_rate_control = get_current_time();
-        this->time_since_last_rcp_update = get_current_time();
+        this->time_since_last_rate_control = params.first_flow_start_time;
+        this->time_since_last_rcp_update = params.first_flow_start_time;
         this->curr_rcp_fs_rate = 0;
         this->prev_rcp_fs_rate = 0;
         this->bytes_since_last_rcp_update = 0;
@@ -114,6 +114,7 @@ bool PDQQueue::more_critical(Flow *a, Flow *b) {
     return flow_comp(a, b);
 }
 
+// TODO: update RTT in the reverse path! (send path has rtt = 0)
 void PDQQueue::update_rtt_moving_avg(Packet *packet) {
     if (rtt_counts < num_rtts_to_store) {
         sum_rtts += packet->measured_rtt;
@@ -131,6 +132,9 @@ void PDQQueue::update_rtt_moving_avg(Packet *packet) {
     if (next_rtt_idx == num_rtts_to_store) {
         next_rtt_idx = 0;
     }
+    if (params.debug_event_info) {
+        std::cout << "At PDQ Queue[" << unique_id << "], RTT moving avg = " << rtt_moving_avg << std::endl;
+    }
 }
 
 // Note in original RCP, # of flows is estimated by "C/R(t-T)". But PDQ improves this by directly calculating the actual # of active flows
@@ -143,6 +147,7 @@ void PDQQueue::update_RCP_fair_share_rate() {
     }
 
     double alpha = 0.1, beta = 1.0;
+    std::cout << "PUPU: T = " << T << "; rtt_moving_avg = " << rtt_moving_avg << std::endl;
     assert(T <= rtt_moving_avg);
     if (T > rtt_moving_avg) {   // try this in case the assertion fails
         T = rtt_moving_avg;     // can we do this?

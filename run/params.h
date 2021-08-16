@@ -39,6 +39,7 @@ class DCExpParams {
         uint32_t bytes_mode;
         uint32_t cut_through;
         uint32_t mean_flow_size;
+        double first_flow_start_time;
 
         double load_measure_interval;
 
