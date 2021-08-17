@@ -45,11 +45,12 @@ void PDQFlow::start_flow() {
     // also set deadline in sw flow state
     sw_flow_state.deadline = deadline;
     
-    send_next_pkt();        // since allocated_rate is initialzied to 0, this is essentially calling send_probe_pkt();
+    send_syn_pkt();
 }
 
 // When allocated_rate becomes 0 (i.e., the flow is paused by the switch), PDQ sends out a PROBE packet every Is (inter-probing time) RTTs to request new rate info;
 // A PROBE packet is a DATA packet with no payload.
+// TODO: send probe every Is RTTs
 Packet *PDQFlow::send_probe_pkt() {
     assert(allocated_rate == 0 && !has_sent_probe_this_rtt);
     has_sent_probe_this_rtt = true;
@@ -67,6 +68,7 @@ Packet *PDQFlow::send_probe_pkt() {
     
     // assign scheduling header
     p->is_probe = true;
+    p->allocated_rate = params.bandwidth;   // on packet departure, rate in the schuduling header is always set to max sending rate (PDQ paper S3.1)
     p->deadline = deadline;
     p->expected_trans_time = get_expected_trans_time();
     p->inter_probing_time = inter_probing_time;
@@ -76,11 +78,11 @@ Packet *PDQFlow::send_probe_pkt() {
     add_to_event_queue(new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop));      // adding a pd since we skip the source queue
     if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
         std::cout << "Host[" << src->id << "] sends out Probe Packet[" << p->unique_id << "] from Flow[" << id << "] at time: " << get_current_time() << std::endl;
+        std::cout << "PUPU measured RTT = " << p->measured_rtt * 1e6 << " us" << std::endl;
     }
     return p;
 }
 
-// PDQQueue will not process SYN pkt, but we need to throw it into the network to be able to measure the rtt used in the first probe packet
 void PDQFlow::send_syn_pkt() {
     Packet *p = new Syn(
             get_current_time(),
@@ -187,6 +189,14 @@ Packet *PDQFlow::send_with_delay(uint64_t seq, double delay) {
     this->total_pkt_sent++;
     p->start_ts = get_current_time();
 
+    // assign scheduling header
+    p->is_probe = false;
+    p->allocated_rate = params.bandwidth;   // on packet departure, rate in the schuduling header is always set to max sending rate (PDQ paper S3.1)
+    p->deadline = deadline;
+    p->expected_trans_time = get_expected_trans_time();
+    p->inter_probing_time = inter_probing_time;
+    p->measured_rtt = measured_rtt;
+
     Queue *next_hop = topology->get_next_hop(p, src->queue);
     add_to_event_queue(new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay + delay, p, next_hop));      // adding a pd since we skip the source queue
     double td = pkt_size * 8.0 / allocated_rate;    // rate limited with the rate assigned by the routers
@@ -196,6 +206,7 @@ Packet *PDQFlow::send_with_delay(uint64_t seq, double delay) {
 
     if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
         std::cout << "Host[" << src->id << "] sends out Packet[" << p->unique_id << "] from flow[" << id << "] at time: " << get_current_time() + delay << std::endl;
+        std::cout << "PUPU measured RTT = " << p->measured_rtt * 1e6 << " us" << std::endl;
     }
     return p;
 }
@@ -296,7 +307,7 @@ void PDQFlow::receive_syn_pkt(Packet *syn_pkt) {
 }
 
 void PDQFlow::receive_syn_ack_pkt(Packet *p) {
-    send_probe_pkt();
+    send_next_pkt();
 }
 
 void PDQFlow::receive_data_pkt(Packet* p) {
