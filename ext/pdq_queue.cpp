@@ -68,7 +68,7 @@ void PDQQueue::enque(Packet *packet) {
     }
     packet->enque_queue_size = b_arrivals;
 
-    update_rtt_moving_avg(packet);
+    update_rtt_moving_avg(packet);      // gets updated when an ACK (or SYN ACK) passed thru
     update_RCP_fair_share_rate();       // update fs rate roughly roughly once per RTT
     perform_rate_control(packet);       // perform rate control roughly once per 2 RTTs
     perform_flow_control(packet);       // shouldn't matter if we do in enque() or dequeu()
@@ -87,6 +87,7 @@ Packet *PDQQueue::deque(double deque_time) {
 }
 
 void PDQQueue::add_flow_to_list(Packet *packet) {
+    //std::cout << "PUPU adding Flow[" << packet->flow->id << "] to list" << std::endl;
     active_flows[packet->flow->id] = packet->flow;
     active_flows_pq.push(packet->flow);
 }
@@ -108,32 +109,34 @@ void PDQQueue::remove_least_critical_flow() {
     least_critical_flow->sw_flow_state.removed_from_pq = true;    // not necessary to do so here; just to be consistent
     active_flows_pq.pop();
     active_flows.erase(least_critical_flow->id);
+    //std::cout << "removing least critical flow[" << least_critical_flow->id << "]" << std::endl;
 }
 
 bool PDQQueue::more_critical(Flow *a, Flow *b) {
     return flow_comp(a, b);
 }
 
-// TODO: update RTT in the reverse path! (send path has rtt = 0)
 void PDQQueue::update_rtt_moving_avg(Packet *packet) {
-    if (rtt_counts < num_rtts_to_store) {
-        sum_rtts += packet->measured_rtt;
-        rtt_counts++;
-        rtt_moving_avg = sum_rtts / rtt_counts;
-        rtt_measures[next_rtt_idx] = packet->measured_rtt;
-    } else {    // stop increment rtt_counts
-        sum_rtts -= rtt_measures[next_rtt_idx];
-        rtt_measures[next_rtt_idx] = packet->measured_rtt;
-        sum_rtts += packet->measured_rtt;
-        rtt_moving_avg = sum_rtts / num_rtts_to_store;
-    }
+    if (packet->type == ACK_PACKET || packet->type == SYN_ACK_PACKET) {
+        if (rtt_counts < num_rtts_to_store) {
+            sum_rtts += packet->measured_rtt;
+            rtt_counts++;
+            rtt_moving_avg = sum_rtts / rtt_counts;
+            rtt_measures[next_rtt_idx] = packet->measured_rtt;
+        } else {    // stop increment rtt_counts
+            sum_rtts -= rtt_measures[next_rtt_idx];
+            rtt_measures[next_rtt_idx] = packet->measured_rtt;
+            sum_rtts += packet->measured_rtt;
+            rtt_moving_avg = sum_rtts / num_rtts_to_store;
+        }
 
-    next_rtt_idx++;
-    if (next_rtt_idx == num_rtts_to_store) {
-        next_rtt_idx = 0;
-    }
-    if (params.debug_event_info) {
-        std::cout << "At PDQ Queue[" << unique_id << "], RTT moving avg = " << rtt_moving_avg << std::endl;
+        next_rtt_idx++;
+        if (next_rtt_idx == num_rtts_to_store) {
+            next_rtt_idx = 0;
+        }
+        if (params.debug_event_info) {
+            std::cout << "At PDQ Queue[" << unique_id << "], RTT moving avg = " << rtt_moving_avg << std::endl;
+        }
     }
 }
 
@@ -142,7 +145,7 @@ void PDQQueue::update_rtt_moving_avg(Packet *packet) {
 void PDQQueue::update_RCP_fair_share_rate() {
     // don't update it too frequently; T is supposed to be less than or equal to rtt_moving_avg in RCP
     double T = get_current_time() - time_since_last_rcp_update;
-    if (T < 0.9 * rtt_moving_avg) { 
+    if (T < 0.9 * rtt_moving_avg || rtt_moving_avg == 0) {     // don't update fs if rtt_moving_avg hasn't been updated
         return;
     }
 
@@ -209,11 +212,11 @@ void PDQQueue::perform_flow_control(Packet *packet) {
             Flow *least_critical_flow = active_flows_pq.top();
             if (active_flows.size() < max_num_active_flows
                 || more_critical(packet->flow, least_critical_flow)) {
-                add_flow_to_list(packet);
                 packet->flow->sw_flow_state.rate = 0;
                 if (active_flows.size() > constant_k) {
                     remove_least_critical_flow();
                 }
+                add_flow_to_list(packet);       // adding should be performed before removing; otherwise it may remove the newly added flow
             } else {
                 packet->allocated_rate = curr_rcp_fs_rate;
                 if (packet->allocated_rate == 0) {
