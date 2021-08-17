@@ -117,7 +117,7 @@ bool PDQQueue::more_critical(Flow *a, Flow *b) {
 }
 
 void PDQQueue::update_rtt_moving_avg(Packet *packet) {
-    if (packet->type == ACK_PACKET || packet->type == SYN_ACK_PACKET) {
+    if (packet->type == NORMAL_PACKET) {    // only data pkts (including probe) has rtt measurement (from last round trip)
         if (rtt_counts < num_rtts_to_store) {
             sum_rtts += packet->measured_rtt;
             rtt_counts++;
