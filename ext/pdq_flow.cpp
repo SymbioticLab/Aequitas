@@ -264,13 +264,11 @@ void PDQFlow::receive(Packet *p) {
         }
     }
 
-    if (p->type == ACK_PACKET) {                // TODO
-        /*
+    if (p->type == ACK_PACKET) {
         Ack *a = dynamic_cast<Ack *>(p);
-        receive_ack_d3(a, a->seq_no, a->sack_list);
-        */
+        receive_ack_pdq(a, a->seq_no, a->sack_list);
     }
-    else if(p->type == NORMAL_PACKET) {         // TODO
+    else if(p->type == NORMAL_PACKET) {
         receive_data_pkt(p);
     } else if (p->type == SYN_PACKET) {
         receive_syn_pkt(p);
