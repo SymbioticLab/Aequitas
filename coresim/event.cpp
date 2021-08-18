@@ -164,7 +164,8 @@ void FlowCreationForInitializationEvent::process_event() {
         if (params.flow_type == VERITAS_FLOW ||
             params.flow_type == PFABRIC_FLOW ||
             params.flow_type == QJUMP_FLOW ||
-            params.flow_type == D3_FLOW) {       // TODO: set priority for all flow types; those that can't support it is supposed to ignore it
+            params.flow_type == D3_FLOW ||
+            params.flow_type == PDQ_FLOW) {       // TODO: set priority for all flow types; those that can't support it is supposed to ignore it
             assert(!params.qos_ratio.empty());
             UniformRandomVariable uv;
             double rn = uv.value();

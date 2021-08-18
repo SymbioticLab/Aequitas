@@ -39,6 +39,7 @@ PDQFlow::PDQFlow(uint32_t id, double start_time, uint32_t size, Host *s,
 // we will skip the syn pkt (SYN in PDQ doesn't ask for rate) and directly send out the first probe pkt.
 // Otherwise this is an unfair comparison with D3 especially when there are a lot of short flows in the workload.
 void PDQFlow::start_flow() {
+    run_priority = flow_priority;   // necessary to print latencies for all qos levels in the output log
     if (!this->has_ddl) {
         assert(this->deadline == 0);        // we don't check in constructor b/c by then the ddl has not been set yet
     }
