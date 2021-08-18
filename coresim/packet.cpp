@@ -45,6 +45,7 @@ Packet::Packet(
     this->expected_trans_time = 0;
     this->inter_probing_time = 0;
     this->is_probe = false;
+    this->ack_to_probe = false;
 }
 
 Packet::~Packet() {}

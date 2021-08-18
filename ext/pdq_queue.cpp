@@ -176,17 +176,17 @@ void PDQQueue::update_RCP_fair_share_rate() {
     }
     assert(rtt_moving_avg != 0);
     double input_traffic_rate = bytes_since_last_rcp_update * 8.0 / T;
-    std::cout << "PUPUPU: prev_rcp_fs_rate = " << prev_rcp_fs_rate / 1e9 << std::endl;
     curr_rcp_fs_rate = prev_rcp_fs_rate + (T / rtt_moving_avg * (alpha * (rate - input_traffic_rate) - beta * bytes_since_last_rcp_update * 8.0 / rtt_moving_avg)) / num_active_flows;
+    if (curr_rcp_fs_rate < 0) {
+        curr_rcp_fs_rate = 0;   // double check
+    }
     prev_rcp_fs_rate = curr_rcp_fs_rate;
     if (params.debug_event_info) {
         std::cout << std::setprecision(2) << std::fixed;
-        std::cout << "PUPU: alpha * (rate - input_traffic_rate) = " << alpha * (rate - input_traffic_rate) / 1e9 << std::endl;
-        std::cout << "PUPU: beta * bytes_since_last_rcp_update * 8.0 / rtt_moving_avg = " << beta * bytes_since_last_rcp_update * 8.0 / rtt_moving_avg / 1e9 << std::endl;
-        std::cout << "everything before dividing by num active flows = " << (T / rtt_moving_avg * (alpha * (rate - input_traffic_rate) - beta * bytes_since_last_rcp_update * 8.0 / rtt_moving_avg)) / 1e9 << std::endl;
-        std::cout << "everything before adding prev fs rate = " << (T / rtt_moving_avg * (alpha * (rate - input_traffic_rate) - beta * bytes_since_last_rcp_update * 8.0 / rtt_moving_avg)) / num_active_flows / 1e9 << std::endl;
-        std::cout << "prev_rcp_fs_rate = " << prev_rcp_fs_rate / 1e9 << std::endl;
-        std::cout << "fs rate = " << prev_rcp_fs_rate + (T / rtt_moving_avg * (alpha * (rate - input_traffic_rate) - beta * bytes_since_last_rcp_update * 8.0 / rtt_moving_avg)) / num_active_flows / 1e9 << std::endl;
+        //std::cout << "PUPU: alpha * (rate - input_traffic_rate) = " << alpha * (rate - input_traffic_rate) / 1e9 << std::endl;
+        //std::cout << "PUPU: beta * bytes_since_last_rcp_update * 8.0 / rtt_moving_avg = " << beta * bytes_since_last_rcp_update * 8.0 / rtt_moving_avg / 1e9 << std::endl;
+        //std::cout << "everything before dividing by num active flows = " << (T / rtt_moving_avg * (alpha * (rate - input_traffic_rate) - beta * bytes_since_last_rcp_update * 8.0 / rtt_moving_avg)) / 1e9 << std::endl;
+        //std::cout << "everything before adding prev fs rate = " << (T / rtt_moving_avg * (alpha * (rate - input_traffic_rate) - beta * bytes_since_last_rcp_update * 8.0 / rtt_moving_avg)) / num_active_flows / 1e9 << std::endl;
         std::cout << "T = " << T * 1e6  << " us; rtt_moving_avg = " << rtt_moving_avg * 1e6 << " us" << std::endl;
         std::cout << "update fair share rate = " << curr_rcp_fs_rate / 1e9 << "; input traffic rate = " << input_traffic_rate / 1e9 << "; bytes since last update = " 
             << bytes_since_last_rcp_update << "; num active flows = " << num_active_flows << std::endl;
@@ -198,6 +198,7 @@ void PDQQueue::update_RCP_fair_share_rate() {
 }
 
 // "Algorithm 2" ("Early Start")
+// TODO: tell RCP fs rate the bandwidth used by PDQ critical flows
 double PDQQueue::calculate_available_bandwidth(Packet *packet) {
     uint32_t count = 0;
     double allocation = 0;
@@ -211,9 +212,16 @@ double PDQQueue::calculate_available_bandwidth(Packet *packet) {
         } else {
             allocation += f.second->sw_flow_state.rate;
         }
+        //std::cout << "for flow[" << f.second->id << "], expected_trans_time = " << f.second->sw_flow_state.expected_trans_time << "; measured_rtt = " << f.second->sw_flow_state.measured_rtt 
+        //    << "; count = " << count << "; constant_early_start = " << constant_early_start << "; allocation = " << allocation / 1e9 << std::endl;
         if (allocation >= rate_capacity) {
             return 0;
         }
+    }
+    if (params.debug_event_info) {
+        std::cout << std::setprecision(2) << std::fixed;
+        std::cout << "allocation = " << allocation / 1e9 << "; rate_capacity = " << rate_capacity / 1e9 << "; avail b/w = " << (rate_capacity - allocation) / 1e9 << std::endl;
+        std::cout << std::setprecision(15) << std::fixed;
     }
     return rate_capacity - allocation;
 }
@@ -237,6 +245,9 @@ uint32_t PDQQueue::find_flow_index(Packet *packet) {
 void PDQQueue::perform_flow_control(Packet *packet) {
     if (packet->type == NORMAL_PACKET) {        // "Algorithm 1"
         if (packet->paused && packet->pause_sw_id != unique_id) {
+            if (params.debug_event_info) {
+                std::cout << "(data pkt) removing flow because it's paused by another switch (Queue[" << packet->pause_sw_id << "])." << std::endl;
+            }
             remove_flow_from_list(packet);
             return;
         }
@@ -256,6 +267,9 @@ void PDQQueue::perform_flow_control(Packet *packet) {
                     packet->paused = true;
                     packet->pause_sw_id = unique_id;
                 }
+                if (params.debug_event_info) {
+                    std::cout << "Flow[" << packet->flow->id << "] paused due to fair share rate = 0" << std::endl;
+                }
                 return;
             }
         }
@@ -273,21 +287,39 @@ void PDQQueue::perform_flow_control(Packet *packet) {
                 // "Dampening"
                 packet->paused = true;
                 packet->pause_sw_id = unique_id;
+                packet->allocated_rate = 0;
                 packet->flow->sw_flow_state.paused = true;
                 packet->flow->sw_flow_state.pause_sw_id = unique_id;
+                packet->flow->sw_flow_state.rate = 0;
+                if (params.debug_event_info) {
+                    std::cout << "Flow[" << packet->flow->id << "] paused by dampening" << std::endl;
+                }
             } else {
                 packet->paused = false;
-                packet->allocated_rate = rate_to_allocate;
+                packet->allocated_rate = rate_to_allocate;      // Accept
+                if (params.debug_event_info) {
+                    std::cout << std::setprecision(2) << std::fixed;
+                    std::cout << "Accept packet[" << packet->unique_id << "] from Flow[" << packet->flow->id << "] with allocated rate = " << packet->allocated_rate / 1e9 << std::endl;
+                    std::cout << std::setprecision(15) << std::fixed;
+                }
             }
         } else {
             packet->paused = true;
             packet->pause_sw_id = unique_id;
+            packet->allocated_rate = 0;
             packet->flow->sw_flow_state.paused = true;
             packet->flow->sw_flow_state.pause_sw_id = unique_id;
+            packet->flow->sw_flow_state.rate = 0;
+            if (params.debug_event_info) {
+                std::cout << "Flow[" << packet->flow->id << "] paused due to no available bandwidth." << std::endl;
+            }
         }
 
     } else if (packet->type == ACK_PACKET) {    // "Algorithm 3"
         if (packet->paused && packet->pause_sw_id != unique_id) {
+            if (params.debug_event_info) {
+                std::cout << "(ack pkt) removing flow because it's paused by another switch (Queue[" << packet->pause_sw_id << "])." << std::endl;
+            }
             remove_flow_from_list(packet);
         }
 
@@ -303,17 +335,23 @@ void PDQQueue::perform_flow_control(Packet *packet) {
             packet->flow->sw_flow_state.rate = packet->allocated_rate;
         }
     } else if (packet->type == FIN_PACKET) {
-        // remove flow from list
+        if (params.debug_event_info) {
+            std::cout << "removing flow because of receiving FIN pkt" << std::endl;
+        }
         remove_flow_from_list(packet);
     }
 }
 
+// TODO: change 'rate' to 'rate_pdq'
 void PDQQueue::perform_rate_control(Packet *packet) {
     // update every 2 RTT according to PDQ paper
     if (get_current_time() - time_since_last_rate_control < 1.9 * rtt_moving_avg) { 
         return;
     }
-    rate_capacity = std::max((double) 0, rate - bytes_in_queue * 8.0 / (2 * packet->flow->sw_flow_state.measured_rtt));
+    rate_capacity = std::max((double) 0, rate - bytes_in_queue * 8.0 / (2 * rtt_moving_avg));
+    if (params.debug_event_info) {
+        std::cout << "update rate control: bytes_in_queue = " << bytes_in_queue << "; rtt_moving_avg = " << rtt_moving_avg << "; rate_capacity = " << rate_capacity / 1e9 << std::endl;
+    }
 }
 
 // TODO: double check delay values for flow control packets

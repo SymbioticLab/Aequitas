@@ -146,7 +146,7 @@ void PDQFlow::send_next_pkt() {
     ) {
         Packet *p = send_with_delay(seq, 1e-12);    // actually the tiny delay is not needed here since pkts are sent one at a time; let's just stay consistent
 
-        if (p->is_probe) {     // Only update seq_no if we sent a normal data pkt, not a probe packet
+        if (!p->is_probe) {     // Only update seq_no if we sent a normal data pkt, not a probe packet
             if (seq + mss < size) {
                 next_seq_no = seq + mss;
                 seq += mss;
@@ -230,6 +230,9 @@ void PDQFlow::send_ack_pdq(uint64_t seq, std::vector<uint64_t> sack_list, double
     p->deadline = data_pkt->deadline;
     p->expected_trans_time = data_pkt->expected_trans_time;
     p->inter_probing_time = data_pkt->inter_probing_time;
+    if (data_pkt->is_probe) {
+        p->ack_to_probe = true;
+    }
 
     if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
         std::cout << std::setprecision(2) << std::fixed;
@@ -370,6 +373,9 @@ void PDQFlow::receive_data_pkt(Packet* p) {
 }
 
 void PDQFlow::receive_ack_pdq(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sack_list) {
+    if (ack_pkt->ack_to_probe) {
+        has_sent_probe_this_rtt = false;    // TODO: sent probe in Is RTTs
+    }
     // On timeouts; next_seq_no is updated to the last_unacked_seq;
     // In such cases, the ack can be greater than next_seq_no; update it
     if (next_seq_no < ack) {
@@ -378,7 +384,8 @@ void PDQFlow::receive_ack_pdq(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> 
 
     if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
         std::cout << "Flow[" << id << "] at Host[" << src->id << "] received ACK packet[" << ack_pkt->unique_id
-            << "]; ack = " << ack << ", next_seq_no = " << next_seq_no << ", last_unacked_seq = " << last_unacked_seq << std::endl;
+            << "]; ack = " << ack << ", next_seq_no = " << next_seq_no << ", last_unacked_seq = " << last_unacked_seq
+            << ", ack_to_probe = " << ack_pkt->ack_to_probe << std::endl;
     }
 
     // New ack!
@@ -402,6 +409,11 @@ void PDQFlow::receive_ack_pdq(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> 
             }
         }
         */
+    } else if (ack == last_unacked_seq && ack_pkt->ack_to_probe) {  // resend the last packet when receiving the ack to a probe packet
+        if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
+            std::cout << "Ready to resend last data pkt: ack = " << ack << "; last_unacked_seq = " << last_unacked_seq << "; size = " << size << std::endl;
+        }
+        send_next_pkt();
     }
 
     // same treatment for fin/flow_completion as in D3

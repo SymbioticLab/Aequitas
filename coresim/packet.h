@@ -74,6 +74,7 @@ class Packet {
         double expected_trans_time;                 // PDQ
         double inter_probing_time;                  // PDQ
         bool is_probe;                              // PDQ
+        bool ack_to_probe;                          // PDQ
 };
 
 class PlainAck : public Packet {
