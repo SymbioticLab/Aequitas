@@ -376,14 +376,13 @@ void PDQQueue::drop(Packet *packet) {
         assert(false);
     } else if (packet->type == ACK_PACKET) {
         packet->flow->ack_pkt_drop++;
+    } else if (packet->type == FIN_PACKET) {
+        assert(false);
+    } else if (packet->type == NORMAL_PACKET && packet->is_probe) {
+        assert(false);
     }
     if (location != 0 && packet->type == NORMAL_PACKET) {
         dead_packets += 1;
-    }
-
-    // if it's a DATA rrq whose payload gets removed due to being dropped by the queue, don't delete the packet. We'll still need to receive it (the rrq part).
-    if (packet->type == NORMAL_PACKET && packet->size == 0) {
-        return;
     }
 
     delete packet;
