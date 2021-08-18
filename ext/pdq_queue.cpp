@@ -256,10 +256,10 @@ void PDQQueue::perform_flow_control(Packet *packet) {
             Flow *least_critical_flow = critical_flows_pq.top();
             if (critical_flows.size() < max_num_critical_flows
                 || more_critical(packet->flow, least_critical_flow)) {
-                packet->flow->sw_flow_state.rate = 0;
                 if (critical_flows.size() > constant_k) {
                     remove_least_critical_flow();
                 }
+                packet->flow->sw_flow_state.rate = 0;
                 add_flow_to_list(packet);       // adding should be performed before removing; otherwise it may remove the newly added flow
             } else {
                 packet->allocated_rate = curr_rcp_fs_rate;
@@ -342,7 +342,7 @@ void PDQQueue::perform_flow_control(Packet *packet) {
     }
 }
 
-// TODO: change 'rate' to 'rate_pdq'
+// Note: 'rate_pdq' here is set to 'rate' (line rate) since all traffic is using PDQ (PDQ paper S3.3.3)
 void PDQQueue::perform_rate_control(Packet *packet) {
     // update every 2 RTT according to PDQ paper
     if (get_current_time() - time_since_last_rate_control < 1.9 * rtt_moving_avg) { 
@@ -354,13 +354,11 @@ void PDQQueue::perform_rate_control(Packet *packet) {
     }
 }
 
-// TODO: double check delay values for flow control packets
 double PDQQueue::get_transmission_delay(Packet *packet) {
     double td;
-    if (packet->has_rrq && packet->size == 0) {      // add back hdr_size when handling hdr_only RRQ packets (their packet->size is set to 0 to avoid dropping)
-        ////|| packet->ack_pkt_with_rrq) {         // ACK to DATA RRQ is also made 0 size 
+    if (packet->size == 0) {
         td = params.hdr_size * 8.0 / rate;
-    } else {    // D3 router forwards other packet normally
+    } else {
         td = packet->size * 8.0 / rate;
     }
     return td;

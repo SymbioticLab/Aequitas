@@ -104,7 +104,6 @@ void PDQFlow::send_syn_pkt() {
 }
 
 // PDQ sends an FIN packet when flow is finished the same way we did in D3.
-// TODO: switch remove the flow when receiving FIN pkt.
 void PDQFlow::send_fin_pkt() {
     Packet *p = new Fin(
             get_current_time(),
