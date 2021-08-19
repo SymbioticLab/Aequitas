@@ -136,7 +136,22 @@ void PDQFlow::send_next_pkt() {
         return;
     }
     if (params.early_termination) {
-        // TODO: implement early termination in PDQ
+        // Early Termination (PDQ paper S3.1)
+        // (1) The deadline is past
+        // (2) The remaining flow transmission time is larger than the time to deadline
+        // (3) The flow is paused, and the time to deadline is smaller an RTT
+
+        if (get_current_time() > start_time + deadline / 1e6 ||
+            get_expected_trans_time() > get_remaining_deadline() ||
+            (allocated_rate == 0 && get_remaining_deadline() < measured_rtt)) {
+            terminated = true;
+            num_early_termination++;
+            send_fin_pkt();
+            return;
+        }
+
+
+        
     }
 
     ////// if we have already sent the PROBE packet during this RTT, return early and don't bother with sending another one
@@ -461,7 +476,7 @@ void PDQFlow::receive_ack_pdq(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> 
 }
 
 void PDQFlow::receive_fin_pkt(Packet *p) {
-    assert(finished);
+    assert(finished || terminated);
 }
 
 void PDQFlow::cancel_probing_event() {

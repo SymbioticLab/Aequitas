@@ -344,7 +344,7 @@ void D3Flow::receive_syn_ack_pkt(Packet *p) {
 }
 
 void D3Flow::receive_fin_pkt(Packet *p) {
-    assert(finished);
+    assert(finished || terminated);
     // nothing to do here. 'num_active_flows' are decremented when FIN packet traverse thru the network
 }
 
