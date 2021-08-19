@@ -113,7 +113,7 @@ void D3Flow::send_next_pkt() {
         if (calculate_desired_rate() > params.bandwidth || get_remaining_deadline() < 0) {
             terminated = true;
             num_early_termination++;
-            send_syn_pkt();
+            send_fin_pkt();
             if (params.debug_event_info) {
                 std::cout << "Terminate Flow[" << id << "]: desired_rate = " << calculate_desired_rate() / 1e9 << "; remaining_deadline = " << get_remaining_deadline() << std::endl;
             }
