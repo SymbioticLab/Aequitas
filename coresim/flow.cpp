@@ -478,6 +478,10 @@ double Flow::get_remaining_deadline() {
     return start_time + deadline / 1e6 - get_current_time();
 }
 
+// deadline in terms of the reference time
+double Flow::get_deadline() {
+    return start_time + deadline / 1e6;
+}
 
 double Flow::get_expected_trans_time() {
     return get_remaining_flow_size() * 8.0 / params.bandwidth;

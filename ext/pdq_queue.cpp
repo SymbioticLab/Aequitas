@@ -18,10 +18,10 @@ extern DCExpParams params;
 
 bool MoreCritical::operator() (Flow *a, Flow *b) {
     if (a->has_ddl && b->has_ddl) {
-        if (a->deadline == b->deadline) {
+        if (a->get_deadline() == b->get_deadline()) {
             return a->get_expected_trans_time() < b->get_expected_trans_time();
         } else {
-            return a->deadline < b->deadline;
+            return a->get_deadline() < b->get_deadline();
         }
     } else if (!a->has_ddl && !b->has_ddl) {
         return a->get_expected_trans_time() < b->get_expected_trans_time();

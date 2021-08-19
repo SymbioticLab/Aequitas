@@ -61,6 +61,7 @@ class Flow {
         virtual double get_avg_inter_pkt_spacing_in_us();
         virtual uint32_t get_remaining_flow_size();
         virtual double get_remaining_deadline();
+        virtual double get_deadline();
         virtual void cancel_rate_limit_event();
 
         virtual double get_expected_trans_time();   // used by PDQ
