@@ -117,8 +117,18 @@ void PDQQueue::remove_flow_from_list(Packet *packet) {
     }
 }
 
+// return NULL when the critical_flows_pq is empty
+Flow* PDQQueue::get_least_critical_flow() {
+    if (critical_flows_pq.empty()) {
+        return NULL;
+    }
+    return critical_flows_pq.top();
+}
+
 void PDQQueue::remove_least_critical_flow() {
-    //critical_flows.erase(packet->flow->id);
+    if (critical_flows_pq.empty()) {
+        return;
+    }
     Flow *least_critical_flow = critical_flows_pq.top();
     while (least_critical_flow->sw_flow_state.removed_from_pq) {
         critical_flows_pq.pop();
@@ -253,9 +263,9 @@ void PDQQueue::perform_flow_control(Packet *packet) {
         }
 
         if (critical_flows.count(packet->flow->id) == 0) {
-            Flow *least_critical_flow = critical_flows_pq.top();
+            Flow *least_critical_flow = get_least_critical_flow();
             if (critical_flows.size() < max_num_critical_flows
-                || more_critical(packet->flow, least_critical_flow)) {
+                || (least_critical_flow && more_critical(packet->flow, least_critical_flow))) {
                 if (critical_flows.size() > constant_k) {
                     remove_least_critical_flow();
                 }

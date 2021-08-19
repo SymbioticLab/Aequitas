@@ -28,6 +28,7 @@ class PDQQueue : public Queue {
     void allocate_rate(Packet *packet);
     void add_flow_to_list(Packet *packet);
     void remove_flow_from_list(Packet *packet);
+    Flow *get_least_critical_flow();
     void remove_least_critical_flow();
     bool more_critical(Flow *a, Flow *b);
     void update_RCP_fair_share_rate();
