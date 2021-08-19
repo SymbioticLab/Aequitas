@@ -6,6 +6,7 @@
 #include "../coresim/flow.h"
 
 class Packet;
+class PDQProbingEvent;
 
 class PDQFlow : public Flow {
   public:
@@ -28,12 +29,17 @@ class PDQFlow : public Flow {
     void receive_ack_pdq(Ack *ack_pkt, uint64_t ack,
                   std::vector<uint64_t> sack_list); // to replace the original receive_ack
     void receive_fin_pkt(Packet *p);
+    void cancel_probing_event();
 
-    bool has_sent_probe_this_rtt;   // like what we did in D3; so that we don't send too many before the next ACK (next RTT)
-    //bool paused;                  // not necessary; can tell from whether allocated_rate == 0 (hopefully)
+    ////bool has_sent_probe_this_rtt;     // like what we did in D3; so that we don't send too many before the next ACK (next RTT)
+    //bool paused;                    // not necessary; can tell from whether allocated_rate == 0 (hopefully)
+    bool has_sent_probe;              // since probe packet doesn't get drop, no need to send a second one before receiving the current one
+    double time_sent_last_probe;
     uint32_t pause_sw_id;
-    double inter_probing_time;      // set by the switch; not host/flow
-    double measured_rtt;
+    double inter_probing_time;        // in terms of # of RTTs; set by the switch instead of host/flow
+    double measured_rtt;              // in unit of seconds, not microseconds
+    PDQProbingEvent *probing_event;
+
 
 };
 

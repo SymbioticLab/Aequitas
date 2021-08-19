@@ -14,6 +14,7 @@
 #include "queue.h"
 #include "topology.h"
 #include "../ext/factory.h"
+#include "../ext/pdq_flow.h"
 #include "../ext/qjump_host.h"
 #include "../run/params.h"
 
@@ -848,3 +849,18 @@ void RateLimitingEvent::process_event() {
     flow->send_next_pkt();
 }
 
+PDQProbingEvent::PDQProbingEvent(double time, PDQFlow *flow)
+        : Event(PDQ_PROBING, time) {
+    this->time = time;
+    this->flow = flow; 
+}
+
+PDQProbingEvent::~PDQProbingEvent() {
+    if (flow->probing_event == this) {
+        flow->probing_event = NULL;
+    }
+}
+
+void PDQProbingEvent::process_event() {
+    flow->send_probe_pkt();
+}

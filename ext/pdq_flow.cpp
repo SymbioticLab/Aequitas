@@ -28,11 +28,14 @@ PDQFlow::PDQFlow(uint32_t id, double start_time, uint32_t size, Host *s,
     : Flow(id, start_time, size, s, d, flow_priority) {
     // PDQFlow does not use conventional congestion control; all CC related OPs (inc/dec cwnd; timeout events, etc) are removed
     this->cwnd_mss = params.initial_cwnd;
-    this->has_sent_probe_this_rtt = false;
+    ////this->has_sent_probe_this_rtt = false;
     //this->paused = false;
+    this->has_sent_probe = false;
+    this->time_sent_last_probe = params.first_flow_start_time;
     this->pause_sw_id = 0;
     this->measured_rtt = 0;
     this->inter_probing_time = 0;
+    this->probing_event = NULL;
 }
 
 // Since PDQ will still send out a probe pkt (its Rs is initalized to 0) after receiving the SYN_ACK pkt,
@@ -51,10 +54,13 @@ void PDQFlow::start_flow() {
 
 // When allocated_rate becomes 0 (i.e., the flow is paused by the switch), PDQ sends out a PROBE packet every Is (inter-probing time) RTTs to request new rate info;
 // A PROBE packet is a DATA packet with no payload.
-// TODO: send probe every Is RTTs
 Packet *PDQFlow::send_probe_pkt() {
-    assert(allocated_rate == 0 && !has_sent_probe_this_rtt);
-    has_sent_probe_this_rtt = true;
+    ////assert(allocated_rate == 0 && !has_sent_probe_this_rtt);
+    ////has_sent_probe_this_rtt = true;
+    has_sent_probe = true;
+    time_sent_last_probe = get_current_time();
+    assert(allocated_rate == 0);
+
     Packet *p = new Packet(
             get_current_time(),
             this,
@@ -77,6 +83,7 @@ Packet *PDQFlow::send_probe_pkt() {
 
     Queue *next_hop = topology->get_next_hop(p, src->queue);
     add_to_event_queue(new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop));      // adding a pd since we skip the source queue
+
     if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
         std::cout << "Host[" << src->id << "] sends out Probe Packet[" << p->unique_id << "] from Flow[" << id << "] at time: " << get_current_time() << std::endl;
         std::cout << "PUPU measured RTT = " << p->measured_rtt * 1e6 << " us" << std::endl;
@@ -132,9 +139,22 @@ void PDQFlow::send_next_pkt() {
         // TODO: implement early termination in PDQ
     }
 
-    // if we have already sent the PROBE packet during this RTT, return early and don't bother with sending another one
-    if (allocated_rate == 0 && has_sent_probe_this_rtt) {
-        return;
+    ////// if we have already sent the PROBE packet during this RTT, return early and don't bother with sending another one
+    ////if (allocated_rate == 0 && has_sent_probe_this_rtt) {
+    ////    return;
+    ////}
+    if (allocated_rate == 0) { 
+        if (has_sent_probe || probing_event) {   // if we have already sent a probe (or scheduled a probe), return early
+            return;             // we can do this because probe pkts and their acks never get dropped
+        } else {
+            if (get_current_time() - time_sent_last_probe < inter_probing_time * measured_rtt) {
+                // send out a probe in the future
+                PDQProbingEvent *event = new PDQProbingEvent(time_sent_last_probe + inter_probing_time * measured_rtt, this);
+                add_to_event_queue(event);
+                probing_event = event;
+                return;
+            }   // else move on, and we will directly send out a probe when reaching 'send_with_delay()'
+        }
     }
 
     // send pkt one at a time with allocated_rate
@@ -373,9 +393,15 @@ void PDQFlow::receive_data_pkt(Packet* p) {
 }
 
 void PDQFlow::receive_ack_pdq(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sack_list) {
+    ////if (ack_pkt->ack_to_probe) {
+    ////    has_sent_probe_this_rtt = false;
+    ////}
+
     if (ack_pkt->ack_to_probe) {
-        has_sent_probe_this_rtt = false;    // TODO: sent probe in Is RTTs
+        has_sent_probe = false;
+        cancel_probing_event();
     }
+
     // On timeouts; next_seq_no is updated to the last_unacked_seq;
     // In such cases, the ack can be greater than next_seq_no; update it
     if (next_seq_no < ack) {
@@ -425,8 +451,9 @@ void PDQFlow::receive_ack_pdq(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> 
         FlowFinishedEvent *ev = new FlowFinishedEvent(get_current_time(), this);
         add_to_event_queue(ev);
 
-        // cancel current RateLimitingEvent if there is any
+        // cancel current RateLimitingEvent/ProbingEvent if there is any
         cancel_rate_limit_event();
+        cancel_probing_event();
 
         // send out a FIN pkt to return the desired and allocated rate of this flow during the last RTT to the routers(queues) on its path
         send_fin_pkt();
@@ -437,5 +464,9 @@ void PDQFlow::receive_fin_pkt(Packet *p) {
     assert(finished);
 }
 
-
-
+void PDQFlow::cancel_probing_event() {
+    if (probing_event) {
+        probing_event->cancelled = true;
+    }
+    probing_event = NULL;
+}

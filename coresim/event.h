@@ -22,6 +22,7 @@
 #define NIC_PROCESSING 11
 #define QJUMP_EPOCH 12
 #define RATE_LIMITING 13
+#define PDQ_PROBING 14
 
 class Flow;
 class Host;
@@ -29,7 +30,7 @@ class Packet;
 class Queue;
 class Channel;
 class NIC;
-class QjumpHost;
+class PDQFlow;
 
 class Event {
     public:
@@ -218,6 +219,15 @@ class RateLimitingEvent : public Event {
         RateLimitingEvent(double time, Flow* flow);
         ~RateLimitingEvent();
         Flow *flow;
+        void process_event();
+};
+
+// to send the next probe packet in Is RTTs
+class PDQProbingEvent : public Event {
+    public:
+        PDQProbingEvent(double time, PDQFlow* flow);
+        ~PDQProbingEvent();
+        PDQFlow *flow;
         void process_event();
 };
 
