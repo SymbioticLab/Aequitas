@@ -409,7 +409,7 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
     for (uint32_t i = 0; i < flows_sorted.size(); i++) {
         Flow *f = flows_to_schedule[i];
         //validate_flow(f);     // do not validate flow
-        if(!f->finished) {
+        if(!f->finished && !f->terminated) {
             std::cout 
                 << "unfinished flow " 
                 << "size:" << f->size 
