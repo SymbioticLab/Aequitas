@@ -129,10 +129,14 @@ void PDQQueue::remove_least_critical_flow() {
     if (critical_flows_pq.empty()) {
         return;
     }
-    Flow *least_critical_flow = critical_flows_pq.top();
-    while (least_critical_flow->sw_flow_state.removed_from_pq) {
-        critical_flows_pq.pop();
+
+    Flow *least_critical_flow = NULL;
+    while (critical_flows_pq.size() > 0 || least_critical_flow != NULL) {
         least_critical_flow = critical_flows_pq.top();
+        if (least_critical_flow->sw_flow_state.removed_from_pq) {
+            critical_flows_pq.pop();
+            least_critical_flow = NULL;
+        }
     }
     least_critical_flow->sw_flow_state.removed_from_pq = true;    // not necessary to do so here; just to be consistent
     critical_flows_pq.pop();
