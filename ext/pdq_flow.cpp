@@ -135,12 +135,11 @@ void PDQFlow::send_next_pkt() {
     if (terminated) {
         return;
     }
-    if (params.early_termination) {
+    if (params.early_termination && has_ddl) {      // early termination terminates flows that cannot meet deadlines; it should not apply to non-ddl flows
         // Early Termination (PDQ paper S3.1)
         // (1) The deadline is past
         // (2) The remaining flow transmission time is larger than the time to deadline
         // (3) The flow is paused, and the time to deadline is smaller an RTT
-
         if (get_current_time() > start_time + deadline / 1e6 ||
             get_expected_trans_time() > get_remaining_deadline() ||
             (allocated_rate == 0 && get_remaining_deadline() < measured_rtt)) {
@@ -149,9 +148,6 @@ void PDQFlow::send_next_pkt() {
             send_fin_pkt();
             return;
         }
-
-
-        
     }
 
     ////// if we have already sent the PROBE packet during this RTT, return early and don't bother with sending another one
