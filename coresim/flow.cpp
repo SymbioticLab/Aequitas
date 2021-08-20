@@ -480,6 +480,7 @@ double Flow::get_remaining_deadline() {
 
 // deadline in terms of the reference time
 double Flow::get_deadline() {
+    assert(has_ddl);
     return start_time + deadline / 1e6;
 }
 
