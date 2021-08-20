@@ -107,7 +107,8 @@ void D3Flow::send_next_pkt() {
     if (terminated) {
         return;
     }
-    if (params.early_termination) {
+    /*
+    if (params.early_termination && has_ddl) {
         // D3's flow quenching check (D3 paper Section 6.1.3)
         // (1) desired_rate exceeds uplink capacity (2) the deadline has already expired
         if (calculate_desired_rate() > params.bandwidth || get_remaining_deadline() < 0) {
@@ -120,6 +121,7 @@ void D3Flow::send_next_pkt() {
             return;
         }
     }
+    */
 
     // if we have already sent the only header-only RRQ during this RTT, return early and don't bother with sending anything else
     if (assigned_base_rate && has_sent_rrq_this_rtt) {
@@ -403,6 +405,19 @@ void D3Flow::receive_ack_d3(Ack *ack_pkt, uint64_t ack, std::vector<uint64_t> sa
             std::cout << std::setprecision(2) << std::fixed;
             std::cout << "Flow[" << id << "] at Host[" << src->id << "] received ACK packet[" << ack_pkt->unique_id << "] with RRQ. allocated rate = " << allocated_rate /1e9 << std::endl;
             std::cout << std::setprecision(15) << std::fixed;
+        }
+        if (params.early_termination && has_ddl) {
+            // D3's flow quenching check (D3 paper Section 6.1.3)
+            // (1) desired_rate exceeds uplink capacity (2) the deadline has already expired
+            if (calculate_desired_rate() > params.bandwidth || get_remaining_deadline() < 0) {
+                terminated = true;
+                num_early_termination++;
+                send_fin_pkt();
+                if (params.debug_event_info) {
+                    std::cout << "Terminate Flow[" << id << "]: desired_rate = " << calculate_desired_rate() / 1e9 << "; remaining_deadline = " << get_remaining_deadline() << std::endl;
+                }
+                return;
+            }
         }
     }
 

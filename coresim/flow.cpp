@@ -475,6 +475,7 @@ uint32_t Flow::get_remaining_flow_size() {
 // assume 'deadline' is set in microseconds
 // return remaining deadline in seconds
 double Flow::get_remaining_deadline() {
+    assert(has_ddl);
     return start_time + deadline / 1e6 - get_current_time();
 }
 
