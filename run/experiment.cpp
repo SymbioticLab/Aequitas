@@ -1,6 +1,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <iostream>
+#include <fstream>
 #include <algorithm>
 #include <fstream>
 #include <stdlib.h>
@@ -1266,6 +1267,45 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
             pctg_passed_num_rpcs = (double) num_RPCs_passed / num_RPCs * 100;
             std::cout << pctg_passed_num_rpcs << "% out of Priority[" << i << "] RPCs passed the per-packet target(" << params.hardcoded_targets[i] << " us)" << std::endl;
             std::cout << pctg_passed_bytes << "% out of Priority[" << i << "] traffic (bytes) passed the per-packet target(" << params.hardcoded_targets[i] << " us)" << std::endl;
+        }
+    }
+
+    if (params.cdf_info) {
+        for (uint32_t i = 0; i < params.num_qos_level; i++) {
+            if (flows_by_init_prio[i].empty()) { continue; }
+            std::sort (flows_by_init_prio[i].begin(), flows_by_init_prio[i].end(), [](Flow *lhs, Flow *rhs) -> bool {
+                if (lhs->finished && rhs->finished) {
+                    return lhs->flow_completion_time < rhs->flow_completion_time;
+                } else if (!lhs->finished && !rhs->finished) {
+                    return lhs->start_time < rhs->start_time;
+                } else {
+                    return lhs->finished;
+                }
+            });
+
+            std::string cdf_filename = "cdf_prio_" + std::to_string(i) + ".txt";
+            if (params.flow_type == VERITAS_FLOW) {
+                cdf_filename = "veritas_" + cdf_filename;
+            } else if (params.flow_type == PFABRIC_FLOW) {
+                cdf_filename = "pfabric_" + cdf_filename;
+            } else if (params.flow_type == QJUMP_FLOW) {
+                cdf_filename = "qjump_" + cdf_filename;
+            } else if (params.flow_type == D3_FLOW) {
+                cdf_filename = "d3_" + cdf_filename;
+            } else if (params.flow_type == PDQ_FLOW) {
+                cdf_filename = "pdq_" + cdf_filename;
+            }
+            std::ofstream myfile;
+            myfile.open(cdf_filename);
+            for (uint32_t j = 0; j < 1000; j++) {
+                uint32_t idx = flows_by_init_prio[i].size() * ((double) j / 1000);
+                if (flows_by_init_prio[i][idx]->finished) {
+                    myfile << flows_by_init_prio[i][idx]->flow_completion_time * 1e6 << std::endl;
+                } else {
+                    myfile << "inf" << std::endl;
+                }
+            }
+            myfile.close();
         }
     }
 

@@ -151,6 +151,8 @@ class DCExpParams {
         std::string pfabric_priority_type;
         uint32_t pfabric_limited_priority;    // when true, using size thresholds instead of unlimited number of priority levels
 
+        uint32_t cdf_info;
+
         double get_full_pkt_tran_delay(uint32_t size_in_byte = 1500)
         {
             return size_in_byte * 8 / this->bandwidth;
