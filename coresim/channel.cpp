@@ -62,6 +62,8 @@ Channel::Channel(uint32_t id, Host *s, Host *d, uint32_t priority, AggChannel *a
     this->fct = 0;
     this->rtt = 0;
     this->last_update_time = 0;
+    //this->last_flow_sent = NULL;
+    //this->curr_flow_done = false;
 
     assert(s != d);
 }
@@ -97,7 +99,9 @@ void Channel::add_to_channel(Flow *flow) {
     flow->end_seq_no = end_seq_no;
     //std::cout << "add_to_channel[" << id << "]: end_seq_no = " << end_seq_no << std::endl;
     if (params.real_nic) {
-        src->nic->start_nic();  // wake up nic if it's not busy working already
+        ////src->nic->start_nic();  // wake up nic if it's not busy working already
+        //std::cout << "Host[" << src->id << "]: Channel[" << id << "]::add_to_channel:" << std::endl;
+        src->nic->add_to_nic(this);
     } else {
         send_pkts();
     }
@@ -184,6 +188,10 @@ Packet *Channel::send_one_pkt(uint64_t seq, uint32_t pkt_size, double delay, Flo
             dst
             );
     p->start_ts = get_current_time();
+    if (params.real_nic && flow->bytes_sent == 0) {
+        flow->rnl_start_time = get_current_time();
+    }
+    flow->bytes_sent += pkt_size;
 
     if (params.debug_event_info) {
         std::cout << "sending out Packet[" << p->unique_id << "] (seq=" << seq << ") at time: " << get_current_time() + delay << " (base=" << get_current_time() << "; delay=" << delay << ")" << std::endl;
@@ -221,6 +229,11 @@ int Channel::nic_send_next_pkt() {
     ) {
         uint32_t pkt_size;
         Flow *flow_to_send = find_next_flow(seq);
+        ////if (flow_to_send != last_flow_sent) {
+        ////    flow_to_send->rnl_start_time = get_current_time();
+        ////    //std::cout << "PUPU: flow[" << flow_to_send->id << "] start time diff = " << (flow_to_send->rnl_start_time - flow_to_send->start_time) * 1e6 << " us" << std::endl;
+        ////    last_flow_sent = flow_to_send;
+        ////}
         uint64_t next_flow_boundary = flow_to_send->end_seq_no;
         if (seq + mss < next_flow_boundary) {
             pkt_size = mss + hdr_size;
@@ -236,8 +249,14 @@ int Channel::nic_send_next_pkt() {
                 << ") to send a packet[" << p->unique_id <<"] (seq=" << seq << "), last_unacked_seq = " << last_unacked_seq << "; window = " << window
                 << "; Flow start_seq = " << flow_to_send->start_seq_no << "; flow end_seq = " << flow_to_send->end_seq_no << std::endl;
         }
-        seq = next_seq_no;  // unnecessary here; remote later
+        //seq = next_seq_no;  // unnecessary here; remote later
         pkts_sent++;
+
+        //if (next_seq_no == next_flow_boundary) {
+        //    curr_flow_done = true;
+        //} else {
+        //    curr_flow_done = false;
+        //}
 
         if (retx_event == NULL) {
             set_timeout(get_current_time() + retx_timeout);
@@ -376,7 +395,9 @@ void Channel::receive_ack(uint64_t ack, Flow *flow, std::vector<uint64_t> sack_l
 
         // Send the remaining data
         if (params.real_nic) {
-            src->nic->start_nic();
+            ////src->nic->start_nic();
+            //std::cout << "Host[" << src->id << "]: Channel[" << id << "]::receive_ack:" << std::endl;
+            src->nic->add_to_nic(this);
         } else {
             send_pkts();
         }
@@ -400,7 +421,13 @@ void Channel::receive_ack(uint64_t ack, Flow *flow, std::vector<uint64_t> sack_l
         flow->finished = true;
         cleanup_after_finish(flow);
         flow->finish_time = get_current_time();
-        double flow_completion_time = flow->finish_time - flow->start_time;
+        double flow_completion_time;
+        if (params.real_nic) {
+            flow_completion_time = flow->finish_time - flow->rnl_start_time;
+        } else {
+            flow_completion_time = flow->finish_time - flow->start_time;
+        }
+        //double flow_completion_time = flow->finish_time - flow->start_time;
         if (params.priority_downgrade) {
             update_fct(flow_completion_time, flow->id, get_current_time(), flow->size_in_pkt);
         }
@@ -523,7 +550,9 @@ void Channel::handle_timeout() {
 
     next_seq_no = last_unacked_seq;
     if (params.real_nic) {
-        src->nic->start_nic();
+        ////src->nic->start_nic();
+        //std::cout << "Host[" << src->id << "]: Channel[" << id << "]::handle_timeout:" << std::endl;
+        src->nic->add_to_nic(this);
     } else {
         send_pkts();
     }

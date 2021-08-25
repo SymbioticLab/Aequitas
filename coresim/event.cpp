@@ -671,9 +671,17 @@ void FlowFinishedEvent::process_event() {
     }
     */
     if (params.print_normalized_result) {
-        this->flow->flow_completion_time = (this->flow->finish_time - this->flow->start_time) / this->flow->size_in_pkt;
+        if (!params.real_nic) {
+            this->flow->flow_completion_time = (this->flow->finish_time - this->flow->start_time) / this->flow->size_in_pkt;
+        } else {
+            this->flow->flow_completion_time = (this->flow->finish_time - this->flow->rnl_start_time) / this->flow->size_in_pkt;
+        }
     } else {
-        this->flow->flow_completion_time = this->flow->finish_time - this->flow->start_time;
+        if (!params.real_nic) {
+            this->flow->flow_completion_time = this->flow->finish_time - this->flow->start_time;
+        } else {
+            this->flow->flow_completion_time = this->flow->finish_time - this->flow->rnl_start_time;
+        }
     }
 
     total_finished_flows++;
@@ -805,7 +813,8 @@ void NICProcessingEvent::process_event() {
     if (params.debug_event_info) {
         std::cout << "At time: " << get_current_time() << ", NIC from Host[" << nic->src->id << "] NICProcessingEvent" << std::endl;
     }
-    nic->send_next_pkt();
+    //nic->send_next_pkt();
+    nic->send_pkts();
 }
 
 /* Qjump Epoch */

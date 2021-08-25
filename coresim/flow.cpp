@@ -67,6 +67,7 @@ Flow::Flow(uint32_t id, double start_time, uint32_t size, Host *s, Host *d) {
     this->received_count = 0;
     this->last_data_pkt_receive_time = 0;
     this->total_inter_pkt_spacing = 0;
+    this->rnl_start_time = 0;
 
     //SACK
     this->scoreboard_sack_bytes = 0;

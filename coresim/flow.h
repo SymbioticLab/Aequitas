@@ -117,6 +117,7 @@ class Flow {
         double first_byte_receive_time;
         double last_data_pkt_receive_time;
         double total_inter_pkt_spacing;
+        double rnl_start_time;
 
         uint32_t flow_priority;  // assigned_priority
         uint32_t run_priority;   // DC if params.prioriy_downgrade is not on

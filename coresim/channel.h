@@ -80,6 +80,8 @@ class Channel {
         double max_mdf;
         uint32_t retrans_cnt;
         uint32_t retrans_reset_thresh;
+        //Flow *last_flow_sent;
+        //bool curr_flow_done;
 
         AggChannel *agg_channel;
 

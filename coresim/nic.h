@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <vector>
+#include <deque>
 
 class Host;
 class AggChannel;
@@ -31,8 +32,10 @@ class NIC {
     void increment_prio_idx();
     void increment_agg_channel_idx();
     void increment_WF_counters();
+    void add_to_nic(Channel *channel);
     void start_nic();
-    void send_next_pkt();
+    void send_pkts();
+    uint32_t send_next_pkt(Channel *channel);
 
     bool busy;
     uint32_t agg_channel_count;     // among all prio levels
@@ -42,6 +45,8 @@ class NIC {
     double rate;
     Host *src;
     std::vector<std::vector<AggChannel *>> agg_channels;
+    std::vector<Channel *> last_active_channels;
+    std::deque<Channel *> pending_channels;
     //HostEgressQueue *ack_queue;
 
 };
