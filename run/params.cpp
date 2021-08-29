@@ -720,7 +720,7 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
     std::cout << "mss: " << params.mss << std::endl;
     std::cout << "Swift Delay target: " << params.cc_delay_target << " us" << std::endl;
     if (params.real_nic) {
-        std::cout << "Use realistic NIC" << std::endl;
+        std::cout << "Real Nic on" << std::endl;
         assert(params.channel_multiplexing);    // when limiting nic speed with line rate, params.channel_multiplexing must be on
         if (params.nic_use_WF) {
             std::cout << "Real NIC uses WF" << std::endl;
@@ -728,8 +728,6 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
             std::cout << "Real NIC uses RR" << std::endl;
 
         }
-    } else {
-        std::cout << "NIC egress speed may go beyond line rate (for theorey-related testing)." << std::endl;
     }
     if (params.flow_type == QJUMP_FLOW) {    // Qjump disables CC
         assert(params.channel_multiplexing && params.multiplex_constant == 1);

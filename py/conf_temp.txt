@@ -7,7 +7,7 @@ bandwidth: 100000000000.0
 host_type: 1
 queue_type: 6
 flow_type: 6
-num_flow: 1000000
+num_flow: 5000000
 num_hosts: 33
 flow_trace: ./CDF_uniform_32K.txt
 cut_through: 0
@@ -18,7 +18,7 @@ preemptive_queue: 0
 debug_event_info: 0
 enable_flow_lookup: 0
 flow_lookup_id: 1
-priority_downgrade: 0
+priority_downgrade: 1
 dp_alpha: 0.01
 dp_beta: 0.01
 channel_multiplexing: 1
@@ -89,4 +89,4 @@ flushing_coefficient: 10
 early_pkt_in_highest_prio: 0
 cc_delay_target: 10
 qos_weights: 8,4,1
-qos_ratio: 30,20,50
+qos_ratio: 60,30,10

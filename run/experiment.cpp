@@ -766,7 +766,8 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
     std::vector<double> throughput_per_prio(params.weights.size(), 0.0);
     for (uint32_t i = 0; i < params.weights.size(); i++) {
         for (int j = 0; j < flows_by_prio[i].size(); j++) {
-            sum_bytes_per_prio[i] += flows_by_prio[i][j]->size;
+            ////sum_bytes_per_prio[i] += flows_by_prio[i][j]->size;
+            sum_bytes_per_prio[i] += flows_by_prio[i][j]->size + flows_by_prio[i][j]->size_in_pkt * params.hdr_size;    // count hdr size as well
         }
         throughput_per_prio[i] = sum_bytes_per_prio[i] * 8.0 / start_end_time[i] / 1000000000 / params.num_hosts;
         std::cout << "Priority[" << i << "] throughput = " << throughput_per_prio[i] << " Gbps" << std::endl;
@@ -1249,9 +1250,55 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
         std::cout << pctg_passed_num_rpcs << "% out of Priority[" << i << "] RPCs passed the final target(" << params.targets[i] << " us)" << std::endl;
         std::cout << pctg_passed_bytes << "% out of Priority[" << i << "] traffic (bytes) passed the final target(" << params.targets[i] << " us)" << std::endl;
     }
+
+    /*
+    // mid 80% for method (3)
+    for (uint32_t i = 0; i < params.num_qos_level - 1; i++) {
+        uint32_t num_RPCs = flows_by_init_prio[i].size();
+        uint64_t sum_bytes = 0;
+        double pctg_passed_bytes = 0;
+        double pctg_passed_num_rpcs = 0;
+        uint32_t num_RPCs_passed = 0;
+        uint64_t bytes_passed = 0;
+        uint32_t first_10th = 0.1 * num_RPCs;
+        uint32_t last_10th = 0.9 * num_RPCs;
+        for (uint32_t j = first_10th; j < last_10th; j++) {
+            sum_bytes += flows_by_init_prio[i][j]->size;
+            if (flows_by_init_prio[i][j]->finished && flows_by_init_prio[i][j]->flow_completion_time * 1e6 <= params.targets[i]) {
+                bytes_passed += flows_by_init_prio[i][j]->size;
+                num_RPCs_passed++;
+            }
+        }
+        pctg_passed_bytes = (double) bytes_passed / sum_bytes * 100;
+        pctg_passed_num_rpcs = (double) num_RPCs_passed / num_RPCs * 100;
+        std::cout << pctg_passed_num_rpcs << "(mid 80%) % out of Priority[" << i << "] RPCs passed the final target(" << params.targets[i] << " us)" << std::endl;
+        std::cout << pctg_passed_bytes << "(mid 80%) % out of Priority[" << i << "] traffic (bytes) passed the final target(" << params.targets[i] << " us)" << std::endl;
+    }
+
+    // last 80% for method (3)
+    for (uint32_t i = 0; i < params.num_qos_level - 1; i++) {
+        uint32_t num_RPCs = flows_by_init_prio[i].size();
+        uint64_t sum_bytes = 0;
+        double pctg_passed_bytes = 0;
+        double pctg_passed_num_rpcs = 0;
+        uint32_t num_RPCs_passed = 0;
+        uint64_t bytes_passed = 0;
+        uint32_t first_20th = 0.1 * num_RPCs;
+        for (uint32_t j = first_20th; j < num_RPCs; j++) {
+            sum_bytes += flows_by_init_prio[i][j]->size;
+            if (flows_by_init_prio[i][j]->finished && flows_by_init_prio[i][j]->flow_completion_time * 1e6 <= params.targets[i]) {
+                bytes_passed += flows_by_init_prio[i][j]->size;
+                num_RPCs_passed++;
+            }
+        }
+        pctg_passed_bytes = (double) bytes_passed / sum_bytes * 100;
+        pctg_passed_num_rpcs = (double) num_RPCs_passed / num_RPCs * 100;
+        std::cout << pctg_passed_num_rpcs << "(last 80%) % out of Priority[" << i << "] RPCs passed the final target(" << params.targets[i] << " us)" << std::endl;
+        std::cout << pctg_passed_bytes << "(last 80%) % out of Priority[" << i << "] traffic (bytes) passed the final target(" << params.targets[i] << " us)" << std::endl;
+    }
+    */
     
     // method (4) : same as (3) but compare per-packet target instead of final targets
-    if (params.normalized_lat)
     if (!params.print_normalized_result && params.normalized_lat) {
         for (uint32_t i = 0; i < params.num_qos_level - 1; i++) {
             uint32_t num_RPCs = flows_by_init_prio[i].size();
@@ -1274,6 +1321,31 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
             std::cout << pctg_passed_bytes << "% out of Priority[" << i << "] traffic (bytes) passed the per-packet target(" << params.hardcoded_targets[i] << " us)" << std::endl;
         }
     }
+
+
+    // sum up both qos h & m in method (3)
+    uint64_t total_sum_bytes = 0;
+    uint64_t total_bytes_passed = 0;
+    uint32_t total_num_RPCs_passed = 0;
+    double pctg_passed_bytes = 0;
+    double pctg_passed_num_rpcs = 0;
+    uint32_t total_num_RPCs = 0;
+    for (uint32_t i = 0; i < params.num_qos_level - 1; i++) {
+        total_num_RPCs += flows_by_init_prio[i].size();
+        for (uint32_t j = 0; j < flows_by_init_prio[i].size(); j++) {
+            total_sum_bytes += flows_by_init_prio[i][j]->size;
+            if (flows_by_init_prio[i][j]->finished && flows_by_init_prio[i][j]->flow_completion_time * 1e6 <= params.targets[i]) {
+                total_bytes_passed += flows_by_init_prio[i][j]->size;
+                total_num_RPCs_passed++;
+            }
+        }
+    }
+    pctg_passed_bytes = (double) total_bytes_passed / total_sum_bytes * 100;
+    pctg_passed_num_rpcs = (double) total_num_RPCs_passed / total_num_RPCs * 100;
+    std::cout << pctg_passed_num_rpcs << "% out of total RPCs passed the final target" << std::endl;
+    std::cout << pctg_passed_bytes << "% out of total traffic (bytes) passed the final target" << std::endl;
+
+
 
     if (params.cdf_info) {
         for (uint32_t i = 0; i < params.num_qos_level; i++) {
