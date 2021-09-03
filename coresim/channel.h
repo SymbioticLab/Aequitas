@@ -26,7 +26,7 @@ class Channel {
         int nic_send_next_pkt();    // use nic to allow channel to proceed with transport for flows (one packet each time)
         Flow *find_next_flow(uint64_t seq);
         void receive_data_pkt(Packet* p);
-        void send_ack(uint64_t seq, std::vector<uint64_t> sack_list, double pkt_start_ts, Flow *flow);
+        virtual void send_ack(uint64_t seq, std::vector<uint64_t> sack_list, double pkt_start_ts, Flow *flow);
         virtual void receive_ack(uint64_t ack, Flow *flow, std::vector<uint64_t> sack_list, double pkt_start_ts);
         void cleanup_after_finish(Flow *flow);
 
@@ -84,6 +84,8 @@ class Channel {
         //bool curr_flow_done;
 
         AggChannel *agg_channel;
+
+        std::deque<Packet *> pending_pkts;  // used by qjump
 
 };
 

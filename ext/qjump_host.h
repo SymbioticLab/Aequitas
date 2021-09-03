@@ -19,6 +19,7 @@ class QjumpHost : public Host {
         void increment_agg_channel_idx(uint32_t priority);
 
         void start_next_epoch(uint32_t priority) override;
+        void kick_off_epoch_events();
         void send_next_pkt(uint32_t priority) override;
 
         std::vector<bool> busy;  // whether a particular priority level has sent a pkt during the current epoch
