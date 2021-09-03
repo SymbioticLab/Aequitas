@@ -45,25 +45,6 @@ void QjumpChannel::add_to_channel(Flow *flow) {
 // impl copied from Channel::nic_send_next_pkt()
 int QjumpChannel::send_pkts() {
     uint32_t pkts_sent = 0;
-
-    if (!pending_pkts.empty()) {
-        Packet *p = pending_pkts.front();
-        pending_pkts.pop_front();
-        Queue *next_hop = topology->get_next_hop(p, src->queue);
-        //Queue *next_hop = NULL;
-        //if (p->type == NORMAL_PACKET) {
-        //    next_hop = topology->get_next_hop(p, src->queue);
-        //} else if (p->type == ACK_PACKET) {
-        //    next_hop = topology->get_next_hop(p, dst->queue);
-        //} else {
-        //    assert(false);
-        //}
-        next_hop = topology->get_next_hop(p, dst->queue);
-        add_to_event_queue(new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop));
-        pkts_sent++;
-        return pkts_sent;
-    }
-
     uint64_t seq = next_seq_no;
     //uint32_t window = cwnd_mss * mss + scoreboard_sack_bytes;  // Note sack_bytes is always 0 for now
     if (params.debug_event_info) {

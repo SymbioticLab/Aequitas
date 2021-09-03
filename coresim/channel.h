@@ -84,9 +84,6 @@ class Channel {
         //bool curr_flow_done;
 
         AggChannel *agg_channel;
-
-        std::deque<Packet *> pending_pkts;  // used by qjump
-
 };
 
 #endif  // CORESIM_CHANNEL_H
