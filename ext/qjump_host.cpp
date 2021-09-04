@@ -35,7 +35,7 @@ QjumpHost::QjumpHost(uint32_t id, double rate, uint32_t queue_type, uint32_t hos
     this->WF_counters.resize(params.num_qos_level, 0);
     this->agg_channels.resize(params.num_qos_level);
 
-    kick_off_epoch_events();
+    //kick_off_epoch_events();
 }
 
 QjumpHost::~QjumpHost() {
@@ -84,13 +84,16 @@ void QjumpHost::send_next_pkt(uint32_t priority) {
             increment_agg_channel_idx(priority);    // RR among all the channels within same priority
         } else if (pkt_sent == 0 && num_channels_in_agg == 0) { // no pkt sent in the current agg channel (agg_channels are grouped by prio)
             increment_agg_channel_idx(priority);    // reset to the prev agg channel that sent a pkt
-            return;
+            //busy[priority] = false;                   // put host to sleep
+            break;
         }
         if (params.debug_event_info) {
             std::cout << "QjumpHost[" << id << "] picks Channel[" << next_channel->id << "], pkt_sent = " << pkt_sent << std::endl;
         }
     }
     add_to_event_queue(new QjumpEpochEvent(get_current_time() + network_epoch[priority], this, priority));
+    //std::cout << "At time: " << get_current_time() << ", Host[" << id << "] schedule next QjumpEpochEvent for Priority["
+    //    << priority << "] at time = " << get_current_time() + network_epoch[priority] << std::endl;
 }
 
 /*

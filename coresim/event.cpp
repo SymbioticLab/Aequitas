@@ -339,10 +339,10 @@ FlowArrivalEvent::~FlowArrivalEvent() {
 
 void FlowArrivalEvent::process_event() {
     if (params.debug_event_info) {
-        std::cout << "At time: " << get_current_time() << ", Flow[" << flow->id << "] from Host[" << flow->src->id << "] FlowArrivalEvent" << std::endl;
+        std::cout << "At time: " << get_current_time() << ", Flow[" << flow->id << "] at Priority[" << flow->flow_priority << "] from Host[" << flow->src->id << "] FlowArrivalEvent" << std::endl;
     }
     if (params.enable_flow_lookup && flow->id == params.flow_lookup_id) {
-        std::cout << "At time: " << get_current_time() << ", Flow[" << flow->id << "] from Host[" << flow->src->id << "] FlowArrivalEvent" << std::endl;
+        std::cout << "At time: " << get_current_time() << ", Flow[" << flow->id << "] at Priority[" << flow->flow_priority << "] from Host[" << flow->src->id << "] FlowArrivalEvent" << std::endl;
     }
     //Flows start at line rate; so schedule a packet to be transmitted
     //First packet scheduled to be queued
@@ -830,7 +830,8 @@ QjumpEpochEvent::~QjumpEpochEvent(){
 
 void QjumpEpochEvent::process_event() {
     if (params.debug_event_info) {
-        std::cout << "At time: " << get_current_time() << ", Host[" << host->id << "] process QjumpEpochEvent" << std::endl;
+        std::cout << "At time: " << get_current_time() << ", Host[" << host->id
+            << "] process QjumpEpochEvent for Priority[" << priority << "]" << std::endl;
     }
     host->send_next_pkt(priority);
 }

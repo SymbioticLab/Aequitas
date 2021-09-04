@@ -37,8 +37,10 @@ void QjumpChannel::add_to_channel(Flow *flow) {
     outstanding_flows.push_back(flow);    // for RPC boundary, tie flow to pkt, easy handling of flow_finish, etc.
     flow->end_seq_no = end_seq_no;
     //std::cout << "add_to_channel[" << id << "]: end_seq_no = " << end_seq_no << std::endl;
-    //src->start_next_epoch(flow->flow_priority);
-    send_pkts();
+    src->start_next_epoch(flow->flow_priority); // the very first flow per priority started from a Host kick off the epoch event
+    if (params.debug_event_info) {
+        std::cout << "Flow[" << flow->id << "] added to Channel[" << id << "]" << std::endl;
+    }
 }
 
 // Qjump sends one packet at a time instead of as many pkts as the cwnd allows
