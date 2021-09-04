@@ -1231,24 +1231,26 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
     */
 
     // method (3): count from initially assigned priority and count in terms of bytes instead of # of RPCs; use final target instead of downgrade targets
-    for (uint32_t i = 0; i < params.num_qos_level - 1; i++) {
-        uint32_t num_RPCs = flows_by_init_prio[i].size();
-        uint64_t sum_bytes = 0;
-        double pctg_passed_bytes = 0;
-        double pctg_passed_num_rpcs = 0;
-        uint32_t num_RPCs_passed = 0;
-        uint64_t bytes_passed = 0;
-        for (uint32_t j = 0; j < flows_by_init_prio[i].size(); j++) {
-            sum_bytes += flows_by_init_prio[i][j]->size;
-            if (flows_by_init_prio[i][j]->finished && flows_by_init_prio[i][j]->flow_completion_time * 1e6 <= params.targets[i]) {
-                bytes_passed += flows_by_init_prio[i][j]->size;
-                num_RPCs_passed++;
+    if (!params.targets.empty()) {
+        for (uint32_t i = 0; i < params.num_qos_level - 1; i++) {
+            uint32_t num_RPCs = flows_by_init_prio[i].size();
+            uint64_t sum_bytes = 0;
+            double pctg_passed_bytes = 0;
+            double pctg_passed_num_rpcs = 0;
+            uint32_t num_RPCs_passed = 0;
+            uint64_t bytes_passed = 0;
+            for (uint32_t j = 0; j < flows_by_init_prio[i].size(); j++) {
+                sum_bytes += flows_by_init_prio[i][j]->size;
+                if (flows_by_init_prio[i][j]->finished && flows_by_init_prio[i][j]->flow_completion_time * 1e6 <= params.targets[i]) {
+                    bytes_passed += flows_by_init_prio[i][j]->size;
+                    num_RPCs_passed++;
+                }
             }
+            pctg_passed_bytes = (double) bytes_passed / sum_bytes * 100;
+            pctg_passed_num_rpcs = (double) num_RPCs_passed / num_RPCs * 100;
+            std::cout << pctg_passed_num_rpcs << "% out of Priority[" << i << "] RPCs passed the final target(" << params.targets[i] << " us)" << std::endl;
+            std::cout << pctg_passed_bytes << "% out of Priority[" << i << "] traffic (bytes) passed the final target(" << params.targets[i] << " us)" << std::endl;
         }
-        pctg_passed_bytes = (double) bytes_passed / sum_bytes * 100;
-        pctg_passed_num_rpcs = (double) num_RPCs_passed / num_RPCs * 100;
-        std::cout << pctg_passed_num_rpcs << "% out of Priority[" << i << "] RPCs passed the final target(" << params.targets[i] << " us)" << std::endl;
-        std::cout << pctg_passed_bytes << "% out of Priority[" << i << "] traffic (bytes) passed the final target(" << params.targets[i] << " us)" << std::endl;
     }
 
     /*
@@ -1324,26 +1326,28 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
 
 
     // sum up both qos h & m in method (3)
-    uint64_t total_sum_bytes = 0;
-    uint64_t total_bytes_passed = 0;
-    uint32_t total_num_RPCs_passed = 0;
-    double pctg_passed_bytes = 0;
-    double pctg_passed_num_rpcs = 0;
-    uint32_t total_num_RPCs = 0;
-    for (uint32_t i = 0; i < params.num_qos_level - 1; i++) {
-        total_num_RPCs += flows_by_init_prio[i].size();
-        for (uint32_t j = 0; j < flows_by_init_prio[i].size(); j++) {
-            total_sum_bytes += flows_by_init_prio[i][j]->size;
-            if (flows_by_init_prio[i][j]->finished && flows_by_init_prio[i][j]->flow_completion_time * 1e6 <= params.targets[i]) {
-                total_bytes_passed += flows_by_init_prio[i][j]->size;
-                total_num_RPCs_passed++;
+    if (!params.targets.empty()) {
+        uint64_t total_sum_bytes = 0;
+        uint64_t total_bytes_passed = 0;
+        uint32_t total_num_RPCs_passed = 0;
+        double pctg_passed_bytes = 0;
+        double pctg_passed_num_rpcs = 0;
+        uint32_t total_num_RPCs = 0;
+        for (uint32_t i = 0; i < params.num_qos_level - 1; i++) {
+            total_num_RPCs += flows_by_init_prio[i].size();
+            for (uint32_t j = 0; j < flows_by_init_prio[i].size(); j++) {
+                total_sum_bytes += flows_by_init_prio[i][j]->size;
+                if (flows_by_init_prio[i][j]->finished && flows_by_init_prio[i][j]->flow_completion_time * 1e6 <= params.targets[i]) {
+                    total_bytes_passed += flows_by_init_prio[i][j]->size;
+                    total_num_RPCs_passed++;
+                }
             }
         }
+        pctg_passed_bytes = (double) total_bytes_passed / total_sum_bytes * 100;
+        pctg_passed_num_rpcs = (double) total_num_RPCs_passed / total_num_RPCs * 100;
+        std::cout << pctg_passed_num_rpcs << "% out of total RPCs passed the final target" << std::endl;
+        std::cout << pctg_passed_bytes << "% out of total traffic (bytes) passed the final target" << std::endl;
     }
-    pctg_passed_bytes = (double) total_bytes_passed / total_sum_bytes * 100;
-    pctg_passed_num_rpcs = (double) total_num_RPCs_passed / total_num_RPCs * 100;
-    std::cout << pctg_passed_num_rpcs << "% out of total RPCs passed the final target" << std::endl;
-    std::cout << pctg_passed_bytes << "% out of total traffic (bytes) passed the final target" << std::endl;
 
 
 
