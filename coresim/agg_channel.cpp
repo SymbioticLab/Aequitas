@@ -113,8 +113,8 @@ void AggChannel::process_latency_signal(double fct_in, uint32_t flow_id, int flo
             qos_h_memory_misses.push_back(num_misses_in_mem);
             if (params.test_fairness) {
                 double time_elapsed  = get_current_time() - fairness_last_check_time[src->id];
-                ////if (time_elapsed > 50000 / 1e6) {  // 50ms interval for rate measurement in 2-flow fairness
-                if (time_elapsed > 20000 / 1e6) {  // 20ms interval for rate measurement in 33-node fairness
+                if (time_elapsed > 50000 / 1e6) {  // 50ms interval for rate measurement in 2-flow fairness
+                ////if (time_elapsed > 20000 / 1e6) {  // 20ms interval for rate measurement in 33-node fairness
                     fairness_qos_h_admit_prob_per_host[src->id].push_back(admit_prob);
                     fairness_qos_h_ts_per_host[src->id].push_back(get_current_time());
                     double rate = (double) fairness_qos_h_bytes_per_host[src->id] / time_elapsed;

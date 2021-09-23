@@ -303,6 +303,7 @@ void FlowCreationForInitializationEvent::process_event() {
             total_num_periods++;
             //std::cout << "idle (waiting) time = " << t_idle * 1e6 << "; total period = " << (t_idle + time_spent_send_data[src_dst_pair]) *1e6 <<
             //    "; ratio = " << time_spent_send_data[src_dst_pair] / t_idle << "; src id : " << src->id << "; dst id: " << dst->id << std::endl;
+            //std::cout << "Total 32K RPCs sent during busy period = " << curr_burst << std::endl;
 
             curr_burst_size[src_dst_pair] = 0;
             time_spent_send_data[src_dst_pair] = 0;

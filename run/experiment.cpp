@@ -368,10 +368,13 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
 
     std::sort (flows_sorted.begin(), flows_sorted.end(), fc);
 
+    //uint64_t total_arrival_bytes = 0;
     for (uint32_t i = 0; i < flows_sorted.size(); i++) {
         Flow* f = flows_sorted[i];
         if (exp_type == GEN_ONLY) {
             std::cout << f->id << " " << f->size << " " << f->src->id << " " << f->dst->id << " " << 1e6*f->start_time << "\n";
+            //total_arrival_bytes += f->size;
+            //std::cout << (f->start_time - params.first_flow_start_time) * 1e6 << "," << total_arrival_bytes << "\n";
         }
         else {
             flow_arrivals.push_back(new FlowArrivalEvent(f->start_time, f));
@@ -1248,7 +1251,7 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
             }
             pctg_passed_bytes = (double) bytes_passed / sum_bytes * 100;
             pctg_passed_num_rpcs = (double) num_RPCs_passed / num_RPCs * 100;
-            std::cout << pctg_passed_num_rpcs << "% out of Priority[" << i << "] RPCs passed the final target(" << params.targets[i] << " us)" << std::endl;
+            std::cout << pctg_passed_num_rpcs << "% out of Priority[" << i << "] RPCs (" << num_RPCs_passed << " out of " << num_RPCs << " RPCs) passed the final target(" << params.targets[i] << " us)" << std::endl;
             std::cout << pctg_passed_bytes << "% out of Priority[" << i << "] traffic (bytes) passed the final target(" << params.targets[i] << " us)" << std::endl;
         }
     }
