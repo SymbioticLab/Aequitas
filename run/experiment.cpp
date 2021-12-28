@@ -270,30 +270,18 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
     if (!params.use_flow_trace) {
         uint32_t count_channel = 0;
         if (params.traffic_pattern == 0) {
-            for (uint32_t i = 0; i < params.weights.size(); i++) {
-                for (uint32_t j = 0; j < params.num_hosts - 1; j++) {
-                    auto src_dst_pair = std::make_pair(j, params.num_hosts - 1);
-                    channels[i][src_dst_pair] = new AggChannel(count_channel, topology->hosts[j], topology->hosts[params.num_hosts - 1], i);
-                    //std::cout << "creating channel[" << count_channel << "], src: " << topology->hosts[j]->id << ", dst: " << topology->hosts[params.num_hosts - 1]->id << ", prio: " << i  <<std::endl;
+            if (params.flow_type == HOMA_FLOW) {
+                for (uint32_t i = 0; i < params.num_hosts - 1; i++) {
+                    auto channel = new Channel(Factory::get_channel(count_channel, topology->hosts[i], topology->hosts[params.num_hosts - 1], 0, NULL, params.flow_type));
+                    topology->hosts[i]->set_channel(channel);
                     count_channel++;
-                    // set agg_channel to NICs
-                    if (params.real_nic) {
-                        //channels[i][src_dst_pair]->src->nic->set_agg_channels(channels[i][src_dst_pair]);
-                        topology->hosts[j]->nic->set_agg_channels(channels[i][src_dst_pair]);
-                    } else if (params.flow_type == QJUMP_FLOW) {
-                        topology->hosts[j]->set_agg_channels(channels[i][src_dst_pair]);
-                    }
                 }
-            }
-        } else {
-          for (uint32_t i = 0; i < params.weights.size(); i++) {
-              for (uint32_t j = 0; j < params.num_hosts; j++) {
-                  for (uint32_t k = 0; k < params.num_hosts; k++) {
-                      if (j != k) {
-                        //auto src_dst_pair = std::make_pair(topology->hosts[j], topology->hosts[k]);
-                        auto src_dst_pair = std::make_pair(j, k);
-                        channels[i][src_dst_pair] = new AggChannel(count_channel, topology->hosts[j], topology->hosts[k], i);
-                        //std::cout << "creating channel[" << count_channel << "], src: " << topology->hosts[j]->id << ", dst: " << topology->hosts[k]->id << ", prio: " << i  <<std::endl;
+            } else {
+                for (uint32_t i = 0; i < params.weights.size(); i++) {
+                    for (uint32_t j = 0; j < params.num_hosts - 1; j++) {
+                        auto src_dst_pair = std::make_pair(j, params.num_hosts - 1);
+                        channels[i][src_dst_pair] = new AggChannel(count_channel, topology->hosts[j], topology->hosts[params.num_hosts - 1], i);
+                        //std::cout << "creating channel[" << count_channel << "], src: " << topology->hosts[j]->id << ", dst: " << topology->hosts[params.num_hosts - 1]->id << ", prio: " << i  <<std::endl;
                         count_channel++;
                         // set agg_channel to NICs
                         if (params.real_nic) {
@@ -302,10 +290,43 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
                         } else if (params.flow_type == QJUMP_FLOW) {
                             topology->hosts[j]->set_agg_channels(channels[i][src_dst_pair]);
                         }
-                      }
-                  }
-              }
-          }
+                    }
+                }
+            }
+        } else {
+            if (params.flow_type == HOMA_FLOW) {
+                for (uint32_t i = 0; i < params.num_hosts; i++) {
+                    for (uint32_t j = 0; j < params.num_hosts; j++) {
+                        if (i != j) {
+                            auto channel = new Channel(Factory::get_channel(count_channel, topology->hosts[i], topology->hosts[j], 0, NULL, params.flow_type));
+                            topology->hosts[i]->set_channel(channel);
+                            count_channel++;
+                        }
+                    }
+                }
+            } else {
+                for (uint32_t i = 0; i < params.weights.size(); i++) {
+                    for (uint32_t j = 0; j < params.num_hosts; j++) {
+                        for (uint32_t k = 0; k < params.num_hosts; k++) {
+                            if (j != k) {
+                                //auto src_dst_pair = std::make_pair(topology->hosts[j], topology->hosts[k]);
+                                auto src_dst_pair = std::make_pair(j, k);
+                                channels[i][src_dst_pair] = new AggChannel(count_channel, topology->hosts[j], topology->hosts[k], i);
+                                //std::cout << "creating channel[" << count_channel << "], src: " << topology->hosts[j]->id << ", dst: " << topology->hosts[k]->id << ", prio: " << i  <<std::endl;
+                                count_channel++;
+                                // set agg_channel to NICs
+                                if (params.real_nic) {
+                                    //channels[i][src_dst_pair]->src->nic->set_agg_channels(channels[i][src_dst_pair]);
+                                    topology->hosts[j]->nic->set_agg_channels(channels[i][src_dst_pair]);
+                                } else if (params.flow_type == QJUMP_FLOW) {
+                                    topology->hosts[j]->set_agg_channels(channels[i][src_dst_pair]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
         }
 
         // init the vector used in dynamic load setting

@@ -42,6 +42,10 @@ void Host::set_agg_channels(AggChannel *agg_channel) {
     assert(false);
 }
 
+void Host::set_channel(Channel *channel) {
+    assert(false);
+}
+
 void Host::send_next_pkt(uint32_t priority) {
     assert(false);
 }
