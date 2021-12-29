@@ -15,6 +15,11 @@ extern DCExpParams params;
 HomaFlow::HomaFlow(uint32_t id, double start_time, uint32_t size, Host *s, Host *d,
     uint32_t flow_priority) : Flow(id, start_time, size, s, d, flow_priority) {}
 
+void HomaFlow::start_flow() {
+    run_priority = flow_priority;
+    channel->add_to_channel(this);  // so we can do SRPT
+}
+
 void HomaFlow::receive_data_pkt(Packet* p) {
     p->flow->channel->receive_data_pkt(p);
 }

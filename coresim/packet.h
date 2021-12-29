@@ -10,6 +10,7 @@
 #define SYN_ACK_PACKET 11   // used by D3; ACK to the SYN/First RR packet
 #define FIN_PACKET 12       // used by D3;
 #define PROBE_PACKET 13     // used by PDQ
+#define GRANT_PACKET 14     // used by Homa
 
 #define RTS_PACKET 3
 #define CTS_PACKET 4
