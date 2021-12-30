@@ -3,6 +3,8 @@
 
 #include "../coresim/channel.h"
 
+#define num_hw_prio_levels 8    // same as pFabric's limitation 
+
 class Flow;
 class Host;
 class Packet;
@@ -29,14 +31,18 @@ class HomaChannel : public Channel {
         void add_to_channel(Flow *flow) override;
         int next_flow_SRPT();
         int send_pkts() override;
+        void decrement_active_flows();
+        int get_sender_priority();
         Packet *send_one_pkt(uint64_t seq, uint32_t pkt_size, double delay, Flow *flow) override;
         void receive_ack(uint64_t ack, Flow *flow, std::vector<uint64_t> sack_list, double pkt_start_ts) override;
         void set_timeout(double time) override;
         void handle_timeout() override;
 
+
     private:
+        int overcommitment_degree;
+        int num_active_flows;
         std::priority_queue<Flow*, std::vector<Flow*>, FlowComparator> sender_flows;
-        uint64_t curr_end_seq;
 
 };
 

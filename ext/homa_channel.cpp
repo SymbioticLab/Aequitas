@@ -26,6 +26,9 @@ extern uint32_t pkt_total_count;
 
 HomaChannel::HomaChannel(uint32_t id, Host *s, Host *d, uint32_t priority, AggChannel *agg_channel)
     : Channel(id, s, d, priority, agg_channel) {
+        overcommitment_degree = num_hw_prio_levels;
+        num_active_flows = 0;
+        sender_priority = 0;
     }
 
 HomaChannel::~HomaChannel() {}
@@ -41,55 +44,23 @@ void HomaChannel::add_to_channel(Flow *flow) {
     if (params.debug_event_info) {
         std::cout << "Flow[" << flow->id << "] added to Channel[" << id << "]" << std::endl;
     }
+    send_pkts();
 }
 
+// Allow at maximum overcommit_degree num of flows to send pkts at the same time. Flows handling transmission by themselves like pFabric
 int HomaChannel::send_pkts() {
-    uint32_t pkts_sent = 0;
-    uint64_t seq = next_seq_no;
-    //uint32_t window = cwnd_mss * mss + scoreboard_sack_bytes;  // Note sack_bytes is always 0 for now
-    if (params.debug_event_info) {
-        std::cout << "QjumpChannel[" << id << "] send_pkts():" << " seq = " << seq
-            << ", last_unacked_seq = " << last_unacked_seq << std::endl;
-        std::cout << "seq + mss = " << seq + mss << std::endl;
-        std::cout << "end_seq_no = " << end_seq_no << std::endl;
+    while (!sender_flows.empty() && num_active_flows < overcommitment_degree) {
+        Flow *flow = sender_flows.top();
+        sender_flows.pop();
+        num_active_flows++;
+        flow->send_pending_data();
     }
+}
 
-    // only send one packet each call; so use if statement instead of while loop
-    if (
-        //(seq + mss <= last_unacked_seq + window) &&                                   // (1) CWND still allows me to send more packets; --> Qjump should not rely on CWND
-        ((seq + mss <= end_seq_no) || (seq != end_seq_no && (end_seq_no - seq < mss)))  // (2) I still have more packets to send
-    ) {
-        uint32_t pkt_size;
-        Flow *flow_to_send = find_next_flow(seq);
-        uint64_t next_flow_boundary = flow_to_send->end_seq_no;
-        if (seq + mss < next_flow_boundary) {
-            pkt_size = mss + hdr_size;
-            next_seq_no = seq + mss;
-        } else {
-            pkt_size = (next_flow_boundary - seq) + hdr_size;
-            next_seq_no = next_flow_boundary;
-        }
-
-        Packet *p = send_one_pkt(seq, pkt_size, 1e-12 * (pkts_sent + 1), flow_to_send);    // send with 1 ps delay for each pkt
-        if (params.enable_flow_lookup && flow_to_send->id == params.flow_lookup_id) {    // NOTE: the Time print out here does not reflect the tiny delay
-            std::cout << "At time: " << get_current_time() << ", Qjump instructs Flow[" << flow_to_send->id << "] (flow_size=" << flow_to_send->size
-                << ") to send a packet[" << p->unique_id <<"] (seq=" << seq << "), last_unacked_seq = " << last_unacked_seq
-                << "; Flow start_seq = " << flow_to_send->start_seq_no << "; flow end_seq = " << flow_to_send->end_seq_no << std::endl;
-        }
-        pkts_sent++;
-
-        if (retx_event == NULL) {
-            set_timeout(get_current_time() + retx_timeout);
-        }
-    }
-
-
-    if (params.debug_event_info) {
-        std::cout << "QjumpChannel[" << id << "] sends " << pkts_sent << " pkts." << std::endl;
-    }
-    pkt_total_count += pkts_sent;
-
-    return pkts_sent;
+// TODO: call when a HomaFlow finishes
+void HomaChannel::decrement_active_flows() {
+    assert(num_active_flows > 0);
+    num_active_flows--;
 }
 
 // TODO: receiver-side behavior (decide priorities, etc)

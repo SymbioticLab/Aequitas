@@ -84,6 +84,9 @@ class Channel {
         //bool curr_flow_done;
 
         AggChannel *agg_channel;
+
+        int priority_unscheduled;   // used in Homa
+        int priority_schedueled;    // used in Homa
 };
 
 #endif  // CORESIM_CHANNEL_H
