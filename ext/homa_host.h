@@ -3,6 +3,7 @@
 
 #include "../coresim/node.h"
 #include "../coresim/channel.h"
+#include <map>
 
 class Host;
 class Packet;
@@ -18,9 +19,9 @@ class HomaHost : public Host {
         ~HomaHost();
 
         void set_channel(Channel *channel) override;
-        Channel *get_channel() override;
+        Channel *get_channel(Host *src, Host *dst) override;
     private:
-        Channel *channel;
+        std::map<std::pair<uint32_t, uint32_t>, Channel *> channels;
 };
 
 #endif  // EXT_HOMAHOST_H

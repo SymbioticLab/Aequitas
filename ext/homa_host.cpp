@@ -20,9 +20,12 @@ HomaHost::~HomaHost() {}
 
 // This single sender-side channel will handle all priority levels (but enforces SRPT)
 void HomaHost::set_channel(Channel *channel) {
-    this->channel = channel;
+    auto src_dst_pair = std::make_pair(channel->src, channel->dst);
+    assert(channels.find(src_dst_pair) == channels.end());
+    channels[src_dst_pair] = channel;
 }
 
-Channel *HomaHost::get_channel() {
-    return channel;
+Channel *HomaHost::get_channel(Host *src, Host *dst) {
+    auto src_dst_pair = std::make_pair(src, dst);
+    return channels[src_dst_pair];
 }

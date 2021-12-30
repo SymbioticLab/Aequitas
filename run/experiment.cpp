@@ -273,7 +273,7 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
             if (params.flow_type == HOMA_FLOW) {
                 for (uint32_t i = 0; i < params.num_hosts - 1; i++) {
                     auto channel = new Channel(Factory::get_channel(count_channel, topology->hosts[i], topology->hosts[params.num_hosts - 1], 0, NULL, params.flow_type));
-                    topology->hosts[i]->set_channel(channel);
+                    topology->hosts[i]->set_channel(channel);   // TODO: fix channel push
                     count_channel++;
                 }
             } else {
