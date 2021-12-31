@@ -13,8 +13,10 @@ class HomaFlow : public Flow {
             uint32_t flow_priority);
         void start_flow() override;
         int send_unscheduled_data();
+        int send_scheduled_data();
+        void send_grant_pkt(uint64_t seq, double start_pkt_ts, int grant_priority);
         void send_pending_data() override;
-        Packet *send_with_delay(uint64_t seq, double delay, uint64_t end_seq_no, int priority);
+        Packet *send_with_delay(uint64_t seq, double delay, uint64_t end_seq_no, bool scheduled, int priority);
         void receive_data_pkt(Packet* p) override;
         void receive_ack(uint64_t ack, std::vector<uint64_t> sack_list,
                         double pkt_start_ts, uint32_t priority,

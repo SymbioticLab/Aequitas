@@ -76,6 +76,7 @@ class Packet {
         double inter_probing_time;                  // PDQ
         bool is_probe;                              // PDQ
         bool ack_to_probe;                          // PDQ
+        bool scheduled;                             // Homa
 };
 
 class PlainAck : public Packet {
@@ -105,6 +106,12 @@ class SynAck : public Packet {
 class Fin : public Packet {
     public:
         Fin(double sending_time, double prev_desired_rate, double prev_allocated_rate, Flow *flow, uint32_t size, Host *src, Host *dst);
+};
+
+class Grant : public Ack {
+    public:
+        Grant(Flow *flow, uint64_t seq_no_acked, uint32_t size, Host *src, Host *dst, int grant_priority);
+        int grant_priority;
 };
 
 class RTSCTS : public Packet {

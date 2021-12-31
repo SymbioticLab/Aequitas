@@ -28,7 +28,7 @@ HomaChannel::HomaChannel(uint32_t id, Host *s, Host *d, uint32_t priority, AggCh
     : Channel(id, s, d, priority, agg_channel) {
         overcommitment_degree = num_hw_prio_levels;
         num_active_flows = 0;
-        sender_priority = 0;
+        //sender_priority = 0;
     }
 
 HomaChannel::~HomaChannel() {}

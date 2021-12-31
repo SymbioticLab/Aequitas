@@ -46,6 +46,7 @@ Packet::Packet(
     this->inter_probing_time = 0;
     this->is_probe = false;
     this->ack_to_probe = false;
+    this->scheduled = false;
 }
 
 Packet::~Packet() {}
@@ -77,6 +78,11 @@ Fin::Fin(double sending_time, double prev_desired_rate, double prev_allocated_ra
     this->prev_desired_rate = prev_desired_rate;        // return prev desired rate
     this->prev_allocated_rate = prev_allocated_rate;    // return prev allocated rate
     this->has_rrq = true;
+}
+
+Grant::Grant(Flow *flow, uint64_t seq_no_acked, uint32_t size, Host *src, Host *dst, int grant_priority)
+        : Ack(flow, seq_no_acked, std::vector<uint64_t>(), size, src, dst) {
+    this->grant_priority = grant_priority;
 }
 
 RTSCTS::RTSCTS(bool type, double sending_time, Flow *f, uint32_t size, Host *src, Host *dst) : Packet(sending_time, f, 0, 0, f->hdr_size, src, dst) {
