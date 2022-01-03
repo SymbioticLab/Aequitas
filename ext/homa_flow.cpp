@@ -90,6 +90,11 @@ Packet *HomaFlow::send_with_delay(uint64_t seq, double delay, uint64_t end_seq_n
             );
     this->total_pkt_sent++;
     p->start_ts = get_current_time();
+    if (scheduled) {
+        p->scheduled = true;
+    } else {
+        p->scheduled = false;
+    }
 
     Queue *next_hop = topology->get_next_hop(p, src->queue);
     if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
@@ -138,14 +143,17 @@ void HomaFlow::receive_data_pkt(Packet* p) {
         }
         s += mss;
     }
-
-    //TODO: figure out grant priority;
-    int grant_priority = 0;
-
     //std::cout << "Flow[" << id << "] receive_data_pkt: received_count = " << received_count << "; received_bytes = " << received_bytes << std::endl;
+
+    int grant_priority = 0;
+    if (size > RTTbytes) {  // incoming flow is scheduled; decide grant priority for scheduled pkts
+        channel->insert_active_flow(p->flow);    
+        grant_priority = channel->calculate_scheduled_priority(p->flow);
+    }
+
     send_grant_pkt(recv_till, p->start_ts, grant_priority); // Cumulative Ack
 }
 
-void HomaFlow::receive_ack(uint64_t ack, std::vector<uint64_t> sack_list, double pkt_start_ts, uint32_t priority, uint32_t num_hops) {
-    channel->receive_ack(ack, this, sack_list, pkt_start_ts);
+void HomaFlow::receive_grant(uint64_t ack) {
+    //TODO: increment num_active_flows for channel
 }

@@ -2,6 +2,9 @@
 #define EXT_HOMACHANNEL_H
 
 #include "../coresim/channel.h"
+#include <map>
+#include <set>
+#include <vector>
 
 #define num_hw_prio_levels 8    // same as pFabric's limitation 
 
@@ -31,18 +34,24 @@ class HomaChannel : public Channel {
         void add_to_channel(Flow *flow) override;
         int next_flow_SRPT();
         int send_pkts() override;
-        void decrement_active_flows();
+        //void increment_active_flows();
+        //void decrement_active_flows();
+        void insert_active_flow(Flow *) override;
+        void remove_active_flow(Flow *) override;
+        //int count_active_flows();
+        int calculate_scheduled_priority(Flow *flow);
+        int calculate_unscheduled_priority();
         int get_sender_priority();
-        Packet *send_one_pkt(uint64_t seq, uint32_t pkt_size, double delay, Flow *flow) override;
-        void receive_ack(uint64_t ack, Flow *flow, std::vector<uint64_t> sack_list, double pkt_start_ts) override;
         void set_timeout(double time) override;
         void handle_timeout() override;
 
 
     private:
         int overcommitment_degree;
-        int num_active_flows;
         std::priority_queue<Flow*, std::vector<Flow*>, FlowComparator> sender_flows;
+        //std::map<Flow *, int> active_flows;            // flows with size > RTTbytes; maintained by receiver
+        std::set<Flow *> active_flows;            // flows with size > RTTbytes; maintained by receiver
+        std::vector<int> busy_prio_levels;
 
 };
 

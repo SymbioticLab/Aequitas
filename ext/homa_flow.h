@@ -18,9 +18,7 @@ class HomaFlow : public Flow {
         void send_pending_data() override;
         Packet *send_with_delay(uint64_t seq, double delay, uint64_t end_seq_no, bool scheduled, int priority);
         void receive_data_pkt(Packet* p) override;
-        void receive_ack(uint64_t ack, std::vector<uint64_t> sack_list,
-                        double pkt_start_ts, uint32_t priority,
-                        uint32_t num_hops) override;
+        void receive_grant(uint64_t ack);
 
 };
 

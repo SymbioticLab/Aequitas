@@ -45,6 +45,9 @@ class Channel {
         void report_ack(double delay);  // flows inform Channel when receiving a new ACK
         void report_timeout(Flow *flow);  // flows inform Channel when a timeout happens
 
+        virtual void insert_active_flow(Flow *flow);     // Homa
+        virtual void remove_active_flow(Flow *flow);     // Homa
+
         //void window_insert(double fct_in, uint32_t flow_id, int flow_size);
 
         uint32_t id;

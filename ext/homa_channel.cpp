@@ -27,7 +27,7 @@ extern uint32_t pkt_total_count;
 HomaChannel::HomaChannel(uint32_t id, Host *s, Host *d, uint32_t priority, AggChannel *agg_channel)
     : Channel(id, s, d, priority, agg_channel) {
         overcommitment_degree = num_hw_prio_levels;
-        num_active_flows = 0;
+        //busy_prio_levels.resize(num_hw_prio_levels, 0);
         //sender_priority = 0;
     }
 
@@ -57,99 +57,71 @@ int HomaChannel::send_pkts() {
     }
 }
 
-// TODO: call when a HomaFlow finishes
-void HomaChannel::decrement_active_flows() {
-    assert(num_active_flows > 0);
-    num_active_flows--;
+//void HomaChannel::increment_active_flows() {
+//    num_active_flows++;
+//}
+//
+//void HomaChannel::decrement_active_flows() {
+//    assert(num_active_flows > 0);
+//    num_active_flows--;
+//}
+
+void HomaChannel::insert_active_flows(Flow *flow) {
+    active_flows[flow] = priority;
+    //busy_prio_levels[priority] = 1;
 }
 
-// TODO: receiver-side behavior (decide priorities, etc)
-void QjumpChannel::receive_ack(uint64_t ack, Flow *flow, std::vector<uint64_t> sack_list, double pkt_start_ts) {
-    if (params.debug_event_info) {
-        std::cout << "Channel[" << id << "] with priority " << priority << " receive ack: " << ack << std::endl;
+// Note: Homa discard flow state once the last grant packet is sent (original paper, S3.8)
+void HomaChannel::remove_active_flows(Flow *flow) {
+    active_flows.erase(flow);
+    //busy_prio_levels[priority] = 0;
+}
+
+//int HomaChannel::count_active_flows() {
+//    return active_flows.size();
+//}
+
+
+struct FlowCompator2 {
+    bool operator() (Flow *a, Flow *b) {
+        if (a->size == b->size) {
+            return a->start_time < b->start_time;
+        } else {
+            return a->size < b->size;
+        }
     }
-    if (params.enable_flow_lookup && flow->id == params.flow_lookup_id) {
-        std::cout << "Channel[" << id << "] Flow[" << flow->id << "] with priority " << priority
-            << " receive ack: " << ack << "; last_unacked_seq: " << last_unacked_seq
-            << "; Flow's end seq = " << flow->end_seq_no << ", start_seq = " << flow->start_seq_no << std::endl;
+} fc;
+
+int HomaChannel::calculate_scheduled_priority(Flow *flow) {
+    std::vector<Flow *> active_flow_vec;
+    for (const auto &f : active_flows) {
+        active_flow_vec.push_back(f);
     }
-    //this->scoreboard_sack_bytes = sack_list.size() * mss;
-    this->scoreboard_sack_bytes = 0;        // ignore SACK for now
+    std::sort(active_flow_vec.begin(), active_flow_vec.end(), fc);
 
-    // On timeouts; next_seq_no is updated to last_unacked_seq;
-    // In such cases, the ack can be greater than next_seq_no; update it
-    if (next_seq_no < ack) {
-        next_seq_no = ack;
-    }
-
-    // New ack!
-    if (ack > last_unacked_seq) {
-        // Update the last unacked seq
-        last_unacked_seq = ack;
-
-        // Send the remaining data
-        send_pkts();
-
-        // Update the retx timer
-        if (retx_event != NULL) { // Try to move
-            cancel_retx_event();
-            if (last_unacked_seq < end_seq_no) {
-                // Move the timeout to last_unacked_seq
-                double timeout = get_current_time() + retx_timeout;
-                set_timeout(timeout);
-                if (params.enable_flow_lookup && flow->id == params.flow_lookup_id) {
-                    std::cout << "Flow[" << flow->id << "] at receive_ack(): set timeout at: " << timeout << std::endl;
-                }
+    int num_active_flows = active_flow_vec.size();
+    if (num_active_flows <= num_hw_prio_levels) {
+        int prio = num_hw_prio_levels - 1;
+        for (size_t i = num_active_flows - 1; i >= 0; i--) {
+            if (active_flow_vec[i]->id == flow->id) {
+                return prio;
             }
+            prio--;
         }
-
+        assert(false);
+    } else {
+        for (size_t i = 0; i < num_hw_prio_levels; i++) {
+            if (active_flow_vec[i]->id == flow->id) {
+                return i;
+            }
+        }    
     }
 
-    if (ack == flow->end_seq_no && !flow->finished) {
-        flow->finished = true;
-        cleanup_after_finish(flow);
-        flow->finish_time = get_current_time();
-        double flow_completion_time = flow->finish_time - flow->start_time;
-        if (params.priority_downgrade) {
-            update_fct(flow_completion_time, flow->id, get_current_time(), flow->size_in_pkt);
-        }
-        if (params.enable_flow_lookup && flow->id == params.flow_lookup_id) {
-            std::cout << "Flow[" << flow->id << "] Finish time = "
-                << flow->finish_time << "; start time = " << flow->start_time
-                << "; completion time = " << flow_completion_time << std::endl;
-        }
-        FlowFinishedEvent *ev = new FlowFinishedEvent(get_current_time(), flow);
-        add_to_event_queue(ev);
-    }
+    return -1;        // return -1 means no grant prio assigned
 }
 
-// Note the tiny delay won't be used here since Qjump only send one packet at a time
-Packet *QjumpChannel::send_one_pkt(uint64_t seq, uint32_t pkt_size, double delay, Flow *flow) {
-    Packet *p = new Packet(
-            get_current_time(),
-            flow,
-            seq,
-            priority,
-            pkt_size,
-            src,
-            dst
-            );
-    p->start_ts = get_current_time();
-
-    if (params.debug_event_info) {
-        std::cout << "Qjump sending out Packet[" << p->unique_id << "] (seq=" << seq << ") at time: " << get_current_time() + delay << " (base=" << get_current_time() << "; delay=" << delay << ")" << std::endl;
-    }
-    /*
-    Queue *next_hop = topology->get_next_hop(p, src->queue);
-    ////add_to_event_queue(new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay + network_epoch, p, next_hop));
-    add_to_event_queue(new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop));
-    add_to_event_queue(new QjumpEpochEvent(get_current_time() + network_epoch, src, priority));
-    */
-    Queue *next_hop = topology->get_next_hop(p, src->queue);
-    add_to_event_queue(new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop));
-    return p;
+int HomaChannel::calculate_unscheduled_priority() {
 }
-// We won't apply epoch on ACK pkts to prioritize them for Qjump's sake
 
 // Homa dealing with packet loss (orig paper S3.7)
 //TODO
