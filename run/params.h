@@ -168,6 +168,8 @@ class DCExpParams {
 //#define FASTPASS_EPOCH_TIME 0.000010
 #define FASTPASS_EPOCH_PKTS 8
 
+#define num_hw_prio_levels 8    // used by Homa; same as pFabric's limitation 
+
 void read_experiment_parameters(std::string conf_filename, uint32_t exp_type); 
 
 /* General main function */

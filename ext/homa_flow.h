@@ -12,6 +12,7 @@ class HomaFlow : public Flow {
         HomaFlow(uint32_t id, double start_time, uint32_t size, Host *s, Host *d,
             uint32_t flow_priority);
         void start_flow() override;
+        int get_unscheduled_priority();
         int send_unscheduled_data();
         int send_scheduled_data(int grant_priority);
         void send_grant_pkt(uint64_t seq, double start_pkt_ts, int grant_priority);

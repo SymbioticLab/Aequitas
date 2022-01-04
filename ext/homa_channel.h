@@ -6,7 +6,7 @@
 #include <set>
 #include <vector>
 
-#define num_hw_prio_levels 8    // same as pFabric's limitation 
+
 #define sampling_freq   5000    // # of new flows before doing another schedule_unschedued_priority()
 
 class Flow;

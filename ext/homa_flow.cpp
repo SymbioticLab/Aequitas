@@ -25,13 +25,23 @@ void HomaFlow::start_flow() {
     channel->add_to_channel(this);  // so we can do SRPT
 }
 
-// TODO: select priority based on unschedued offsets
+int HomaFlow::get_unscheduled_priority() {
+    for (int i = 0; i < unscheduled_offsets.size(); i++) {
+        if (size <= unscheduled_offsets[i]) {
+            return i;
+        }
+    }
+
+    return num_hw_prio_levels - 1;
+}
+
 int HomaFlow::send_unscheduled_data() {
     Packet *p = NULL;
     uint32_t pkts_sent = 0;
     double delay = 1e-12;
     uint64_t seq = next_seq_no;
-    int priority = channel->priority_unscheduled;   // TODO: get priority_unscheduled from piggybacked pkts
+    int priority = get_unscheduled_priority();
+    
     while (next_seq_no < RTTbytes) {    // assuming RTTbytes does not include hdr_size for simplicity
         if (size <= RTTbytes) {
             p = send_with_delay(seq, delay, size, false, priority);
@@ -41,7 +51,10 @@ int HomaFlow::send_unscheduled_data() {
         next_seq_no += (p->size - hdr_size);
         seq = next_seq_no;
         pkts_sent++;
-        //bytes_sent = next_seq_no;
+    }
+
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
+        std::cout << "Flow[" << id << "] sends " << pkts_sent << " unschedueld pkts." << std::endl;
     }
 
     return pkts_sent; 
