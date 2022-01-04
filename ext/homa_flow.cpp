@@ -50,7 +50,7 @@ int HomaFlow::send_scheduled_data() {
 }
 
 // sent by receiver to allow sender to send scheduled data with a grant priority
-void HomaFlow::send_grant_pkt(uint64_t seq, double pkt_start_ts, int grant_priority) {
+void HomaFlow::send_grant_pkt(uint64_t seq, double pkt_start_ts, bool scheduled, int grant_priority) {
     Packet *p = new Grant(
         this,
         seq,
@@ -62,6 +62,9 @@ void HomaFlow::send_grant_pkt(uint64_t seq, double pkt_start_ts, int grant_prior
         );
     assert(p->pf_priority == 0);
     p->start_ts = pkt_start_ts; // carry the orig packet's start_ts back to the sender for RTT measurement
+    if (!scheduled) {
+        channel->get_unscheduled_offsets(p->unscheduled_offsets);
+    }
     Queue *next_hop = topology->get_next_hop(p, src->queue);
     PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);  // adding a pd since we skip the source queue
     add_to_event_queue(event);
@@ -153,7 +156,7 @@ void HomaFlow::receive_data_pkt(Packet* p) {
         grant_priority = channel->calculate_scheduled_priority(p->flow);
     }
 
-    send_grant_pkt(recv_till, p->start_ts, grant_priority); // Cumulative Ack; grant_priority is DC for unscheduled pkts
+    send_grant_pkt(recv_till, p->start_ts, p->scheduled, grant_priority); // Cumulative Ack; grant_priority is DC for unscheduled pkts
 }
 
 void HomaFlow::receive_grant(uint64_t ack) {

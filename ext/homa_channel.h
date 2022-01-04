@@ -39,7 +39,7 @@ class HomaChannel : public Channel {
         void remove_active_flow(Flow *) override;
         int calculate_scheduled_priority(Flow *flow) override;
         int calculate_unscheduled_priority() override;
-        void calculate_unscheduled_offsets();
+        void get_unscheduled_offsets(std::vector<uint32_t> &vec);
         void record_flow_size(Flow* flow, bool scheduled) override;
         int get_sender_priority();
         void set_timeout(double time) override;

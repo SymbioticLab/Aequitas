@@ -119,8 +119,8 @@ int HomaChannel::calculate_scheduled_priority(Flow *flow) {
     return -1;        // return -1 means no grant prio assigned
 }
 
-int HomaChannel::calculate_unscheduled_priority() {
-        
+void HomaChannel::get_unscheduled_offsets(std::vector<uint32_t> &vec) {
+    vec = curr_unscheduled_offsets;
 }
 
 void HomaChannel::calculate_unscheduled_offsets() {

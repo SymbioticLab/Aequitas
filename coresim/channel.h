@@ -45,11 +45,12 @@ class Channel {
         void report_ack(double delay);  // flows inform Channel when receiving a new ACK
         void report_timeout(Flow *flow);  // flows inform Channel when a timeout happens
 
-        virtual void insert_active_flow(Flow *flow);            // Homa
-        virtual void remove_active_flow(Flow *flow);            // Homa
-        virtual int calculate_scheduled_priority(Flow *flow);   // Homa
-        virtual int calculate_unscheduled_priority();           // Homa
+        virtual void insert_active_flow(Flow *flow);                            // Homa
+        virtual void remove_active_flow(Flow *flow);                            // Homa
+        virtual int calculate_scheduled_priority(Flow *flow);                   // Homa
+        virtual int calculate_unscheduled_priority();                           // Homa
         virtual void record_flow_size(Flow *flow, bool scheduled);              // Homa
+        virtual void get_unscheduled_offsets(std::vector<uint32_t> &vec);       // Homa
 
         //void window_insert(double fct_in, uint32_t flow_id, int flow_size);
 
