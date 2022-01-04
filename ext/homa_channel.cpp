@@ -27,8 +27,8 @@ extern uint32_t pkt_total_count;
 HomaChannel::HomaChannel(uint32_t id, Host *s, Host *d, uint32_t priority, AggChannel *agg_channel)
     : Channel(id, s, d, priority, agg_channel) {
         overcommitment_degree = num_hw_prio_levels;
-        //busy_prio_levels.resize(num_hw_prio_levels, 0);
-        //sender_priority = 0;
+        record_freq = 0;
+        curr_unscheduled_prio_levels = 0;
     }
 
 HomaChannel::~HomaChannel() {}
@@ -67,14 +67,12 @@ int HomaChannel::send_pkts() {
 //}
 
 void HomaChannel::insert_active_flows(Flow *flow) {
-    active_flows[flow] = priority;
-    //busy_prio_levels[priority] = 1;
+    active_flows.insert(flow);
 }
 
 // Note: Homa discard flow state once the last grant packet is sent (original paper, S3.8)
 void HomaChannel::remove_active_flows(Flow *flow) {
     active_flows.erase(flow);
-    //busy_prio_levels[priority] = 0;
 }
 
 //int HomaChannel::count_active_flows() {
@@ -92,6 +90,7 @@ struct FlowCompator2 {
     }
 } fc;
 
+// TODO: check range of avail prio levels after the impl of unscheduled prio
 int HomaChannel::calculate_scheduled_priority(Flow *flow) {
     std::vector<Flow *> active_flow_vec;
     for (const auto &f : active_flows) {
@@ -121,6 +120,71 @@ int HomaChannel::calculate_scheduled_priority(Flow *flow) {
 }
 
 int HomaChannel::calculate_unscheduled_priority() {
+        
+}
+
+void HomaChannel::calculate_unscheduled_offsets() {
+    curr_unscheduled_offsets.clear();
+    double unscheduled_bytes = 0, scheduled_bytes = 0;
+    for (const auto &s : sampled_unscheduled_flow_size) {
+        unscheduled_bytes += s;
+    }
+    for (const auto &s : sampled_scheduled_flow_size) {
+        scheduled_bytes += s;
+    }
+
+    double unscheduled_pctg = unscheduled_bytes/(unscheduled_bytes + scheduled_bytes);
+    curr_unscheduled_prio_levels = unscheduled_pctg * num_hw_prio_levels;
+    uint32_t bytes_per_level = unscheduled_bytes / curr_unscheduled_prio_levels;
+
+    std::sort(sampled_unscheduled_flow_size.begin(), sampled_unscheduled_flow_size.end());
+    std::sort(sampled_scheduled_flow_size.begin(), sampled_scheduled_flow_size.end());
+    uint32_t count = 0;
+    //for (const auto &s : sampled_unscheduled_flow_size) {
+    for (size_t i = 0; i < sampled_unscheduled_flow_size.size(); i++) {
+        count += sampled_unscheduled_flow_size[i];
+        if (count >= bytes_per_level) {
+            curr_unscheduled_offsets.push_back(sampled_unscheduled_flow_size[i]);
+            count = 0;
+        }
+    }
+    if (curr_unscheduled_offsets.size() < curr_unscheduled_prio_levels) {
+        curr_unscheduled_offsets.push_back(sampled_unscheduled_flow_size[sampled_scheduled_flow_size.size() - 1]);  // shouldn't need the last offset anyway
+    }
+    std::cout << "curr_unscheduled_offsets: ";
+    for (const auto &x : curr_unscheduled_offsets) {
+        std::cout << x << " ";
+    }
+    std::cout << std::endl;
+    assert(curr_unscheduled_offsets.size() == curr_unscheduled_prio_levels);        // TODO: remove
+    //for (int i = 0; i < curr_unscheduled_prio_levels; i++) {
+    //    int ith_idx = (double) (i + 1) / curr_unscheduled_prio_levels * unscheduled_bytes;
+    //    curr_unscheduled_offsets.push_back(sampled_unscheduled_flow_size[ith_idx]);
+    //}
+
+    sampled_unscheduled_flow_size.clear();
+    sampled_scheduled_flow_size.clear();
+    sampled_unscheduled_flows.clear();
+    sampled_scheduled_flows.clear();
+
+}
+
+void HomaChannel::record_flow_size(Flow* flow, bool scheduled) {
+    if (scheduled) {
+        if (sampled_scheduled_flows.find(flow) != sampled_scheduled_flows.end()) {  // new flow
+            sampled_scheduled_flow_size.push_back(flow->size);
+            record_freq++;
+        }
+    } else {
+        if (sampled_unscheduled_flows.find(flow) != sampled_unscheduled_flows.end()) {  // new flow
+            sampled_unscheduled_flow_size.push_back(flow->size);
+            record_freq++;
+        }
+    }
+    if (record_freq == sampling_freq) {
+        calculate_unscheduled_offsets();
+        record_freq = 0;
+    })
 }
 
 // Homa dealing with packet loss (orig paper S3.7)

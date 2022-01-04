@@ -145,13 +145,15 @@ void HomaFlow::receive_data_pkt(Packet* p) {
     }
     //std::cout << "Flow[" << id << "] receive_data_pkt: received_count = " << received_count << "; received_bytes = " << received_bytes << std::endl;
 
+    channel->record_flow_size(p->flow, p->scheduled);   // it also triggers calculation of unscheduled priorities
+
     int grant_priority = 0;
     if (size > RTTbytes) {  // incoming flow is scheduled; decide grant priority for scheduled pkts
         channel->insert_active_flow(p->flow);    
         grant_priority = channel->calculate_scheduled_priority(p->flow);
     }
 
-    send_grant_pkt(recv_till, p->start_ts, grant_priority); // Cumulative Ack
+    send_grant_pkt(recv_till, p->start_ts, grant_priority); // Cumulative Ack; grant_priority is DC for unscheduled pkts
 }
 
 void HomaFlow::receive_grant(uint64_t ack) {
