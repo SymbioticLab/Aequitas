@@ -41,14 +41,49 @@ int HomaFlow::send_unscheduled_data() {
         next_seq_no += (p->size - hdr_size);
         seq = next_seq_no;
         pkts_sent++;
-        bytes_sent = next_seq_no;
+        //bytes_sent = next_seq_no;
     }
 
     return pkts_sent; 
 }
 
 int HomaFlow::send_scheduled_data(int grant_priority) {
-    // TODO: check grant == -1
+    // check if not allowed to send (more incoming flows than available scheduled priority levels at the receiver)
+    if (grant_priority == -1) {
+        return 0;
+    }
+    uint64_t seq = next_seq_no;
+    double delay = 1e-12;
+    Packet *p = NULL;
+    uint32_t pkts_sent = 0;
+    uint32_t bytes_sent_under_grant = 0;
+    while ((seq + mss <= end_seq_no) || (seq != end_seq_no && (end_seq_no - seq < mss))) {
+        p = send_with_delay(seq, delay, size, true, grant_priority);
+        if (seq + mss < size) {
+            next_seq_no = seq + mss;
+            seq += mss;
+        } else {
+            next_seq_no = size;
+            seq = size;
+        }
+        pkts_sent++;
+
+        if (retx_event == NULL) {
+            set_timeout(get_current_time() + retx_timeout);
+        }
+
+        bytes_sent_under_grant += (p->size - hdr_size);
+        if (bytes_sent_under_grant >= RTTbytes) {
+            break;
+        }
+    }
+
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
+        std::cout << "Flow[" << id << "] sends " << pkts_sent << " schedueld pkts." << std::endl;
+    }
+
+    return pkts_sent;
+
 }
 
 // sent by receiver to allow sender to send scheduled data with a grant priority
@@ -200,10 +235,11 @@ void HomaFlow::receive_grant_pkt(Grant *p) {
     if (ack > last_unacked_seq) {
         last_unacked_seq = ack;
 
-        // Send the remaining data (scheduled pkts; if there are data to send)
-        if (ack != size && !finished) {
-            send_scheduled_data(grant_priority);
-        }
+        // Send the remaining data (scheduled pkts)
+        send_scheduled_data(grant_priority);
+        //if (ack != size && !finished) {
+        //    send_scheduled_data(grant_priority);
+        //}
 
         // TODO: handle pkt loss in Homa
         // Update the retx timer
@@ -215,7 +251,6 @@ void HomaFlow::receive_grant_pkt(Grant *p) {
                 set_timeout(timeout);
             }
         }
-
     }
 
     if (ack == size && !finished) {
