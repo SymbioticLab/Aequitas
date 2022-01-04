@@ -25,6 +25,7 @@ void HomaFlow::start_flow() {
     channel->add_to_channel(this);  // so we can do SRPT
 }
 
+// TODO: select priority based on unschedued offsets
 int HomaFlow::send_unscheduled_data() {
     Packet *p = NULL;
     uint32_t pkts_sent = 0;
@@ -46,11 +47,12 @@ int HomaFlow::send_unscheduled_data() {
     return pkts_sent; 
 }
 
-int HomaFlow::send_scheduled_data() {
+int HomaFlow::send_scheduled_data(int grant_priority) {
+    // TODO: check grant == -1
 }
 
 // sent by receiver to allow sender to send scheduled data with a grant priority
-void HomaFlow::send_grant_pkt(uint64_t seq, double pkt_start_ts, bool scheduled, int grant_priority) {
+void HomaFlow::send_grant_pkt(uint64_t seq, double pkt_start_ts, int grant_priority) {
     Packet *p = new Grant(
         this,
         seq,
@@ -62,9 +64,7 @@ void HomaFlow::send_grant_pkt(uint64_t seq, double pkt_start_ts, bool scheduled,
         );
     assert(p->pf_priority == 0);
     p->start_ts = pkt_start_ts; // carry the orig packet's start_ts back to the sender for RTT measurement
-    if (!scheduled) {
-        channel->get_unscheduled_offsets(p->unscheduled_offsets);
-    }
+    channel->get_unscheduled_offsets(p->unscheduled_offsets);       // always piggyback the unschedued offsets back to sender (no matter this flow is scheduled or not)
     Queue *next_hop = topology->get_next_hop(p, src->queue);
     PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);  // adding a pd since we skip the source queue
     add_to_event_queue(event);
@@ -114,6 +114,29 @@ void HomaFlow::send_pending_data() {
     assert(false);
 }
 
+void HomaFlow::receive(Packet *p) {
+    if (finished) {
+        delete p;
+        return;
+    }
+
+    if (p->type == GRANT_PACKET) {
+        Grant *g = dynamic_cast<Grant *>(p);
+        receive_grant_pkt(g);
+    }
+    else if(p->type == NORMAL_PACKET) {
+        if (this->first_byte_receive_time == -1) {
+            this->first_byte_receive_time = get_current_time();
+        }
+        this->receive_data_pkt(p);
+    }
+    else {
+        assert(false);
+    }
+
+    delete p;
+}
+
 void HomaFlow::receive_data_pkt(Packet* p) {
     //p->flow->channel->receive_data_pkt(p);
     received_count++;
@@ -152,13 +175,55 @@ void HomaFlow::receive_data_pkt(Packet* p) {
 
     int grant_priority = 0;
     if (size > RTTbytes) {  // incoming flow is scheduled; decide grant priority for scheduled pkts
-        channel->insert_active_flow(p->flow);    
+        channel->insert_active_flow(p->flow);
         grant_priority = channel->calculate_scheduled_priority(p->flow);
     }
 
-    send_grant_pkt(recv_till, p->start_ts, p->scheduled, grant_priority); // Cumulative Ack; grant_priority is DC for unscheduled pkts
+    send_grant_pkt(recv_till, p->start_ts, grant_priority); // Cumulative Ack; grant_priority is DC for unscheduled flows
 }
 
-void HomaFlow::receive_grant(uint64_t ack) {
-    //TODO: increment num_active_flows for channel
+void HomaFlow::receive_grant_pkt(Grant *p) {
+    uint64_t ack = p->seq_no;
+    if (next_seq_no < ack) {
+        next_seq_no = ack;
+    }
+
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
+        std::cout << "HomaFlow[" << id << "] at Host[" << src->id << "] received GRANT packet"
+            << "; ack = " << ack << ", next_seq_no = " << next_seq_no << ", last_unacked_seq = " << last_unacked_seq << std::endl;
+    }
+
+    // update unscheduled priority and scheduled priority
+    unscheduled_offsets = p->unscheduled_offsets;
+    int grant_priority = p->grant_priority;
+
+    if (ack > last_unacked_seq) {
+        last_unacked_seq = ack;
+
+        // Send the remaining data (scheduled pkts; if there are data to send)
+        if (ack != size && !finished) {
+            send_scheduled_data(grant_priority);
+        }
+
+        // TODO: handle pkt loss in Homa
+        // Update the retx timer
+        if (retx_event != nullptr) { // Try to move
+            cancel_retx_event();
+            if (last_unacked_seq < size) {
+                // Move the timeout to last_unacked_seq
+                double timeout = get_current_time() + retx_timeout;
+                set_timeout(timeout);
+            }
+        }
+
+    }
+
+    if (ack == size && !finished) {
+        finished = true;
+        received.clear();
+        finish_time = get_current_time();
+        flow_completion_time = finish_time - start_time;
+        FlowFinishedEvent *ev = new FlowFinishedEvent(get_current_time(), this);
+        add_to_event_queue(ev);
+    }
 }
