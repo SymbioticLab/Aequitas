@@ -228,6 +228,9 @@ void HomaFlow::receive_data_pkt(Packet* p) {
     }
 
     send_grant_pkt(recv_till, p->start_ts, grant_priority); // Cumulative Ack; grant_priority is DC for unscheduled flows
+    if (recv_till == p->flow->size) {
+        channel->remove_active_flow(p->flow);   // discards flow state after sending out last response pkt (orig paper S3.8)
+    }
 }
 
 void HomaFlow::receive_grant_pkt(Grant *p) {
