@@ -417,6 +417,9 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
         else if (key == "homa_sampling_freq") {
             lineStream >> params.homa_sampling_freq;
         }
+        else if (key == "homa_rtt_bytes") {
+            lineStream >> params.homa_rtt_bytes;
+        }
         //else if (key == "dctcp_delayed_ack_freq") {
         //    lineStream >> params.dctcp_delayed_ack_freq;
         //}
