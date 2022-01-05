@@ -462,10 +462,11 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
     if (params.early_termination) {
         std::cout << "Terminated Flows: " << num_early_termination << std::endl;
     }
-    //std::cout << "Num 4K RPCs: " << num_4K_RPCs << std::endl;
-    std::cout << "Num 16K RPCs: " << num_16K_RPCs << std::endl;
-    std::cout << "Num 32K RPCs: " << num_32K_RPCs << std::endl;
-    std::cout << "Num 64K RPCs: " << num_64K_RPCs << std::endl;
+    if (params.test_size_to_priority) {
+        std::cout << "Num 16K RPCs: " << num_16K_RPCs << std::endl;
+        std::cout << "Num 32K RPCs: " << num_32K_RPCs << std::endl;
+        std::cout << "Num 64K RPCs: " << num_64K_RPCs << std::endl;
+    }
 
     std::vector<std::deque<Flow*>> flows_by_prio(params.weights.size());
     std::vector<std::deque<Flow*>> flows_by_init_prio(params.weights.size());
@@ -517,7 +518,7 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
             return lhs->finish_time < rhs->finish_time;
         });
         start_end_time[i] = flows_by_prio[i][flows_by_prio[i].size() - 1]->finish_time - flow_start_time;    // assuming RPCs from all Priority levels start roughly simultaneously
-        std::cout << "start_end_time[" << i << "]: " << start_end_time[i] << std::endl;
+        //std::cout << "start_end_time[" << i << "]: " << start_end_time[i] << std::endl;
 
         if (global_first_flow_time > flow_start_time) {
             global_first_flow_time = flow_start_time;
@@ -526,7 +527,7 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
             global_last_flow_time = flows_by_prio[i][flows_by_prio[i].size() - 1]->finish_time;
         }
     }
-    std::cout << "global last flow time: " << global_last_flow_time << "; global first flow time: " << global_first_flow_time << std::endl;
+    //std::cout << "global last flow time: " << global_last_flow_time << "; global first flow time: " << global_first_flow_time << std::endl;
 
     for (uint32_t i = 0; i < params.weights.size(); i++) {
         if (flows_by_prio[i].empty()) { continue; }
