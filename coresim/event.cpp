@@ -162,58 +162,51 @@ void FlowCreationForInitializationEvent::process_event() {
     if (size != 0) {
         // setting flow priority
         int flow_priority = 0;
-        if (params.flow_type == VERITAS_FLOW ||
-            params.flow_type == PFABRIC_FLOW ||
-            params.flow_type == QJUMP_FLOW ||
-            params.flow_type == D3_FLOW ||
-            params.flow_type == PDQ_FLOW) {       // TODO: set priority for all flow types; those that can't support it is supposed to ignore it
-            assert(!params.qos_ratio.empty());
-            UniformRandomVariable uv;
-            double rn = uv.value();
-            double temp = 0;
-            //if (!params.test_fairness || src->id % 4 != 0) {
-            if (params.test_size_to_priority == 1) {
-                // in this case, qos dist depends on the RPC size CDF, not on how user sets qos_ratio
-                // Hardcoded for now
-                if (size == 8192) {
-                    flow_priority = 0;
-                } else if (size == 16384) {
-                    flow_priority = 1;
-                } else if (size == 32768) {
-                    flow_priority = 2;
-                }
-            } else if (params.test_size_to_priority == 2) {
-                // in this case, qos dist depends on the RPC size CDF, not on how user sets qos_ratio
-                // Hardcoded for now
-                if (size == 8192) {
-                    flow_priority = 2;
-                } else if (size == 16384) {
-                    flow_priority = 1;
-                } else if (size == 32768){
-                    flow_priority = 0;
+        assert(!params.qos_ratio.empty());
+        UniformRandomVariable uv;
+        double rn = uv.value();
+        double temp = 0;
+        //if (!params.test_fairness || src->id % 4 != 0) {
+        if (params.test_size_to_priority == 1) {
+            // in this case, qos dist depends on the RPC size CDF, not on how user sets qos_ratio
+            // Hardcoded for now
+            if (size == 8192) {
+                flow_priority = 0;
+            } else if (size == 16384) {
+                flow_priority = 1;
+            } else if (size == 32768) {
+                flow_priority = 2;
+            }
+        } else if (params.test_size_to_priority == 2) {
+            // in this case, qos dist depends on the RPC size CDF, not on how user sets qos_ratio
+            // Hardcoded for now
+            if (size == 8192) {
+                flow_priority = 2;
+            } else if (size == 16384) {
+                flow_priority = 1;
+            } else if (size == 32768){
+                flow_priority = 0;
+            }
+        } else {
+            if (!params.test_fairness || src->id % 2 != 0) {
+                for (int i = 0; i < params.qos_ratio.size(); i++) {
+                    temp += params.qos_ratio[i];
+                    if (rn <= temp) {
+                        flow_priority = i;
+                        break;
+                    }
                 }
             } else {
-                if (!params.test_fairness || src->id % 2 != 0) {
-                    for (int i = 0; i < params.qos_ratio.size(); i++) {
-                        temp += params.qos_ratio[i];
-                        if (rn <= temp) {
-                            flow_priority = i;
-                            break;
-                        }
-                    }
-                } else {
-                    for (int i = 0; i < params.fairness_qos_dist.size(); i++) {
-                        temp += params.fairness_qos_dist[i];
-                        if (rn <= temp) {
-                            flow_priority = i;
-                            break;
-                        }
+                for (int i = 0; i < params.fairness_qos_dist.size(); i++) {
+                    temp += params.fairness_qos_dist[i];
+                    if (rn <= temp) {
+                        flow_priority = i;
+                        break;
                     }
                 }
             }
-
-
         }
+
 
         Flow *new_flow = Factory::get_flow(id, time, size, src, dst, params.flow_type, flow_priority);
 
