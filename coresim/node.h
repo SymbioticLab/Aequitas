@@ -15,6 +15,7 @@
 #define MEM 1
 #define DISK 2
 
+class Channel;
 class Flow;
 class NIC;
 class Packet;

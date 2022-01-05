@@ -18,6 +18,9 @@ simulator_SOURCES =                              \
 					ext/d3_queue.cpp             \
 					ext/d3_flow.cpp              \
 					ext/factory.cpp              \
+					ext/homa_channel.cpp		 \
+					ext/homa_flow.cpp			 \
+					ext/homa_host.cpp			 \
 					ext/veritas_flow.cpp         \
 					ext/pfabric_flow.cpp         \
 					ext/pfabric_queue.cpp        \

@@ -9,6 +9,9 @@
 #include "veritas_flow.h"
 #include "d3_flow.h"
 #include "d3_queue.h"
+#include "homa_channel.h"
+#include "homa_flow.h"
+#include "homa_host.h"
 #include "pdq_flow.h"
 #include "pdq_queue.h"
 #include "pfabric_flow.h"
@@ -40,6 +43,8 @@ Queue* Factory::get_queue(
             return new D3Queue(id, rate, queue_size, location);
         case PDQ_QUEUE:
             return new PDQQueue(id, rate, queue_size, location);
+        case HOMA_QUEUE:
+            return new PFabricQueue(id, rate, queue_size, location);
     }
     assert(false);
     return NULL;
@@ -84,6 +89,8 @@ Flow* Factory::get_flow(
             return new D3Flow(id, start_time, size, src, dst, flow_priority);
         case PDQ_FLOW:
             return new PDQFlow(id, start_time, size, src, dst, flow_priority);
+        case HOMA_FLOW:
+            return new HomaFlow(id, start_time, size, src, dst, flow_priority);
     }
     assert(false);
     return NULL;
@@ -100,6 +107,8 @@ Channel *Factory::get_channel(
         switch (flow_type) {
             case QJUMP_FLOW:
                 return new QjumpChannel(id, s, d, priority, agg_channel);
+            case HOMA_FLOW:
+                return new HomaChannel(id, s, d, priority, agg_channel);
             default:
                 return new Channel(id, s, d, priority, agg_channel);
         }
@@ -118,6 +127,8 @@ Host* Factory::get_host(
             return new Host(id, rate, queue_type, NORMAL_HOST);
         case QJUMP_HOST:
             return new QjumpHost(id, rate, queue_type, QJUMP_HOST);
+        case HOMA_HOST:
+            return new HomaHost(id, rate, queue_type, HOMA_HOST);
     }
 
     std::cerr << host_type << " unknown\n";

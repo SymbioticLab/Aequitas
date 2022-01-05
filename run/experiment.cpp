@@ -272,7 +272,7 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
         if (params.traffic_pattern == 0) {
             if (params.flow_type == HOMA_FLOW) {
                 for (uint32_t i = 0; i < params.num_hosts - 1; i++) {
-                    auto channel = new Channel(Factory::get_channel(count_channel, topology->hosts[i], topology->hosts[params.num_hosts - 1], 0, NULL, params.flow_type));
+                    auto channel = Factory::get_channel(count_channel, topology->hosts[i], topology->hosts[params.num_hosts - 1], 0, NULL, params.flow_type);
                     topology->hosts[i]->set_channel(channel);   // TODO: fix channel push
                     count_channel++;
                 }
@@ -298,7 +298,7 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
                 for (uint32_t i = 0; i < params.num_hosts; i++) {
                     for (uint32_t j = 0; j < params.num_hosts; j++) {
                         if (i != j) {
-                            auto channel = new Channel(Factory::get_channel(count_channel, topology->hosts[i], topology->hosts[j], 0, NULL, params.flow_type));
+                            auto channel = Factory::get_channel(count_channel, topology->hosts[i], topology->hosts[j], 0, NULL, params.flow_type);
                             topology->hosts[i]->set_channel(channel);
                             count_channel++;
                         }

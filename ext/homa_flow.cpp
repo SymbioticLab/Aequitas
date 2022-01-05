@@ -1,6 +1,7 @@
 #include "homa_flow.h"
 
 #include <cstdio>
+#include <assert.h>
 
 #include "../coresim/channel.h"
 #include "../coresim/event.h"
@@ -26,7 +27,7 @@ void HomaFlow::start_flow() {
 }
 
 int HomaFlow::get_unscheduled_priority() {
-    for (int i = 0; i < unscheduled_offsets.size(); i++) {
+    for (size_t i = 0; i < unscheduled_offsets.size(); i++) {
         if (size <= unscheduled_offsets[i]) {
             return i;
         }
@@ -159,7 +160,7 @@ Packet *HomaFlow::send_with_delay(uint64_t seq, double delay, uint64_t end_seq_n
 }
 
 void HomaFlow::send_pending_data() {
-    assert(false);
+    send_unscheduled_data();
 }
 
 void HomaFlow::receive(Packet *p) {
@@ -169,8 +170,7 @@ void HomaFlow::receive(Packet *p) {
     }
 
     if (p->type == GRANT_PACKET) {
-        Grant *g = dynamic_cast<Grant *>(p);
-        receive_grant_pkt(g);
+        receive_grant_pkt(p);
     }
     else if(p->type == NORMAL_PACKET) {
         if (this->first_byte_receive_time == -1) {
@@ -233,7 +233,8 @@ void HomaFlow::receive_data_pkt(Packet* p) {
     }
 }
 
-void HomaFlow::receive_grant_pkt(Grant *p) {
+void HomaFlow::receive_grant_pkt(Packet *packet) {
+    Grant *p = dynamic_cast<Grant *>(packet);
     uint64_t ack = p->seq_no;
     if (next_seq_no < ack) {
         next_seq_no = ack;
@@ -252,7 +253,7 @@ void HomaFlow::receive_grant_pkt(Grant *p) {
         last_unacked_seq = ack;
 
         // Send the remaining data (scheduled pkts)
-        send_scheduled_data(grant_priority);
+        send_scheduled_data(grant_priority);        // TODO: add to channel first so SRPT is maintained
         //if (ack != size && !finished) {
         //    send_scheduled_data(grant_priority);
         //}

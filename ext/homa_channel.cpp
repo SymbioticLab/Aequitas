@@ -1,5 +1,6 @@
 #include "homa_channel.h"
 
+#include <algorithm>
 #include <assert.h>
 #include <cstddef>
 #include <iostream>
@@ -24,6 +25,14 @@ extern std::vector<uint32_t> num_timeouts;
 //extern uint32_t num_outstanding_packets;
 extern uint32_t pkt_total_count;
 
+bool FlowComparatorHoma::operator() (Flow *a, Flow *b) {
+    if (a->size == b->size) {
+        return a->start_time > b->start_time;
+    } else {
+        return a->size > b->size;
+    }
+}
+
 HomaChannel::HomaChannel(uint32_t id, Host *s, Host *d, uint32_t priority, AggChannel *agg_channel)
     : Channel(id, s, d, priority, agg_channel) {
         overcommitment_degree = num_hw_prio_levels;
@@ -33,7 +42,6 @@ HomaChannel::HomaChannel(uint32_t id, Host *s, Host *d, uint32_t priority, AggCh
 
 HomaChannel::~HomaChannel() {}
 
-// TODO: decide flow's start & end sequence only when the flow is selcted to transmit
 void HomaChannel::add_to_channel(Flow *flow) {
     //flow->start_seq_no = end_seq_no;    
     //end_seq_no += flow->size;
@@ -47,14 +55,13 @@ void HomaChannel::add_to_channel(Flow *flow) {
     send_pkts();
 }
 
-// Allow at maximum overcommit_degree num of flows to send pkts at the same time. Flows handling transmission by themselves like pFabric
 int HomaChannel::send_pkts() {
-    while (!sender_flows.empty() && num_active_flows < overcommitment_degree) {
+    while (!sender_flows.empty()) {
         Flow *flow = sender_flows.top();
         sender_flows.pop();
-        num_active_flows++;
         flow->send_pending_data();
     }
+    return 0;
 }
 
 //void HomaChannel::increment_active_flows() {
@@ -66,12 +73,12 @@ int HomaChannel::send_pkts() {
 //    num_active_flows--;
 //}
 
-void HomaChannel::insert_active_flows(Flow *flow) {
+void HomaChannel::insert_active_flow(Flow *flow) {
     active_flows.insert(flow);
 }
 
 // Note: Homa discard flow state once the last grant packet is sent (original paper, S3.8)
-void HomaChannel::remove_active_flows(Flow *flow) {
+void HomaChannel::remove_active_flow(Flow *flow) {
     active_flows.erase(flow);
 }
 
@@ -184,7 +191,7 @@ void HomaChannel::record_flow_size(Flow* flow, bool scheduled) {
     if (record_freq == sampling_freq) {
         calculate_unscheduled_offsets();
         record_freq = 0;
-    })
+    }
 }
 
 // Homa dealing with packet loss (orig paper S3.7)

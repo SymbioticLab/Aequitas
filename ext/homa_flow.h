@@ -20,7 +20,7 @@ class HomaFlow : public Flow {
         Packet *send_with_delay(uint64_t seq, double delay, uint64_t end_seq_no, bool scheduled, int priority);
         void receive(Packet *p) override;
         void receive_data_pkt(Packet* p) override;
-        void receive_grant_pkt(Grant *p);
+        void receive_grant_pkt(Packet *p);
     private:
         std::vector<uint32_t> unscheduled_offsets;
 

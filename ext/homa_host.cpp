@@ -1,6 +1,7 @@
 #include "homa_host.h"
 
 #include <cstdio>
+#include <assert.h>
 
 #include "factory.h"
 #include "../coresim/agg_channel.h"

@@ -46,8 +46,9 @@ void Host::set_channel(Channel *channel) {
     assert(false);
 }
 
-Channel *get_channel(Host *src, Host *dst) {
+Channel *Host::get_channel(Host *src, Host *dst) {
     assert(false);
+    return NULL;
 }
 
 void Host::send_next_pkt(uint32_t priority) {
