@@ -59,6 +59,9 @@ int HomaChannel::send_pkts() {
     while (!sender_flows.empty()) {
         Flow *flow = sender_flows.top();
         sender_flows.pop();
+        if (params.debug_event_info) {
+            std::cout << "Flow[" << flow->id << "] popped from sender flow queue" << std::endl;
+        }
         flow->send_pending_data();
     }
     return 0;
@@ -130,6 +133,7 @@ void HomaChannel::get_unscheduled_offsets(std::vector<uint32_t> &vec) {
     vec = curr_unscheduled_offsets;
 }
 
+// TODO: consider the case where no samples have been collected
 void HomaChannel::calculate_unscheduled_offsets() {
     curr_unscheduled_offsets.clear();
     double unscheduled_bytes = 0, scheduled_bytes = 0;

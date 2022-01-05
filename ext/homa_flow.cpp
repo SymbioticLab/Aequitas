@@ -43,13 +43,14 @@ int HomaFlow::send_unscheduled_data() {
     uint64_t seq = next_seq_no;
     int priority = get_unscheduled_priority();
     
-    while (next_seq_no < RTTbytes) {    // assuming RTTbytes does not include hdr_size for simplicity
+    while (next_seq_no < RTTbytes && next_seq_no < size) {    // assuming RTTbytes does not include hdr_size for simplicity
         if (size <= RTTbytes) {
             p = send_with_delay(seq, delay, size, false, priority);
         } else {
             p = send_with_delay(seq, delay, RTTbytes, false, priority);
         }
         next_seq_no += (p->size - hdr_size);
+        //std::cout << "next_seq_no: " << next_seq_no << std::endl;
         seq = next_seq_no;
         pkts_sent++;
     }
@@ -152,7 +153,7 @@ Packet *HomaFlow::send_with_delay(uint64_t seq, double delay, uint64_t end_seq_n
     PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay + delay, p, next_hop);  // adding a pd since we skip the source queue
     add_to_event_queue(event);
     if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
-        std::cout << "sending out Packet[" << p->unique_id << "] at time: " << get_current_time() + delay << " (base=" << get_current_time() << "; delay=" << delay << ")" << std::endl;
+        std::cout << "Flow[" << id << "] from Host[" << src->id << "] sends out Packet[" << p->unique_id << "] at time: " << get_current_time() + delay << std::endl;
     }
 
     return p;
