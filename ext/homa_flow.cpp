@@ -47,11 +47,11 @@ int HomaFlow::send_unscheduled_data() {
     uint64_t seq = next_seq_no;
     int priority = get_unscheduled_priority();
     
-    while (next_seq_no < RTTbytes && next_seq_no < size) {    // assuming RTTbytes does not include hdr_size for simplicity
-        if (size <= RTTbytes) {
+    while (next_seq_no < params.homa_rtt_bytes && next_seq_no < size) {    // assuming RTTbytes does not include hdr_size for simplicity
+        if (size <= params.homa_rtt_bytes) {
             p = send_with_delay(seq, delay, size, false, priority);
         } else {
-            p = send_with_delay(seq, delay, RTTbytes, false, priority);
+            p = send_with_delay(seq, delay, params.homa_rtt_bytes, false, priority);
         }
         next_seq_no += (p->size - hdr_size);
         //std::cout << "next_seq_no: " << next_seq_no << std::endl;
@@ -92,7 +92,7 @@ int HomaFlow::send_scheduled_data() {
         }
 
         bytes_sent_under_grant += (p->size - hdr_size);
-        if (bytes_sent_under_grant >= RTTbytes) {
+        if (bytes_sent_under_grant >= params.homa_rtt_bytes) {
             break;
         }
     }
@@ -255,7 +255,7 @@ void HomaFlow::receive_data_pkt(Packet* p) {
     channel->record_flow_size(this, p->scheduled);   // it also triggers calculation of unscheduled priorities
 
     int grant_priority = 0;
-    if (size > RTTbytes) {  // incoming flow is scheduled; decide grant priority for scheduled pkts
+    if (size > params.homa_rtt_bytes) {  // incoming flow is scheduled; decide grant priority for scheduled pkts
         channel->insert_active_flow(this);
         grant_priority = channel->calculate_scheduled_priority(this);
     }
@@ -348,7 +348,7 @@ void HomaFlow::handle_timeout() {
     next_seq_no = last_unacked_seq;
 
     int grant_priority = 0;
-    if (size > RTTbytes) {  // incoming flow is scheduled; decide grant priority for scheduled pkts
+    if (size > params.homa_rtt_bytes) {  // incoming flow is scheduled; decide grant priority for scheduled pkts
         channel->insert_active_flow(this);
         grant_priority = channel->calculate_scheduled_priority(this);
     }

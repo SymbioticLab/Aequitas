@@ -74,6 +74,8 @@ class DCExpParams {
         uint32_t test_fairness;            // assign disproportional qos distribution to test fairness; only available in ALL-to-ALL pattern for now
         std::vector<double> fairness_qos_dist;
         uint32_t test_size_to_priority;        // used to create cases where size is corresponding to priority or not; 0: turn off; 1: size corresponds to priority; 2: size doesn't correspdons to priority; default off
+        uint32_t homa_sampling_freq;
+        uint32_t homa_rtt_bytes;
 
         uint32_t debug_event_info;
 

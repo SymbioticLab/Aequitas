@@ -189,7 +189,7 @@ void HomaChannel::record_flow_size(Flow* flow, bool scheduled) {
             record_freq++;
         }
     }
-    if (record_freq == sampling_freq) {
+    if (record_freq == params.homa_sampling_freq) {
         calculate_unscheduled_offsets();
         record_freq = 0;
     }

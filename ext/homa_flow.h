@@ -3,8 +3,6 @@
 
 #include "../coresim/flow.h"
 
-#define RTTbytes 100*1024       // assuming 100Gbps network
-
 class Packet;
 
 class HomaFlow : public Flow {

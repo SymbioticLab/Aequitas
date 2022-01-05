@@ -8,8 +8,6 @@
 #include <queue>
 
 
-#define sampling_freq   5000    // # of new flows before doing another schedule_unschedued_priority()
-
 class Flow;
 class Host;
 class Packet;
