@@ -11,6 +11,7 @@
 #define FIN_PACKET 12       // used by D3;
 #define PROBE_PACKET 13     // used by PDQ
 #define GRANT_PACKET 14     // used by Homa
+#define RESEND_PACKET 15    // used by Homa
 
 #define RTS_PACKET 3
 #define CTS_PACKET 4
@@ -113,6 +114,11 @@ class Grant : public Ack {
     public:
         Grant(Flow *flow, uint64_t seq_no_acked, uint32_t size, Host *src, Host *dst, int grant_priority);
         int grant_priority;
+};
+
+class Resend : public Ack {
+    public:
+        Resend(Flow *flow, uint64_t seq_no_acked, uint32_t size, Host *src, Host *dst);
 };
 
 class RTSCTS : public Packet {

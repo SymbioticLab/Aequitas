@@ -83,6 +83,12 @@ Fin::Fin(double sending_time, double prev_desired_rate, double prev_allocated_ra
 Grant::Grant(Flow *flow, uint64_t seq_no_acked, uint32_t size, Host *src, Host *dst, int grant_priority)
         : Ack(flow, seq_no_acked, std::vector<uint64_t>(), size, src, dst) {
     this->grant_priority = grant_priority;
+    this->type = GRANT_PACKET;
+}
+
+Resend::Resend(Flow *flow, uint64_t seq_no_acked, uint32_t size, Host *src, Host *dst)
+        : Ack(flow, seq_no_acked, std::vector<uint64_t>(), size, src, dst) {
+    this->type = RESEND_PACKET;
 }
 
 RTSCTS::RTSCTS(bool type, double sending_time, Flow *f, uint32_t size, Host *src, Host *dst) : Packet(sending_time, f, 0, 0, f->hdr_size, src, dst) {

@@ -114,11 +114,11 @@ void HomaFlow::send_grant_pkt(uint64_t seq, double pkt_start_ts, int grant_prior
     assert(p->pf_priority == 0);
     p->start_ts = pkt_start_ts; // carry the orig packet's start_ts back to the sender for RTT measurement
     channel->get_unscheduled_offsets(p->unscheduled_offsets);       // always piggyback the unschedued offsets back to sender (no matter this flow is scheduled or not)
-    Queue *next_hop = topology->get_next_hop(p, src->queue);
+    Queue *next_hop = topology->get_next_hop(p, dst->queue);
     PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);  // adding a pd since we skip the source queue
     add_to_event_queue(event);
     if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
-        std::cout << "Host[" << src->id << "] sends out Fin Packet[" << p->unique_id << "] from Flow[" << id << "] at time: " << get_current_time() << std::endl;
+        std::cout << "Host[" << src->id << "] sends out Grant Packet[" << p->unique_id << "] from Flow[" << id << "] at time: " << get_current_time() << std::endl;
     }
 }
 
@@ -149,12 +149,11 @@ Packet *HomaFlow::send_with_delay(uint64_t seq, double delay, uint64_t end_seq_n
     }
 
     Queue *next_hop = topology->get_next_hop(p, src->queue);
+    PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay + delay, p, next_hop);  // adding a pd since we skip the source queue
+    add_to_event_queue(event);
     if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
         std::cout << "sending out Packet[" << p->unique_id << "] at time: " << get_current_time() + delay << " (base=" << get_current_time() << "; delay=" << delay << ")" << std::endl;
     }
-    //PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + delay, p, next_hop);
-    PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay + delay, p, next_hop);  // adding a pd since we skip the source queue
-    add_to_event_queue(event);
 
     return p;
 }
@@ -164,6 +163,25 @@ void HomaFlow::send_pending_data() {
         send_unscheduled_data();
     } else {
         send_scheduled_data();
+    }
+}
+
+void HomaFlow::send_resend_pkt() {
+    Packet *p = new Resend(
+        this,
+        recv_till,
+        hdr_size,
+        dst,
+        src
+    );
+    assert(p->pf_priority == 0);
+    channel->get_unscheduled_offsets(p->unscheduled_offsets);       // always piggyback the unschedued offsets back to sender (no matter this flow is scheduled or not)
+    Queue *next_hop = topology->get_next_hop(p, dst->queue);
+    PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);
+    add_to_event_queue(event);
+
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
+        std::cout << "Host[" << src->id << "] sends out Resend Packet[" << p->unique_id << "] from Flow[" << id << "] at time: " << get_current_time() << std::endl;
     }
 }
 
@@ -235,6 +253,16 @@ void HomaFlow::receive_data_pkt(Packet* p) {
     if (recv_till == p->flow->size) {
         channel->remove_active_flow(p->flow);   // discards flow state after sending out last response pkt (orig paper S3.8)
     }
+
+    // set receiver-side timeout
+    if (retx_event != nullptr) {
+        cancel_retx_event();
+        if (last_unacked_seq < size) {
+            // Move the timeout to last_unacked_seq
+            double timeout = get_current_time() + retx_timeout;
+            set_timeout(timeout);
+        }
+    }
 }
 
 void HomaFlow::receive_grant_pkt(Packet *packet) {
@@ -258,22 +286,12 @@ void HomaFlow::receive_grant_pkt(Packet *packet) {
         last_unacked_seq = ack;
 
         // Send the remaining data (scheduled pkts)
-        channel->add_to_channel(p->flow);        // TODO: add to channel first so SRPT is maintained
+        channel->add_to_channel(p->flow);
         //send_scheduled_data(grant_priority);
         //if (ack != size && !finished) {
         //    send_scheduled_data(grant_priority);
         //}
 
-        // TODO: handle pkt loss in Homa
-        // Update the retx timer
-        if (retx_event != nullptr) { // Try to move
-            cancel_retx_event();
-            if (last_unacked_seq < size) {
-                // Move the timeout to last_unacked_seq
-                double timeout = get_current_time() + retx_timeout;
-                set_timeout(timeout);
-            }
-        }
     }
 
     if (ack == size && !finished) {
@@ -284,4 +302,40 @@ void HomaFlow::receive_grant_pkt(Packet *packet) {
         FlowFinishedEvent *ev = new FlowFinishedEvent(get_current_time(), this);
         add_to_event_queue(ev);
     }
+}
+
+void HomaFlow::receive_resend_pkt(Packet *packet) {
+    Resend *p = dynamic_cast<Resend *>(packet);
+    uint64_t ack = p->seq_no;
+    if (next_seq_no < ack) {
+        next_seq_no = ack;
+    }
+
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
+        std::cout << "HomaFlow[" << id << "] at Host[" << src->id << "] received GRANT packet"
+            << "; ack = " << ack << ", next_seq_no = " << next_seq_no << ", last_unacked_seq = " << last_unacked_seq << std::endl;
+    }
+
+    unscheduled_offsets = p->unscheduled_offsets;
+    grant_priority = p->grant_priority;
+
+    if (ack > last_unacked_seq) {
+        last_unacked_seq = ack;
+        channel->add_to_channel(p->flow);
+        }
+    }
+}
+
+void HomaFlow::set_timeout(doubel time) {
+    if (last_unacked_seq < size) {
+        RetxTimeoutEvent *ev = new RetxTimeoutEvent(time, this);
+        add_to_event_queue(ev);
+        retx_event = ev;
+    }
+}
+
+void HomaFlow::handle_timeout() {
+    next_seq_no = last_unacked_seq;
+    send_pending_data();
+    set_timeout(get_current_time() + retx_timeout);
 }
