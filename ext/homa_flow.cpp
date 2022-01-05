@@ -27,6 +27,10 @@ void HomaFlow::start_flow() {
 }
 
 int HomaFlow::get_unscheduled_priority() {
+    if (unscheduled_offsets.empty()) {
+        return 0;
+    }
+
     for (size_t i = 0; i < unscheduled_offsets.size(); i++) {
         if (size <= unscheduled_offsets[i]) {
             return i;
@@ -119,7 +123,7 @@ void HomaFlow::send_grant_pkt(uint64_t seq, double pkt_start_ts, int grant_prior
     PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);  // adding a pd since we skip the source queue
     add_to_event_queue(event);
     if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
-        std::cout << "Host[" << src->id << "] sends out Grant Packet[" << p->unique_id << "] from Flow[" << id << "] at time: " << get_current_time() << std::endl;
+        std::cout << "Host[" << src->id << "] sends out Grant Packet[" << p->unique_id << "] (grant prio = " << grant_priority << ") from Flow[" << id << "] at time: " << get_current_time() << std::endl;
     }
 }
 
@@ -153,7 +157,11 @@ Packet *HomaFlow::send_with_delay(uint64_t seq, double delay, uint64_t end_seq_n
     PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay + delay, p, next_hop);  // adding a pd since we skip the source queue
     add_to_event_queue(event);
     if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
-        std::cout << "Flow[" << id << "] from Host[" << src->id << "] sends out Packet[" << p->unique_id << "] at time: " << get_current_time() + delay << std::endl;
+        if (scheduled) {
+            std::cout << "Flow[" << id << "] from Host[" << src->id << "] sends out scheduled Packet[" << p->unique_id << "] (prio=" << priority << ") at time: " << get_current_time() + delay << std::endl;
+        } else {
+            std::cout << "Flow[" << id << "] from Host[" << src->id << "] sends out unscheduled Packet[" << p->unique_id << "] (prio=" << priority << ") at time: " << get_current_time() + delay << std::endl;
+        }
     }
 
     return p;

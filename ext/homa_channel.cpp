@@ -35,7 +35,6 @@ bool FlowComparatorHoma::operator() (Flow *a, Flow *b) {
 
 HomaChannel::HomaChannel(uint32_t id, Host *s, Host *d, uint32_t priority, AggChannel *agg_channel)
     : Channel(id, s, d, priority, agg_channel) {
-        overcommitment_degree = num_hw_prio_levels;
         record_freq = 0;
         curr_unscheduled_prio_levels = 0;
     }
@@ -43,10 +42,6 @@ HomaChannel::HomaChannel(uint32_t id, Host *s, Host *d, uint32_t priority, AggCh
 HomaChannel::~HomaChannel() {}
 
 void HomaChannel::add_to_channel(Flow *flow) {
-    //flow->start_seq_no = end_seq_no;    
-    //end_seq_no += flow->size;
-    //outstanding_flows.push_back(flow);    // for RPC boundary, tie flow to pkt, easy handling of flow_finish, etc.
-    //flow->end_seq_no = end_seq_no;
     //std::cout << "add_to_channel[" << id << "]: end_seq_no = " << end_seq_no << std::endl;
     sender_flows.push(flow);
     if (params.debug_event_info) {
@@ -100,8 +95,8 @@ struct FlowCompator2 {
     }
 } fc;
 
-// TODO: check range of avail prio levels after the impl of unscheduled prio
 int HomaChannel::calculate_scheduled_priority(Flow *flow) {
+    uint32_t num_avail_scheduled_prio_levels = num_hw_prio_levels - curr_unscheduled_prio_levels;
     std::vector<Flow *> active_flow_vec;
     for (const auto &f : active_flows) {
         active_flow_vec.push_back(f);
@@ -109,8 +104,8 @@ int HomaChannel::calculate_scheduled_priority(Flow *flow) {
     std::sort(active_flow_vec.begin(), active_flow_vec.end(), fc);
 
     int num_active_flows = active_flow_vec.size();
-    if (num_active_flows <= num_hw_prio_levels) {
-        int prio = num_hw_prio_levels - 1;
+    if (num_active_flows <= num_avail_scheduled_prio_levels) {
+        int prio = num_avail_scheduled_prio_levels - 1;
         for (size_t i = num_active_flows - 1; i >= 0; i--) {
             if (active_flow_vec[i]->id == flow->id) {
                 return prio;
@@ -119,7 +114,7 @@ int HomaChannel::calculate_scheduled_priority(Flow *flow) {
         }
         assert(false);
     } else {
-        for (size_t i = 0; i < num_hw_prio_levels; i++) {
+        for (size_t i = 0; i < num_avail_scheduled_prio_levels; i++) {
             if (active_flow_vec[i]->id == flow->id) {
                 return i;
             }
@@ -133,7 +128,6 @@ void HomaChannel::get_unscheduled_offsets(std::vector<uint32_t> &vec) {
     vec = curr_unscheduled_offsets;
 }
 
-// TODO: consider the case where no samples have been collected
 void HomaChannel::calculate_unscheduled_offsets() {
     curr_unscheduled_offsets.clear();
     double unscheduled_bytes = 0, scheduled_bytes = 0;
@@ -146,6 +140,9 @@ void HomaChannel::calculate_unscheduled_offsets() {
 
     double unscheduled_pctg = unscheduled_bytes/(unscheduled_bytes + scheduled_bytes);
     curr_unscheduled_prio_levels = unscheduled_pctg * num_hw_prio_levels;
+    if (curr_unscheduled_prio_levels == 0) {
+        curr_unscheduled_prio_levels = 1;   // at least assign 1 level
+    }
     uint32_t bytes_per_level = unscheduled_bytes / curr_unscheduled_prio_levels;
 
     std::sort(sampled_unscheduled_flow_size.begin(), sampled_unscheduled_flow_size.end());

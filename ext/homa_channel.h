@@ -42,7 +42,6 @@ class HomaChannel : public Channel {
 
 
     private:
-        int overcommitment_degree;
         int record_freq;
         std::priority_queue<Flow*, std::vector<Flow*>, FlowComparatorHoma> sender_flows;
         //std::map<Flow *, int> active_flows;            // flows with size > RTTbytes; maintained by receiver

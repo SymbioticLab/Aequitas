@@ -819,7 +819,8 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
     }
 
 
-    if (params.flow_type != QJUMP_FLOW && params.flow_type != D3_FLOW && params.flow_type != PDQ_FLOW) {
+    ////if (params.flow_type != QJUMP_FLOW && params.flow_type != D3_FLOW && params.flow_type != PDQ_FLOW) {
+    if (params.flow_type == VERITAS_FLOW) {
         std::vector<double> final_avg_qos_dist;
         std::cout << "Final QoS Dist: ";
         std::cout << std::setprecision(1) << std::fixed;
