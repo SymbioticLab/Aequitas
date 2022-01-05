@@ -166,13 +166,15 @@ void HomaFlow::send_pending_data() {
     }
 }
 
-void HomaFlow::send_resend_pkt() {
+// called by receiver
+void HomaFlow::send_resend_pkt(uint64_t seq, int grant_priority) {
     Packet *p = new Resend(
         this,
-        recv_till,
+        seq,
         hdr_size,
         dst,
-        src
+        src,
+        grant_priority
     );
     assert(p->pf_priority == 0);
     channel->get_unscheduled_offsets(p->unscheduled_offsets);       // always piggyback the unschedued offsets back to sender (no matter this flow is scheduled or not)
@@ -193,12 +195,13 @@ void HomaFlow::receive(Packet *p) {
 
     if (p->type == GRANT_PACKET) {
         receive_grant_pkt(p);
-    }
-    else if(p->type == NORMAL_PACKET) {
+    } else if (p->type == NORMAL_PACKET) {
         if (this->first_byte_receive_time == -1) {
             this->first_byte_receive_time = get_current_time();
         }
         this->receive_data_pkt(p);
+    } else if (p->type == RESEND_PACKET) {
+        receive_resend_pkt(p); 
     }
     else {
         assert(false);
@@ -208,7 +211,6 @@ void HomaFlow::receive(Packet *p) {
 }
 
 void HomaFlow::receive_data_pkt(Packet* p) {
-    //p->flow->channel->receive_data_pkt(p);
     received_count++;
     total_queuing_time += p->total_queuing_delay;
 
@@ -241,17 +243,17 @@ void HomaFlow::receive_data_pkt(Packet* p) {
     }
     //std::cout << "Flow[" << id << "] receive_data_pkt: received_count = " << received_count << "; received_bytes = " << received_bytes << std::endl;
 
-    channel->record_flow_size(p->flow, p->scheduled);   // it also triggers calculation of unscheduled priorities
+    channel->record_flow_size(this, p->scheduled);   // it also triggers calculation of unscheduled priorities
 
     int grant_priority = 0;
     if (size > RTTbytes) {  // incoming flow is scheduled; decide grant priority for scheduled pkts
-        channel->insert_active_flow(p->flow);
-        grant_priority = channel->calculate_scheduled_priority(p->flow);
+        channel->insert_active_flow(this);
+        grant_priority = channel->calculate_scheduled_priority(this);
     }
 
     send_grant_pkt(recv_till, p->start_ts, grant_priority); // Cumulative Ack; grant_priority is DC for unscheduled flows
-    if (recv_till == p->flow->size) {
-        channel->remove_active_flow(p->flow);   // discards flow state after sending out last response pkt (orig paper S3.8)
+    if (recv_till == size) {
+        channel->remove_active_flow(this);   // discards flow state after sending out last response pkt (orig paper S3.8)
     }
 
     // set receiver-side timeout
@@ -267,7 +269,7 @@ void HomaFlow::receive_data_pkt(Packet* p) {
 
 void HomaFlow::receive_grant_pkt(Packet *packet) {
     Grant *p = dynamic_cast<Grant *>(packet);
-    p->flow->has_received_grant = true;
+    has_received_grant = true;
     uint64_t ack = p->seq_no;
     if (next_seq_no < ack) {
         next_seq_no = ack;
@@ -286,7 +288,7 @@ void HomaFlow::receive_grant_pkt(Packet *packet) {
         last_unacked_seq = ack;
 
         // Send the remaining data (scheduled pkts)
-        channel->add_to_channel(p->flow);
+        channel->add_to_channel(this);
         //send_scheduled_data(grant_priority);
         //if (ack != size && !finished) {
         //    send_scheduled_data(grant_priority);
@@ -321,12 +323,11 @@ void HomaFlow::receive_resend_pkt(Packet *packet) {
 
     if (ack > last_unacked_seq) {
         last_unacked_seq = ack;
-        channel->add_to_channel(p->flow);
-        }
+        channel->add_to_channel(this);
     }
 }
 
-void HomaFlow::set_timeout(doubel time) {
+void HomaFlow::set_timeout(double time) {
     if (last_unacked_seq < size) {
         RetxTimeoutEvent *ev = new RetxTimeoutEvent(time, this);
         add_to_event_queue(ev);
@@ -336,6 +337,13 @@ void HomaFlow::set_timeout(doubel time) {
 
 void HomaFlow::handle_timeout() {
     next_seq_no = last_unacked_seq;
-    send_pending_data();
+
+    int grant_priority = 0;
+    if (size > RTTbytes) {  // incoming flow is scheduled; decide grant priority for scheduled pkts
+        channel->insert_active_flow(this);
+        grant_priority = channel->calculate_scheduled_priority(this);
+    }
+    send_resend_pkt(recv_till, grant_priority); // Cumulative Ack; grant_priority is DC for unscheduled flows
+
     set_timeout(get_current_time() + retx_timeout);
 }

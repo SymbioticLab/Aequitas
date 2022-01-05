@@ -118,7 +118,8 @@ class Grant : public Ack {
 
 class Resend : public Ack {
     public:
-        Resend(Flow *flow, uint64_t seq_no_acked, uint32_t size, Host *src, Host *dst);
+        Resend(Flow *flow, uint64_t seq_no_acked, uint32_t size, Host *src, Host *dst, int grant_priority);
+        int grant_priority;
 };
 
 class RTSCTS : public Packet {

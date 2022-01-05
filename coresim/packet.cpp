@@ -86,8 +86,9 @@ Grant::Grant(Flow *flow, uint64_t seq_no_acked, uint32_t size, Host *src, Host *
     this->type = GRANT_PACKET;
 }
 
-Resend::Resend(Flow *flow, uint64_t seq_no_acked, uint32_t size, Host *src, Host *dst)
+Resend::Resend(Flow *flow, uint64_t seq_no_acked, uint32_t size, Host *src, Host *dst, int grant_priority)
         : Ack(flow, seq_no_acked, std::vector<uint64_t>(), size, src, dst) {
+    this->grant_priority = grant_priority;
     this->type = RESEND_PACKET;
 }
 
