@@ -95,6 +95,8 @@ Flow::Flow(uint32_t id, double start_time, uint32_t size, Host *s, Host *d) {
     this->terminated = false;
 
     this->sw_flow_state = FlowState();
+
+    this->has_received_grant = false;
 }
 
 Flow::Flow(uint32_t id, double start_time, uint32_t size, Host *s, Host *d, uint32_t flow_priority) :

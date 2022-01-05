@@ -23,7 +23,7 @@ HomaFlow::HomaFlow(uint32_t id, double start_time, uint32_t size, Host *s, Host 
 
 void HomaFlow::start_flow() {
     run_priority = flow_priority;
-    channel->add_to_channel(this);  // so we can do SRPT
+    channel->add_to_channel(this);
 }
 
 int HomaFlow::get_unscheduled_priority() {
@@ -61,7 +61,7 @@ int HomaFlow::send_unscheduled_data() {
     return pkts_sent; 
 }
 
-int HomaFlow::send_scheduled_data(int grant_priority) {
+int HomaFlow::send_scheduled_data() {
     // check if not allowed to send (more incoming flows than available scheduled priority levels at the receiver)
     if (grant_priority == -1) {
         return 0;
@@ -160,7 +160,11 @@ Packet *HomaFlow::send_with_delay(uint64_t seq, double delay, uint64_t end_seq_n
 }
 
 void HomaFlow::send_pending_data() {
-    send_unscheduled_data();
+    if (!has_received_grant) {
+        send_unscheduled_data();
+    } else {
+        send_scheduled_data();
+    }
 }
 
 void HomaFlow::receive(Packet *p) {
@@ -235,6 +239,7 @@ void HomaFlow::receive_data_pkt(Packet* p) {
 
 void HomaFlow::receive_grant_pkt(Packet *packet) {
     Grant *p = dynamic_cast<Grant *>(packet);
+    p->flow->has_received_grant = true;
     uint64_t ack = p->seq_no;
     if (next_seq_no < ack) {
         next_seq_no = ack;
@@ -247,13 +252,14 @@ void HomaFlow::receive_grant_pkt(Packet *packet) {
 
     // update unscheduled priority and scheduled priority
     unscheduled_offsets = p->unscheduled_offsets;
-    int grant_priority = p->grant_priority;
+    grant_priority = p->grant_priority;
 
     if (ack > last_unacked_seq) {
         last_unacked_seq = ack;
 
         // Send the remaining data (scheduled pkts)
-        send_scheduled_data(grant_priority);        // TODO: add to channel first so SRPT is maintained
+        channel->add_to_channel(p->flow);        // TODO: add to channel first so SRPT is maintained
+        //send_scheduled_data(grant_priority);
         //if (ack != size && !finished) {
         //    send_scheduled_data(grant_priority);
         //}

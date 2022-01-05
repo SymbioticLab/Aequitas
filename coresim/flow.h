@@ -137,6 +137,8 @@ class Flow {
 
         // QID: specifies which EventQueue this flow's events should go to
         uint32_t qid;       //TOOD: completely remove
+
+        bool has_received_grant;  // used by Homa
 };
 
 #endif // CORESIM_FLOW_H
