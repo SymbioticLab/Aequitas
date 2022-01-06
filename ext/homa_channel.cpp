@@ -44,7 +44,7 @@ HomaChannel::~HomaChannel() {}
 void HomaChannel::add_to_channel(Flow *flow) {
     //std::cout << "add_to_channel[" << id << "]: end_seq_no = " << end_seq_no << std::endl;
     sender_flows.push(flow);
-    if (params.debug_event_info) {
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == flow->id)) {
         std::cout << "Flow[" << flow->id << "] added to Channel[" << id << "]" << std::endl;
     }
     send_pkts();
@@ -54,7 +54,7 @@ int HomaChannel::send_pkts() {
     while (!sender_flows.empty()) {
         Flow *flow = sender_flows.top();
         sender_flows.pop();
-        if (params.debug_event_info) {
+        if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == flow->id)) {
             std::cout << "Flow[" << flow->id << "] popped from sender flow queue" << std::endl;
         }
         flow->send_pending_data();

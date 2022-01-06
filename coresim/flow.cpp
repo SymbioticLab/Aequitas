@@ -204,7 +204,8 @@ uint32_t Flow::send_pkts() {
             next_seq_no = seq + mss;
             seq += mss;
         } else {
-            next_seq_no = end_seq_no;
+            //next_seq_no = end_seq_no;
+            next_seq_no = size;
             seq = size;
         }
 

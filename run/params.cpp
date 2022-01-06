@@ -84,7 +84,7 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
     params.pfabric_limited_priority = 0;
     params.cdf_info = 0;
     params.homa_sampling_freq = 5000;
-    params.homa_rtt_bytes = 100*1024;   // assuming 100Gbps network
+    params.homa_rttbytes_in_mss = 100;   // assuming 100Gbps network
     //params.enable_initial_shift = 0;
     //params.dynamic_load = std::vector<double>();
     while (std::getline(input, line)) {
@@ -417,8 +417,8 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
         else if (key == "homa_sampling_freq") {
             lineStream >> params.homa_sampling_freq;
         }
-        else if (key == "homa_rtt_bytes") {
-            lineStream >> params.homa_rtt_bytes;
+        else if (key == "homa_rttbytes_in_mss") {
+            lineStream >> params.homa_rttbytes_in_mss;
         }
         //else if (key == "dctcp_delayed_ack_freq") {
         //    lineStream >> params.dctcp_delayed_ack_freq;
@@ -711,8 +711,8 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
     } else {
         std::cout << "Disable Priority Downgrade." << std::endl;
     }
-    //params.mss = 1460;
     params.mss = params.mtu - params.hdr_size;
+    params.homa_rtt_bytes = params.homa_rttbytes_in_mss * params.mss;
     std::cout << "Init cwnd: " << params.initial_cwnd << std::endl;
     std::cout << "Max cwnd: " << params.max_cwnd << std::endl;
     std::cout << "Num Hosts: " << params.num_hosts << std::endl;

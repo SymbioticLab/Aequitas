@@ -76,7 +76,7 @@ int HomaFlow::send_scheduled_data() {
     Packet *p = NULL;
     uint32_t pkts_sent = 0;
     uint32_t bytes_sent_under_grant = 0;
-    while ((seq + mss <= end_seq_no) || (seq != end_seq_no && (end_seq_no - seq < mss))) {
+    while ((seq + mss <= size) || (seq != size && (size - seq < mss))) {
         p = send_with_delay(seq, delay, size, true, grant_priority);
         if (seq + mss < size) {
             next_seq_no = seq + mss;
@@ -94,6 +94,9 @@ int HomaFlow::send_scheduled_data() {
         bytes_sent_under_grant += (p->size - hdr_size);
         if (bytes_sent_under_grant >= params.homa_rtt_bytes) {
             break;
+        }
+        if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
+            std::cout << "<><><> seq: " << seq << ", next_seq_no: " << next_seq_no << std::endl;
         }
     }
 
@@ -123,7 +126,7 @@ void HomaFlow::send_grant_pkt(uint64_t seq, double pkt_start_ts, int grant_prior
     PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);  // adding a pd since we skip the source queue
     add_to_event_queue(event);
     if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
-        std::cout << "Host[" << src->id << "] sends out Grant Packet[" << p->unique_id << "] (grant prio = " << grant_priority << ") from Flow[" << id << "] at time: " << get_current_time() << std::endl;
+        std::cout << "Host[" << dst->id << "] sends out Grant Packet[" << p->unique_id << "] (ack = " << seq << ", grant prio = " << grant_priority << ") from Flow[" << id << "] at time: " << get_current_time() << std::endl;
     }
 }
 
@@ -158,9 +161,9 @@ Packet *HomaFlow::send_with_delay(uint64_t seq, double delay, uint64_t end_seq_n
     add_to_event_queue(event);
     if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
         if (scheduled) {
-            std::cout << "Flow[" << id << "] from Host[" << src->id << "] sends out scheduled Packet[" << p->unique_id << "] (prio=" << priority << ") at time: " << get_current_time() + delay << std::endl;
+            std::cout << "Flow[" << id << "] from Host[" << src->id << "] sends out scheduled Packet[" << p->unique_id << "] (seq = " << seq << ", prio=" << priority << ") at time: " << get_current_time() + delay << std::endl;
         } else {
-            std::cout << "Flow[" << id << "] from Host[" << src->id << "] sends out unscheduled Packet[" << p->unique_id << "] (prio=" << priority << ") at time: " << get_current_time() + delay << std::endl;
+            std::cout << "Flow[" << id << "] from Host[" << src->id << "] sends out unscheduled Packet[" << p->unique_id << "] (seq = " << seq << ", prio=" << priority << ") at time: " << get_current_time() + delay << std::endl;
         }
     }
 
@@ -192,7 +195,7 @@ void HomaFlow::send_resend_pkt(uint64_t seq, int grant_priority) {
     add_to_event_queue(event);
 
     if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
-        std::cout << "Host[" << src->id << "] sends out Resend Packet[" << p->unique_id << "] from Flow[" << id << "] at time: " << get_current_time() << std::endl;
+        std::cout << "Host[" << dst->id << "] sends out Resend Packet[" << p->unique_id << "] from Flow[" << id << "] at time: " << get_current_time() << std::endl;
     }
 }
 
@@ -231,6 +234,7 @@ void HomaFlow::receive_data_pkt(Packet* p) {
         max_seq_no_recv = p->seq_no;
     }
     // Determing which ack to send
+    // Yiwen: For simplicity, assume RTTbytes are alwyas N * mss
     uint64_t s = recv_till;
     bool in_sequence = true;
     //std::vector<uint64_t> sack_list;
@@ -249,8 +253,16 @@ void HomaFlow::receive_data_pkt(Packet* p) {
             in_sequence = false;
         }
         s += mss;
+        if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
+            std::cout << "[][][] s: " << s << ", recv_till: " << recv_till << ", max_seq_no_recv: "<< max_seq_no_recv << ", in_sequence: " << in_sequence << std::endl;
+        }
+
     }
-    //std::cout << "Flow[" << id << "] receive_data_pkt: received_count = " << received_count << "; received_bytes = " << received_bytes << std::endl;
+
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
+        std::cout << "Flow[" << id << "] receive_data_pkt: received_count = " << received_count << "; received_bytes = " << received_bytes
+            << "; max_seq_no_recv = " << max_seq_no_recv << "; recv_till: " << recv_till << std::endl;
+    }
 
     channel->record_flow_size(this, p->scheduled);   // it also triggers calculation of unscheduled priorities
 
