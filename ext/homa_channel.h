@@ -35,8 +35,6 @@ class HomaChannel : public Channel {
         void get_unscheduled_offsets(std::vector<uint32_t> &vec);
         void record_flow_size(Flow* flow, bool scheduled) override;
         int get_sender_priority();
-        void set_timeout(double time) override;
-        void handle_timeout() override;
 
 
     private:

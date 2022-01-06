@@ -680,6 +680,8 @@ void FlowFinishedEvent::process_event() {
 
     total_finished_flows++;
     ////
+        std::cout << "At time: " << get_current_time() << ", Flow[" << flow->id << "](" << flow->flow_priority << ") FlowFinishedEvent; FCT = "
+            << flow->flow_completion_time * 1e6 << std::endl;
     if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == flow->id)) {
         std::cout << "At time: " << get_current_time() << ", Flow[" << flow->id << "](" << flow->flow_priority << ") FlowFinishedEvent; FCT = "
             << flow->flow_completion_time * 1e6 << std::endl;

@@ -73,11 +73,19 @@ int HomaChannel::send_pkts() {
 
 void HomaChannel::insert_active_flow(Flow *flow) {
     active_flows.insert(flow);
+    //std::cout << "insert active flow[" << flow->id << "], num active flows = " << active_flows.size() << std::endl;
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == flow->id)) {
+        std::cout << "insert active flow[" << flow->id << "], num active flows = " << active_flows.size() << std::endl;
+    }
 }
 
 // Note: Homa discard flow state once the last grant packet is sent (original paper, S3.8)
 void HomaChannel::remove_active_flow(Flow *flow) {
     active_flows.erase(flow);
+    //std::cout << "remove active flow[" << flow->id << "], num active flows = " << active_flows.size() << std::endl;
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == flow->id)) {
+        std::cout << "remove active flow[" << flow->id << "], num active flows = " << active_flows.size() << std::endl;
+    }
 }
 
 //int HomaChannel::count_active_flows() {
@@ -102,6 +110,10 @@ int HomaChannel::calculate_scheduled_priority(Flow *flow) {
         active_flow_vec.push_back(f);
     }
     std::sort(active_flow_vec.begin(), active_flow_vec.end(), fc);
+
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == flow->id)) {
+        std::cout << "calculate_scheduled_priority: num active flows = " << active_flow_vec.size() << "; num_avail_sche_prio_levels = " << num_avail_scheduled_prio_levels << std::endl;
+    }
 
     int num_active_flows = active_flow_vec.size();
     if (num_active_flows <= num_avail_scheduled_prio_levels) {
@@ -193,26 +205,4 @@ void HomaChannel::record_flow_size(Flow* flow, bool scheduled) {
         calculate_unscheduled_offsets();
         record_freq = 0;
     }
-}
-
-// Homa dealing with packet loss (orig paper S3.7)
-//TODO
-void HomaChannel::set_timeout(double time) {
-    /*
-    if (last_unacked_seq < end_seq_no) {
-        ChannelRetxTimeoutEvent *ev = new ChannelRetxTimeoutEvent(time, this);
-        add_to_event_queue(ev);
-        retx_event = ev;
-    }
-    */
-}
-
-//TODO
-void HomaChannel::handle_timeout() {
-    /*
-    num_timeouts[priority]++;
-    next_seq_no = last_unacked_seq;
-    send_pkts();
-    set_timeout(get_current_time() + retx_timeout);
-    */
 }

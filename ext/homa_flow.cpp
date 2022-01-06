@@ -87,10 +87,6 @@ int HomaFlow::send_scheduled_data() {
         }
         pkts_sent++;
 
-        if (retx_event == NULL) {
-            set_timeout(get_current_time() + retx_timeout);
-        }
-
         bytes_sent_under_grant += (p->size - hdr_size);
         if (bytes_sent_under_grant >= params.homa_rtt_bytes) {
             break;
@@ -270,40 +266,55 @@ void HomaFlow::receive_data_pkt(Packet* p) {
     if (size > params.homa_rtt_bytes) {  // incoming flow is scheduled; decide grant priority for scheduled pkts
         channel->insert_active_flow(this);
         grant_priority = channel->calculate_scheduled_priority(this);
-    }
-
-    send_grant_pkt(recv_till, p->start_ts, grant_priority); // Cumulative Ack; grant_priority is DC for unscheduled flows
-    if (recv_till == size) {
-        channel->remove_active_flow(this);   // discards flow state after sending out last response pkt (orig paper S3.8)
-    }
-
-    // set receiver-side timeout
-    if (retx_event != nullptr) {
-        cancel_retx_event();
-        if (last_unacked_seq < size) {
-            // Move the timeout to last_unacked_seq
-            double timeout = get_current_time() + retx_timeout;
-            set_timeout(timeout);
+        // if does not provide grant (grant_priority = -1), mark flow as inactive (i.e., remove it from active flow list)
+        if (grant_priority == -1) {
+            channel->remove_active_flow(this);
         }
     }
+
+    // even if grant_priority = -1, we will still send out the grant so that those small flows get finish notification
+    // of course this can be done more elegantly, but simplicity is the best
+    send_grant_pkt(recv_till, p->start_ts, grant_priority); // Cumulative Ack; grant_priority is DC for unscheduled flows
+    if (recv_till == size) {        // if have received all the bytes from the sender message
+        channel->remove_active_flow(this);   // discards flow state after sending out last response pkt (orig paper S3.8)
+        cancel_retx_event();
+    } else {
+        // set receiver-side timeout
+        if (retx_event == NULL) {
+            set_timeout(get_current_time() + retx_timeout);
+        } else {
+            cancel_retx_event();
+            if (last_unacked_seq < size) {
+                double timeout = get_current_time() + retx_timeout;
+                set_timeout(timeout);
+            }
+        }
+    }
+
 }
 
 void HomaFlow::receive_grant_pkt(Packet *packet) {
     Grant *p = dynamic_cast<Grant *>(packet);
     has_received_grant = true;
+
     uint64_t ack = p->seq_no;
     if (next_seq_no < ack) {
         next_seq_no = ack;
     }
 
-    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
-        std::cout << "HomaFlow[" << id << "] at Host[" << src->id << "] received GRANT packet"
-            << "; ack = " << ack << ", next_seq_no = " << next_seq_no << ", last_unacked_seq = " << last_unacked_seq << std::endl;
-    }
-
     // update unscheduled priority and scheduled priority
     unscheduled_offsets = p->unscheduled_offsets;
     grant_priority = p->grant_priority;
+
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
+        std::cout << "HomaFlow[" << id << "] at Host[" << src->id << "] received GRANT packet"
+            << "; grant_prio = " << grant_priority << ", ack = " << ack << ", next_seq_no = " << next_seq_no << ", last_unacked_seq = " << last_unacked_seq << std::endl;
+    }
+
+    // TODO: check this
+    if (p->grant_priority == -1 && ack < size) {
+        return;
+    }
 
     if (ack > last_unacked_seq) {
         last_unacked_seq = ack;
@@ -335,12 +346,17 @@ void HomaFlow::receive_resend_pkt(Packet *packet) {
     }
 
     if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
-        std::cout << "HomaFlow[" << id << "] at Host[" << src->id << "] received GRANT packet"
-            << "; ack = " << ack << ", next_seq_no = " << next_seq_no << ", last_unacked_seq = " << last_unacked_seq << std::endl;
+        std::cout << "HomaFlow[" << id << "] at Host[" << src->id << "] received RESEND packet"
+            << "; grant_prio = " << grant_priority << ", ack = " << ack << ", next_seq_no = " << next_seq_no << ", last_unacked_seq = " << last_unacked_seq << std::endl;
     }
 
     unscheduled_offsets = p->unscheduled_offsets;
     grant_priority = p->grant_priority;
+
+    // TODO: check this
+    if (p->grant_priority == -1 && ack < size) {        // until we receive a positive grant
+        return;
+    }
 
     if (ack > last_unacked_seq) {
         last_unacked_seq = ack;
@@ -354,6 +370,9 @@ void HomaFlow::set_timeout(double time) {
         add_to_event_queue(ev);
         retx_event = ev;
     }
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
+        std::cout << "At time: " << get_current_time() << ", HomaFlow[" << id << "] set next timeout at " << time << std::endl;
+    }
 }
 
 void HomaFlow::handle_timeout() {
@@ -363,8 +382,15 @@ void HomaFlow::handle_timeout() {
     if (size > params.homa_rtt_bytes) {  // incoming flow is scheduled; decide grant priority for scheduled pkts
         channel->insert_active_flow(this);
         grant_priority = channel->calculate_scheduled_priority(this);
+        // if does not provide grant (grant_priority = -1), mark flow as inactive (i.e., remove it from active flow list)
+        if (grant_priority == -1) {
+            channel->remove_active_flow(this);
+        }
     }
     send_resend_pkt(recv_till, grant_priority); // Cumulative Ack; grant_priority is DC for unscheduled flows
 
     set_timeout(get_current_time() + retx_timeout);
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
+        std::cout << "At time: " << get_current_time() << ", HomaFlow[" << id << "] handle timeout events" << std::endl;
+    }
 }
