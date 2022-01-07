@@ -49,9 +49,9 @@ int HomaFlow::send_unscheduled_data() {
     
     while (next_seq_no < params.homa_rtt_bytes && next_seq_no < size) {    // assuming RTTbytes does not include hdr_size for simplicity
         if (size <= params.homa_rtt_bytes) {
-            p = send_with_delay(seq, delay, size, false, priority);
+            p = send_with_delay(seq, delay * (pkts_sent + 1), size, false, priority);
         } else {
-            p = send_with_delay(seq, delay, params.homa_rtt_bytes, false, priority);
+            p = send_with_delay(seq, delay * (pkts_sent + 1), params.homa_rtt_bytes, false, priority);
         }
         next_seq_no += (p->size - hdr_size);
         //std::cout << "next_seq_no: " << next_seq_no << std::endl;
@@ -77,7 +77,7 @@ int HomaFlow::send_scheduled_data() {
     uint32_t pkts_sent = 0;
     uint32_t bytes_sent_under_grant = 0;
     while ((seq + mss <= size) || (seq != size && (size - seq < mss))) {
-        p = send_with_delay(seq, delay, size, true, grant_priority);
+        p = send_with_delay(seq, delay * (pkts_sent + 1), size, true, grant_priority);
         if (seq + mss < size) {
             next_seq_no = seq + mss;
             seq += mss;
