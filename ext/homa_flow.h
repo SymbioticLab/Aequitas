@@ -15,7 +15,7 @@ class HomaFlow : public Flow {
         int send_scheduled_data();
         void send_grant_pkt(uint64_t seq, double start_pkt_ts, int grant_priority);
         void send_pending_data() override;
-        void send_resend_pkt(uint64_t seq, int grant_priority);
+        void send_resend_pkt(uint64_t seq, int grant_priority, bool is_sender_resend);
         Packet *send_with_delay(uint64_t seq, double delay, uint64_t end_seq_no, bool scheduled, int priority);
         void receive(Packet *p) override;
         void receive_data_pkt(Packet* p) override;
@@ -23,6 +23,8 @@ class HomaFlow : public Flow {
         void receive_resend_pkt(Packet *p);
         void set_timeout(double time) override;
         void handle_timeout() override;
+        void set_timeout_sender(double time) override;
+        void handle_timeout_sender() override;
     private:
         int grant_priority;
         std::vector<uint32_t> unscheduled_offsets;

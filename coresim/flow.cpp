@@ -52,6 +52,7 @@ Flow::Flow(uint32_t id, double start_time, uint32_t size, Host *s, Host *d) {
     this->next_seq_no = 0;
     this->last_unacked_seq = 0;
     this->retx_event = nullptr;
+    this->retx_sender_event = nullptr;
     this->flow_proc_event = nullptr;
     this->bytes_sent = 0;
     this->start_seq_no = 0;
@@ -411,6 +412,10 @@ void Flow::set_timeout(double time) {
     }
 }
 
+void Flow::set_timeout_sender(double time) {
+    assert(false);
+}
+
 
 // since set_timeout has the disable_cc check, no need to check again here
 void Flow::handle_timeout() {
@@ -422,12 +427,22 @@ void Flow::handle_timeout() {
     set_timeout(get_current_time() + retx_timeout);
 }
 
+void Flow::handle_timeout_sender() {
+    assert(false);
+}
 
 void Flow::cancel_retx_event() {
     if (retx_event) {
         retx_event->cancelled = true;
     }
     retx_event = nullptr;
+}
+
+void Flow::cancel_retx_sender_event() {
+    if (retx_sender_event) {
+        retx_sender_event->cancelled = true;
+    }
+    retx_sender_event = nullptr;
 }
 
 void Flow::cancel_rate_limit_event() {

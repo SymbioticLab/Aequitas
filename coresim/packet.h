@@ -79,6 +79,7 @@ class Packet {
         bool ack_to_probe;                          // PDQ
         bool scheduled;                             // Homa
         std::vector<uint32_t> unscheduled_offsets;  // Homa
+        bool is_sender_resend;                      // Homa
 };
 
 class PlainAck : public Packet {

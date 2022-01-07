@@ -10,6 +10,7 @@ class Ack;
 class Host;
 class Probe;
 class RetxTimeoutEvent;
+class RetxTimeoutSenderEvent;
 class FlowProcessingEvent;
 class Channel;
 class AggChannel;
@@ -52,8 +53,11 @@ class Flow {
 
         // Only sets the timeout if needed; i.e., flow hasn't finished
         virtual void set_timeout(double time);
+        virtual void set_timeout_sender(double time);
         virtual void handle_timeout();
+        virtual void handle_timeout_sender();
         virtual void cancel_retx_event();
+        virtual void cancel_retx_sender_event();
 
         virtual uint32_t get_priority(uint64_t seq);
         virtual void increase_cwnd();
@@ -87,6 +91,7 @@ class Flow {
         uint64_t next_seq_no;        // DC if using channel-based CC
         uint64_t last_unacked_seq;   // DC if using channel-based CC
         RetxTimeoutEvent *retx_event;
+        RetxTimeoutSenderEvent *retx_sender_event;  // used by Homa
         FlowProcessingEvent *flow_proc_event;
         uint32_t bytes_sent;
         uint64_t start_seq_no;

@@ -47,6 +47,7 @@ Packet::Packet(
     this->is_probe = false;
     this->ack_to_probe = false;
     this->scheduled = false;
+    this->is_sender_resend = false;
 }
 
 Packet::~Packet() {}

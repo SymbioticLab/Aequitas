@@ -762,13 +762,30 @@ RetxTimeoutEvent::~RetxTimeoutEvent() {
 }
 
 void RetxTimeoutEvent::process_event() {
-    if (params.enable_flow_lookup && flow->id == params.flow_lookup_id) {
-        std::cout << "At time: " << get_current_time() << "; process RetxTimeoutEvent for Flow["<< flow->id << "]" << std::endl;
-    }
-    if (params.debug_event_info) {
+    if (params.debug_event_info || (params.enable_flow_lookup && flow->id == params.flow_lookup_id)) {
         std::cout << "At time: " << get_current_time() << "; process RetxTimeoutEvent for Flow["<< flow->id << "]" << std::endl;
     }
     flow->handle_timeout();
+}
+
+/* Retx Timeout Sender */        // used by Homa senders
+RetxTimeoutSenderEvent::RetxTimeoutSenderEvent(double time, Flow *flow)
+        : Event(RETX_TIMEOUT_SENDER, time) {
+    this->flow = flow;
+    this->qid = flow->qid;
+}
+
+RetxTimeoutSenderEvent::~RetxTimeoutSenderEvent() {
+    if (flow->retx_sender_event == this) {
+        flow->retx_sender_event = NULL;
+    }
+}
+
+void RetxTimeoutSenderEvent::process_event() {
+    if (params.debug_event_info || (params.enable_flow_lookup && flow->id == params.flow_lookup_id)) {
+        std::cout << "At time: " << get_current_time() << "; process RetxTimeoutSenderEvent for Flow["<< flow->id << "]" << std::endl;
+    }
+    flow->handle_timeout_sender();
 }
 
 /* Channel Retx Timeout */        // Added since Channel now handles timeout itself

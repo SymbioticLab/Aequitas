@@ -23,6 +23,7 @@
 #define QJUMP_EPOCH 12
 #define RATE_LIMITING 13
 #define PDQ_PROBING 14
+#define RETX_TIMEOUT_SENDER 15
 
 class Flow;
 class Host;
@@ -183,6 +184,15 @@ class RetxTimeoutEvent : public Event {
     public:
         RetxTimeoutEvent(double time, Flow *flow);
         ~RetxTimeoutEvent();
+        void process_event();
+        Flow *flow;
+};
+
+// Used by Homa sender
+class RetxTimeoutSenderEvent : public Event {
+    public:
+        RetxTimeoutSenderEvent(double time, Flow *flow);
+        ~RetxTimeoutSenderEvent();
         void process_event();
         Flow *flow;
 };
