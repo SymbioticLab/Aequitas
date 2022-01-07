@@ -742,6 +742,10 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
         assert(params.real_nic == 0);
         std::cout << "Qjump cumulative processing delay: " << params.qjump_cumulative_pd << " us." << std::endl;
     }
+    if (params.flow_type == HOMA_FLOW) {
+        std::cout << "Homa RTTbytes = " << params.homa_rtt_bytes << std::endl;
+        std::cout << "Homa sampling freq = " << params.homa_sampling_freq << std::endl;
+    }
     assert(params.burst_size > 0);
     //std::cout << "Flushing Coefficient = " << params.flushing_coefficient << std::endl;
     std::cout << "Retransmission Timeout: " << params.retx_timeout_value * 1e6 << " us" << std::endl;
