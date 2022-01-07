@@ -123,12 +123,13 @@ int HomaChannel::calculate_scheduled_priority(Flow *flow) {
     int num_active_flows = active_flow_vec.size();
     if (num_active_flows <= num_avail_scheduled_prio_levels) {
         int prio = num_avail_scheduled_prio_levels - 1;
-        for (size_t i = num_active_flows - 1; i >= 0; i--) {
+        for (int i = num_active_flows - 1; i >= 0; i--) {
             if (active_flow_vec[i]->id == flow->id) {
                 return prio;
             }
             prio--;
         }
+        std::cout << "num_active_flows = " << num_active_flows << "; prio = " << prio << "; num_avail_sche_prio_levels = " << num_avail_scheduled_prio_levels << std::endl;
         assert(false);
     } else {
         for (size_t i = 0; i < num_avail_scheduled_prio_levels; i++) {
