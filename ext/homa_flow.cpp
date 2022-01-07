@@ -180,15 +180,28 @@ void HomaFlow::send_pending_data() {
 
 // called by receiver
 void HomaFlow::send_resend_pkt(uint64_t seq, int grant_priority, bool is_sender_resend) {
-    Packet *p = new Resend(
-        this,
-        seq,
-        hdr_size,
-        dst,
-        src,
-        grant_priority
-    );
-    p->is_sender_resend = is_sender_resend;
+    Packet *p = NULL;
+    if (is_sender_resend) {
+        p = new Resend(
+            this,
+            seq,
+            hdr_size,
+            src,        // from sender to receiver
+            dst,
+            grant_priority
+            );
+        p->is_sender_resend = is_sender_resend;
+    } else {
+        p = new Resend(
+            this,
+            seq,
+            hdr_size,
+            dst,        // from receiver to sender
+            src,
+            grant_priority
+            );
+    }
+
     assert(p->pf_priority == 0);
     channel->get_unscheduled_offsets(p->unscheduled_offsets);       // always piggyback the unschedued offsets back to sender (no matter this flow is scheduled or not)
     Queue *next_hop = topology->get_next_hop(p, dst->queue);
