@@ -113,7 +113,6 @@ FlowCreationForInitializationEvent::~FlowCreationForInitializationEvent() {}
 void FlowCreationForInitializationEvent::process_event() {
     uint32_t nvVal, size;
     uint32_t id = flows_to_schedule.size();
-        std::cout << "At time: " << get_current_time() << ", Flow[" << id << "] FlowCreationForInitializationEvent" << std::endl;
     if (params.enable_flow_lookup && id == params.flow_lookup_id) {
         std::cout << "At time: " << get_current_time() << ", Flow[" << id << "] FlowCreationForInitializationEvent" << std::endl;
     }
