@@ -349,12 +349,7 @@ void HomaFlow::receive_resend_pkt(Packet *packet) {
     if (p->is_sender_resend) {  // receiver receives resend pkt from sender (orig paper, S3.7)
         int grant_priority = 0;
         if (size > params.homa_rtt_bytes) {  // incoming flow is scheduled; decide grant priority for scheduled pkts
-            channel->insert_active_flow(this);
             grant_priority = channel->calculate_scheduled_priority(this);
-            // if does not provide grant (grant_priority = -1), mark flow as inactive (i.e., remove it from active flow list)
-            if (grant_priority == -1) {
-                channel->remove_active_flow(this);
-            }
         }
         send_resend_pkt(recv_till, grant_priority, false); // Cumulative Ack; grant_priority is DC for unscheduled flows
         return;
@@ -411,12 +406,7 @@ void HomaFlow::handle_timeout() {
 
     int grant_priority = 0;
     if (size > params.homa_rtt_bytes) {  // incoming flow is scheduled; decide grant priority for scheduled pkts
-        channel->insert_active_flow(this);
         grant_priority = channel->calculate_scheduled_priority(this);
-        // if does not provide grant (grant_priority = -1), mark flow as inactive (i.e., remove it from active flow list)
-        if (grant_priority == -1) {
-            channel->remove_active_flow(this);
-        }
     }
     send_resend_pkt(recv_till, grant_priority, false); // Cumulative Ack; grant_priority is DC for unscheduled flows
 

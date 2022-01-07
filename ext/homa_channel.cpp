@@ -73,25 +73,30 @@ int HomaChannel::send_pkts() {
 
 void HomaChannel::insert_active_flow(Flow *flow) {
     active_flows.insert(flow);
-    //std::cout << "insert active flow[" << flow->id << "], num active flows = " << active_flows.size() << std::endl;
     if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == flow->id)) {
-        std::cout << "insert active flow[" << flow->id << "], num active flows = " << active_flows.size() << std::endl;
+        //std::cout << "insert active flow[" << flow->id << "], num active flows = " << active_flows.size() << std::endl;
+        std::cout << "insert active flow[" << flow->id << "], num active flows = " << active_flows.size();
+        std::cout << "; { ";
+        for (const auto &f : active_flows) {
+            std::cout << f->id << " ";
+        }
+        std::cout << "}" << std::endl;
     }
 }
 
 // Note: Homa discard flow state once the last grant packet is sent (original paper, S3.8)
 void HomaChannel::remove_active_flow(Flow *flow) {
     active_flows.erase(flow);
-    //std::cout << "remove active flow[" << flow->id << "], num active flows = " << active_flows.size() << std::endl;
     if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == flow->id)) {
-        std::cout << "remove active flow[" << flow->id << "], num active flows = " << active_flows.size() << std::endl;
+        //std::cout << "remove active flow[" << flow->id << "], num active flows = " << active_flows.size() << std::endl;
+        std::cout << "remove active flow[" << flow->id << "], num active flows = " << active_flows.size();
+        std::cout << "; { ";
+        for (const auto &f : active_flows) {
+            std::cout << f->id << " ";
+        }
+        std::cout << "}" << std::endl;
     }
 }
-
-//int HomaChannel::count_active_flows() {
-//    return active_flows.size();
-//}
-
 
 struct FlowCompator2 {
     bool operator() (Flow *a, Flow *b) {
