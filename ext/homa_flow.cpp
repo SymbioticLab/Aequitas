@@ -334,6 +334,14 @@ void HomaFlow::receive_grant_pkt(Packet *packet) {
             << "; grant_prio = " << grant_priority << ", ack = " << ack << ", next_seq_no = " << next_seq_no << ", last_unacked_seq = " << last_unacked_seq << std::endl;
     }
 
+    // since we receive a new response message, update the sender-side retx timer
+    //if (retx_sender_event == NULL) {
+    //    set_timeout_sender(get_current_time() + retx_timeout);
+    //} else {
+    cancel_retx_event();
+    set_timeout_sender(get_current_time() + retx_timeout);
+    //}
+
     // TODO: check this
     if (p->grant_priority == -1 && ack < size) {
         return;
@@ -372,17 +380,19 @@ void HomaFlow::receive_resend_pkt(Packet *packet) {
             channel->remove_active_flow(this);
         }
         send_resend_pkt(recv_till, grant_priority, false); // Cumulative Ack; grant_priority is DC for unscheduled flows
+        if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
+            std::cout << "HomaFlow[" << id << "] at Host[" << dst->id << "] (receiver) received RESEND packet"
+                << "; receiver sends resend pkt (recv_till: " << recv_till << ", grant_priority: " << grant_priority << ")" << std::endl;
+        }
         return;
     }
 
+    // When incoming RESEND pkt is sent by the receiver, sender tries to retransmit
     uint64_t ack = p->seq_no;
-    if (next_seq_no < ack) {
-        next_seq_no = ack;
-    }
 
     if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
-        std::cout << "HomaFlow[" << id << "] at Host[" << src->id << "] received RESEND packet"
-            << "; grant_prio = " << grant_priority << ", ack = " << ack << ", next_seq_no = " << next_seq_no << ", last_unacked_seq = " << last_unacked_seq << std::endl;
+        std::cout << "HomaFlow[" << id << "] at Host[" << src->id << "] (sender) received RESEND packet"
+            << "; grant_prio = " << p->grant_priority << ", ack = " << ack << ", next_seq_no = " << next_seq_no << ", last_unacked_seq = " << last_unacked_seq << std::endl;
     }
 
     unscheduled_offsets = p->unscheduled_offsets;
@@ -395,8 +405,10 @@ void HomaFlow::receive_resend_pkt(Packet *packet) {
 
     if (ack > last_unacked_seq) {
         last_unacked_seq = ack;
-        channel->add_to_channel(this);
     }
+
+    next_seq_no = ack;              // retransmit from ack
+    channel->add_to_channel(this);
 }
 
 void HomaFlow::set_timeout(double time) {
@@ -422,7 +434,7 @@ void HomaFlow::set_timeout_sender(double time) {
 }
 
 void HomaFlow::handle_timeout() {
-    next_seq_no = last_unacked_seq;
+    ////next_seq_no = last_unacked_seq;     // sender should update this
 
     int grant_priority = 0;
     if (size > params.homa_rtt_bytes) {  // incoming flow is scheduled; decide grant priority for scheduled pkts
