@@ -181,6 +181,7 @@ void HomaFlow::send_pending_data() {
 // called by receiver
 void HomaFlow::send_resend_pkt(uint64_t seq, int grant_priority, bool is_sender_resend) {
     Packet *p = NULL;
+    Queue *next_hop = NULL;
     if (is_sender_resend) {
         p = new Resend(
             this,
@@ -190,6 +191,7 @@ void HomaFlow::send_resend_pkt(uint64_t seq, int grant_priority, bool is_sender_
             dst,
             grant_priority
             );
+        next_hop = topology->get_next_hop(p, src->queue);
         p->is_sender_resend = is_sender_resend;
     } else {
         p = new Resend(
@@ -200,16 +202,19 @@ void HomaFlow::send_resend_pkt(uint64_t seq, int grant_priority, bool is_sender_
             src,
             grant_priority
             );
+        next_hop = topology->get_next_hop(p, dst->queue);
+        channel->get_unscheduled_offsets(p->unscheduled_offsets);       // always piggyback the unschedued offsets back to sender (no matter this flow is scheduled or not)
     }
-
     assert(p->pf_priority == 0);
-    channel->get_unscheduled_offsets(p->unscheduled_offsets);       // always piggyback the unschedued offsets back to sender (no matter this flow is scheduled or not)
-    Queue *next_hop = topology->get_next_hop(p, dst->queue);
     PacketQueuingEvent *event = new PacketQueuingEvent(get_current_time() + next_hop->propagation_delay, p, next_hop);
     add_to_event_queue(event);
 
     if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
-        std::cout << "Host[" << dst->id << "] sends out Resend Packet[" << p->unique_id << "] from Flow[" << id << "] at time: " << get_current_time() << std::endl;
+        if (is_sender_resend) {
+            std::cout << "Host[" << src->id << "] (sender) sends out Resend Packet[" << p->unique_id << "] from Flow[" << id << "] at time: " << get_current_time() << std::endl;
+        } else {
+            std::cout << "Host[" << dst->id << "] (receiver) sends out Resend Packet[" << p->unique_id << "] from Flow[" << id << "] at time: " << get_current_time() << std::endl;
+        }
     }
 }
 
