@@ -340,7 +340,7 @@ void HomaFlow::receive_grant_pkt(Packet *packet) {
     //if (retx_sender_event == NULL) {
     //    set_timeout_sender(get_current_time() + retx_timeout);
     //} else {
-    cancel_retx_event();
+    cancel_retx_sender_event();
     set_timeout_sender(get_current_time() + retx_timeout);
     //}
 
