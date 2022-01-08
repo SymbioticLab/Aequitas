@@ -15,6 +15,7 @@ extern double get_current_time();
 extern void add_to_event_queue(Event *);
 extern DCExpParams params;
 extern Topology* topology;
+extern std::vector<uint32_t> num_timeouts;
 
 HomaFlow::HomaFlow(uint32_t id, double start_time, uint32_t size, Host *s, Host *d,
     uint32_t flow_priority) : Flow(id, start_time, size, s, d, flow_priority) {
@@ -95,6 +96,7 @@ int HomaFlow::send_scheduled_data() {
             std::cout << "<><><> seq: " << seq << ", next_seq_no: " << next_seq_no << std::endl;
         }
     }
+    offset_under_curr_grant = seq;  // used by sender to match server's 'ack' in grant pkt
 
     if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
         std::cout << "Flow[" << id << "] sends " << pkts_sent << " schedueld pkts." << std::endl;
@@ -342,22 +344,23 @@ void HomaFlow::receive_grant_pkt(Packet *packet) {
     set_timeout_sender(get_current_time() + retx_timeout);
     //}
 
+    if (ack > last_unacked_seq) {
+        last_unacked_seq = ack;
+    }
+
     // TODO: check this
     if (p->grant_priority == -1 && ack < size) {
         return;
     }
 
-    if (ack > last_unacked_seq) {
-        last_unacked_seq = ack;
-
-        // Send the remaining data (scheduled pkts)
+    // Send the remaining data (scheduled pkts) when the server has received all scheduled data in the last grant
+    // which is option (1)
+    if (offset_under_curr_grant == ack && ack != size) {
         channel->add_to_channel(this);
-        //send_scheduled_data(grant_priority);
-        //if (ack != size && !finished) {
-        //    send_scheduled_data(grant_priority);
-        //}
-
     }
+    // option (2) is immediately sending out next round after receiving a single ack
+    // if (ack > last_unacked_seq) { channel->add_to_channel(this); }
+
 
     if (ack == size && !finished) {
         finished = true;
@@ -435,6 +438,7 @@ void HomaFlow::set_timeout_sender(double time) {
 
 void HomaFlow::handle_timeout() {
     ////next_seq_no = last_unacked_seq;     // sender should update this
+    num_timeouts[flow_priority]++;
 
     int grant_priority = 0;
     if (size > params.homa_rtt_bytes) {  // incoming flow is scheduled; decide grant priority for scheduled pkts

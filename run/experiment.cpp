@@ -1495,9 +1495,10 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
     }
     std::cout << "total priority downgrades: " << num_downgrades << std::endl;
 
-
-    for (uint32_t i = 0; i < params.weights.size(); i++) {
-        std::cout << "Priority[" << i << "] pkt drops: " << pkt_drops_per_prio[i] << std::endl;
+    if (params.flow_type == VERITAS_FLOW) {
+        for (uint32_t i = 0; i < params.weights.size(); i++) {
+            std::cout << "Priority[" << i << "] pkt drops: " << pkt_drops_per_prio[i] << std::endl;
+        }
     }
 
     std::cout << "Number of QoS_H RPCs that missed the target: " << num_QoS_H_RPCs_missed_target << " / " << num_bad_QoS_H_RPCs << std::endl;
