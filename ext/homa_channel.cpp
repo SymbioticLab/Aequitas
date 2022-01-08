@@ -160,6 +160,8 @@ void HomaChannel::calculate_unscheduled_offsets() {
     curr_unscheduled_prio_levels = unscheduled_pctg * num_hw_prio_levels;
     if (curr_unscheduled_prio_levels == 0) {
         curr_unscheduled_prio_levels = 1;   // at least assign 1 level
+    } else if (curr_unscheduled_prio_levels == num_hw_prio_levels) {
+        curr_unscheduled_prio_levels = num_hw_prio_levels - 1;  // leave 1 level for schedued data
     }
     uint32_t bytes_per_level = unscheduled_bytes / curr_unscheduled_prio_levels;
 
@@ -172,17 +174,23 @@ void HomaChannel::calculate_unscheduled_offsets() {
         if (count >= bytes_per_level) {
             curr_unscheduled_offsets.push_back(sampled_unscheduled_flow_size[i]);
             count = 0;
+            if (curr_unscheduled_offsets.size() == curr_unscheduled_prio_levels) {
+                break;
+            }
         }
     }
     if (curr_unscheduled_offsets.size() < curr_unscheduled_prio_levels) {
         curr_unscheduled_offsets.push_back(sampled_unscheduled_flow_size[sampled_scheduled_flow_size.size() - 1]);  // shouldn't need the last offset anyway
     }
-    std::cout << "curr_unscheduled_offsets: ";
-    for (const auto &x : curr_unscheduled_offsets) {
-        std::cout << x << " ";
-    }
-    std::cout << std::endl;
-    assert(curr_unscheduled_offsets.size() == curr_unscheduled_prio_levels);        // TODO: remove
+
+    //std::cout << "curr_unscheduled_offsets: ";
+    //for (const auto &x : curr_unscheduled_offsets) {
+    //    std::cout << x << " ";
+    //}
+    //std::cout << std::endl;
+    //std::cout << "curr_unscheduled_prio_levels: " << curr_unscheduled_prio_levels << "; unschedued_pctg: " << unscheduled_pctg << std::endl;
+
+    //assert(curr_unscheduled_offsets.size() == curr_unscheduled_prio_levels);        // TODO: remove; not always true
     //for (int i = 0; i < curr_unscheduled_prio_levels; i++) {
     //    int ith_idx = (double) (i + 1) / curr_unscheduled_prio_levels * unscheduled_bytes;
     //    curr_unscheduled_offsets.push_back(sampled_unscheduled_flow_size[ith_idx]);
@@ -197,12 +205,14 @@ void HomaChannel::calculate_unscheduled_offsets() {
 
 void HomaChannel::record_flow_size(Flow* flow, bool scheduled) {
     if (scheduled) {
-        if (sampled_scheduled_flows.find(flow) != sampled_scheduled_flows.end()) {  // new flow
+        if (sampled_scheduled_flows.find(flow) == sampled_scheduled_flows.end()) {  // new flow
+            sampled_scheduled_flows.insert(flow);
             sampled_scheduled_flow_size.push_back(flow->size);
             record_freq++;
         }
     } else {
-        if (sampled_unscheduled_flows.find(flow) != sampled_unscheduled_flows.end()) {  // new flow
+        if (sampled_unscheduled_flows.find(flow) == sampled_unscheduled_flows.end()) {  // new flow
+            sampled_unscheduled_flows.insert(flow);
             sampled_unscheduled_flow_size.push_back(flow->size);
             record_freq++;
         }

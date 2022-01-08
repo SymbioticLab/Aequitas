@@ -354,7 +354,7 @@ void HomaFlow::receive_grant_pkt(Packet *packet) {
     }
 
     // Send the remaining data (scheduled pkts) when the server has received all scheduled data in the last grant
-    // which is option (1)
+    // which is option (1) (the one Homa paper uses)
     if (offset_under_curr_grant == ack && ack != size) {
         channel->add_to_channel(this);
     }
