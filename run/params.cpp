@@ -711,6 +711,10 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
     } else {
         std::cout << "Disable Priority Downgrade." << std::endl;
     }
+
+    std::cout << "Host type: " << params.host_type << std::endl;
+    std::cout << "Queue type: " << params.queue_type << std::endl;
+    std::cout << "Flow type: " << params.flow_type << std::endl;
     params.mss = params.mtu - params.hdr_size;
     params.homa_rtt_bytes = params.homa_rttbytes_in_mss * params.mss;
     std::cout << "Init cwnd: " << params.initial_cwnd << std::endl;
