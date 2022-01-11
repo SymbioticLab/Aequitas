@@ -183,19 +183,6 @@ void HomaChannel::calculate_unscheduled_offsets() {
         curr_unscheduled_offsets.push_back(sampled_unscheduled_flow_size[sampled_scheduled_flow_size.size() - 1]);  // shouldn't need the last offset anyway
     }
 
-    //std::cout << "curr_unscheduled_offsets: ";
-    //for (const auto &x : curr_unscheduled_offsets) {
-    //    std::cout << x << " ";
-    //}
-    //std::cout << std::endl;
-    //std::cout << "curr_unscheduled_prio_levels: " << curr_unscheduled_prio_levels << "; unschedued_pctg: " << unscheduled_pctg << std::endl;
-
-    //assert(curr_unscheduled_offsets.size() == curr_unscheduled_prio_levels);        // TODO: remove; not always true
-    //for (int i = 0; i < curr_unscheduled_prio_levels; i++) {
-    //    int ith_idx = (double) (i + 1) / curr_unscheduled_prio_levels * unscheduled_bytes;
-    //    curr_unscheduled_offsets.push_back(sampled_unscheduled_flow_size[ith_idx]);
-    //}
-
     sampled_unscheduled_flow_size.clear();
     sampled_scheduled_flow_size.clear();
     sampled_unscheduled_flows.clear();
@@ -220,5 +207,31 @@ void HomaChannel::record_flow_size(Flow* flow, bool scheduled) {
     if (record_freq == params.homa_sampling_freq) {
         calculate_unscheduled_offsets();
         record_freq = 0;
+    }
+}
+
+void HomaChannel::add_to_grant_waitlist(Flow *flow) {
+    grant_waitlist.push_back(flow);
+    if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == flow->id)) {
+        std::cout << "Flow[" << flow->id << "] added to Channel[" << id << "]'s grant waitlist, waitlist size = " << grant_waitlist.size() << std::endl;
+    }
+}
+
+void HomaChannel::handle_flow_from_waitlist() {
+    while (!grant_waitlist.empty()) {
+        Flow *flow = grant_waitlist.front();
+        grant_waitlist.pop_front();
+        insert_active_flow(flow);
+        int prio = calculate_scheduled_priority(flow);
+        if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == flow->id)) {
+            std::cout << "Channel[" << id << "] handles Flow[" << flow->id << "] from waitlist, grant prio = " << prio << std::endl;
+        }
+        if (prio == -1) {
+            remove_active_flow(flow);
+            grant_waitlist.push_back(flow);
+            return;
+        } else {
+            flow->resend_grant();
+        }
     }
 }

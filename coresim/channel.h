@@ -51,6 +51,8 @@ class Channel {
         virtual void calculate_unscheduled_offsets() {};                           // Homa
         virtual void record_flow_size(Flow *flow, bool scheduled) {};              // Homa
         virtual void get_unscheduled_offsets(std::vector<uint32_t> &vec) {};       // Homa
+        virtual void add_to_grant_waitlist(Flow *flow) {};                         // Homa
+        virtual void handle_flow_from_waitlist() {};                               // Homa
 
         //void window_insert(double fct_in, uint32_t flow_id, int flow_size);
 

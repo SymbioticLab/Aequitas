@@ -25,6 +25,7 @@ class HomaFlow : public Flow {
         void handle_timeout() override;
         void set_timeout_sender(double time) override;
         void handle_timeout_sender() override;
+        void resend_grant() override;
     private:
         int grant_priority;
         std::vector<uint32_t> unscheduled_offsets;

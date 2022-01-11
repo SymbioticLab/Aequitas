@@ -70,6 +70,8 @@ class Flow {
 
         virtual double get_expected_trans_time();   // used by PDQ
 
+        virtual void resend_grant() {};    // used by Homa
+
         //double get_current_time() {
         //    return current_event_time;
         //}

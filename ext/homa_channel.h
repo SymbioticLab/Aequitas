@@ -34,7 +34,9 @@ class HomaChannel : public Channel {
         void calculate_unscheduled_offsets() override;
         void get_unscheduled_offsets(std::vector<uint32_t> &vec) override;
         void record_flow_size(Flow* flow, bool scheduled) override;
+        void add_to_grant_waitlist(Flow *flow) override;
         int get_sender_priority();
+        void handle_flow_from_waitlist() override;
 
 
     private:
@@ -48,6 +50,7 @@ class HomaChannel : public Channel {
         uint32_t curr_unscheduled_prio_levels;
         std::set<Flow *> sampled_scheduled_flows;
         std::set<Flow *> sampled_unscheduled_flows;
+        std::deque<Flow *> grant_waitlist;
 
 };
 
