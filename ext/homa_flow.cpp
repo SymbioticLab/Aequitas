@@ -20,6 +20,8 @@ extern std::vector<uint32_t> num_timeouts;
 HomaFlow::HomaFlow(uint32_t id, double start_time, uint32_t size, Host *s, Host *d,
     uint32_t flow_priority) : Flow(id, start_time, size, s, d, flow_priority) {
         this->channel = s->get_channel(s, d);
+        offset_under_curr_grant_send = 0;
+        offset_under_curr_grant_recv = 0;
     }
 
 void HomaFlow::start_flow() {
@@ -88,7 +90,7 @@ int HomaFlow::send_scheduled_data() {
         }
         pkts_sent++;
 
-        bytes_sent_under_grant += (p->size - hdr_size);
+        bytes_sent_under_grant += (p->size - hdr_size);     // safe to do this since rtt_bytes is in the unit of MSS
         if (bytes_sent_under_grant >= params.homa_rtt_bytes) {
             break;
         }
@@ -96,10 +98,10 @@ int HomaFlow::send_scheduled_data() {
             std::cout << "<><><> seq: " << seq << ", next_seq_no: " << next_seq_no << std::endl;
         }
     }
-    offset_under_curr_grant = seq;  // used by sender to match server's 'ack' in grant pkt
+    offset_under_curr_grant_send = seq;  // used by sender to match server's 'ack' in grant pkt
 
     if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
-        std::cout << "Flow[" << id << "] sends " << pkts_sent << " schedueld pkts." << std::endl;
+        std::cout << "Flow[" << id << "] sends " << pkts_sent << " schedueld pkts. offset_under_curr_grant_send = " << offset_under_curr_grant_send << std::endl;
     }
 
     return pkts_sent;
@@ -277,29 +279,58 @@ void HomaFlow::receive_data_pkt(Packet* p) {
         if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
             std::cout << "[][][] s: " << s << ", recv_till: " << recv_till << ", max_seq_no_recv: "<< max_seq_no_recv << ", in_sequence: " << in_sequence << std::endl;
         }
+    }
 
+    if (size > params.homa_rtt_bytes) {
+        if (offset_under_curr_grant_recv == 0) {
+            offset_under_curr_grant_recv = params.homa_rtt_bytes;
+        }
     }
 
     if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
         std::cout << "Flow[" << id << "] receive_data_pkt: received_count = " << received_count << "; received_bytes = " << received_bytes
-            << "; max_seq_no_recv = " << max_seq_no_recv << "; recv_till: " << recv_till << std::endl;
+            << "; max_seq_no_recv = " << max_seq_no_recv << "; recv_till: " << recv_till <<  "; offset_under_curr_grant_recv = " << offset_under_curr_grant_recv << std::endl;
     }
 
     channel->record_flow_size(this, p->scheduled);   // it also triggers calculation of unscheduled priorities
 
     int grant_priority = 0;
     if (size > params.homa_rtt_bytes) {  // incoming flow is scheduled; decide grant priority for scheduled pkts
+        // method (1) first insert and calculate sche prio no matter what, and then remove it if num_active_flows > num_avail_sche_prio
         channel->insert_active_flow(this);
         grant_priority = channel->calculate_scheduled_priority(this);
         // if does not provide grant (grant_priority = -1), mark flow as inactive (i.e., remove it from active flow list)
         if (grant_priority == -1) {
             channel->remove_active_flow(this);
         }
+
+        // method (2) first look at num_active_flows, and do not insert the flow if we already have too many active flows
+        // Plus, we add the flow into a waitlist and give it the grant when sche_prio becomes available
+        // TODO: implement method (2) after we implement sending grant pkt only at offsets
+
     }
 
     // even if grant_priority = -1, we will still send out the grant so that those small flows get finish notification
     // of course this can be done more elegantly, but simplicity is the best
-    send_grant_pkt(recv_till, p->start_ts, grant_priority); // Cumulative Ack; grant_priority is DC for unscheduled flows
+
+    // We send out the grant pkt in 2 cases:
+    // (1) if the flow's size < rtt_bytes, send the grant when received bytes reach the flow's size (so it gets finish notification)
+    // (2) if we have received all the bytes (i.e., # of rtt_bytes) under the current grant
+    if (size < params.homa_rtt_bytes) {
+        if (size == recv_till) {
+            send_grant_pkt(recv_till, p->start_ts, 0); // grant_priority is DC for unscheduled flows
+        }
+    } else {
+        if (offset_under_curr_grant_recv == recv_till) {
+            if (offset_under_curr_grant_recv + params.homa_rtt_bytes < size) {
+                    offset_under_curr_grant_recv += params.homa_rtt_bytes;
+                } else {
+                    offset_under_curr_grant_recv = size;     // will set to size twice, which is fine
+            }
+            send_grant_pkt(recv_till, p->start_ts, grant_priority);
+        }
+    }
+    ////send_grant_pkt(recv_till, p->start_ts, grant_priority); // Cumulative Ack; grant_priority is DC for unscheduled flows
     if (recv_till == size) {        // if have received all the bytes from the sender message
         channel->remove_active_flow(this);   // discards flow state after sending out last response pkt (orig paper S3.8)
         cancel_retx_event();
@@ -333,7 +364,9 @@ void HomaFlow::receive_grant_pkt(Packet *packet) {
 
     if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == id)) {
         std::cout << "HomaFlow[" << id << "] at Host[" << src->id << "] received GRANT packet"
-            << "; grant_prio = " << grant_priority << ", ack = " << ack << ", next_seq_no = " << next_seq_no << ", last_unacked_seq = " << last_unacked_seq << std::endl;
+            << "; grant_prio = " << grant_priority << ", ack = " << ack << ", next_seq_no = "
+            << next_seq_no << ", last_unacked_seq = " << last_unacked_seq << "; offset_under_curr_grant_send = "
+            << offset_under_curr_grant_send << "; offset_under_curr_grant_recv = " << offset_under_curr_grant_recv << std::endl;
     }
 
     // since we receive a new response message, update the sender-side retx timer
@@ -353,11 +386,16 @@ void HomaFlow::receive_grant_pkt(Packet *packet) {
         return;
     }
 
+    // send the next rtt_bytes of scheduled data
+    channel->add_to_channel(this);
+
     // Send the remaining data (scheduled pkts) when the server has received all scheduled data in the last grant
     // which is option (1) (the one Homa paper uses)
-    if (offset_under_curr_grant == ack && ack != size) {
-        channel->add_to_channel(this);
-    }
+    //if (offset_under_curr_grant == ack && ack != size) {
+    //    channel->add_to_channel(this);
+    //}
+
+
     // option (2) is immediately sending out next round after receiving a single ack
     // if (ack > last_unacked_seq) { channel->add_to_channel(this); }
 

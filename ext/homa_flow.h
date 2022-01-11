@@ -28,7 +28,8 @@ class HomaFlow : public Flow {
     private:
         int grant_priority;
         std::vector<uint32_t> unscheduled_offsets;
-        uint32_t offset_under_curr_grant;
+        uint32_t offset_under_curr_grant_send;  // maintained by sender
+        uint32_t offset_under_curr_grant_recv;  // maintained by receiver
 
 };
 
