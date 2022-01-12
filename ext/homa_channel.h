@@ -51,6 +51,7 @@ class HomaChannel : public Channel {
         std::set<Flow *> sampled_scheduled_flows;
         std::set<Flow *> sampled_unscheduled_flows;
         std::deque<Flow *> grant_waitlist;
+        std::set<uint32_t> waitlist_set;
 
 };
 

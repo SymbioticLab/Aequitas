@@ -211,9 +211,13 @@ void HomaChannel::record_flow_size(Flow* flow, bool scheduled) {
 }
 
 void HomaChannel::add_to_grant_waitlist(Flow *flow) {
+    if (waitlist_set.find(flow->id) != waitlist_set.end()) {
+        return;
+    }
     grant_waitlist.push_back(flow);
+    waitlist_set.insert(flow->id);
     if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == flow->id)) {
-        std::cout << "Flow[" << flow->id << "] added to Channel[" << id << "]'s grant waitlist, waitlist size = " << grant_waitlist.size() << std::endl;
+        std::cout << "At time: " << get_current_time() << ", Flow[" << flow->id << "] added to Channel[" << id << "]'s grant waitlist, waitlist size = " << grant_waitlist.size() << std::endl;
     }
 }
 
@@ -221,14 +225,16 @@ void HomaChannel::handle_flow_from_waitlist() {
     while (!grant_waitlist.empty()) {
         Flow *flow = grant_waitlist.front();
         grant_waitlist.pop_front();
+        waitlist_set.erase(flow->id);
         insert_active_flow(flow);
         int prio = calculate_scheduled_priority(flow);
         if (params.debug_event_info || (params.enable_flow_lookup && params.flow_lookup_id == flow->id)) {
-            std::cout << "Channel[" << id << "] handles Flow[" << flow->id << "] from waitlist, grant prio = " << prio << std::endl;
+            std::cout << "At time: " << get_current_time() << ", Channel[" << id << "] handles Flow[" << flow->id << "] from waitlist, waitlist size = " << grant_waitlist.size() << ", grant prio = " << prio << std::endl;
         }
         if (prio == -1) {
             remove_active_flow(flow);
             grant_waitlist.push_back(flow);
+            waitlist_set.insert(flow->id);
             return;
         } else {
             flow->resend_grant();

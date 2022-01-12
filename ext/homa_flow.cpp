@@ -351,6 +351,9 @@ void HomaFlow::receive_data_pkt(Packet* p) {
 
 // used when pulling a flow from the waitlist to resend its grant pkt
 void HomaFlow::resend_grant() {
+    if (recv_till != offset_under_curr_grant_recv) {
+        std::cout << "PUPU: Flow[" << id << "] recv_till = " << recv_till << ", offset_under_curr_grant_recv = " << offset_under_curr_grant_recv << std::endl;
+    }
     assert(recv_till == offset_under_curr_grant_recv);
     if (offset_under_curr_grant_recv + params.homa_rtt_bytes < size) {
             offset_under_curr_grant_recv += params.homa_rtt_bytes;
