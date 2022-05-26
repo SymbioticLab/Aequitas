@@ -630,7 +630,8 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
                 << " Flows, Finished/Unf: " << flows_by_prio[i].size() << "/"
                 << unfinished_flows_by_prio[i] << ")" << " (Assigned: " << num_flow_assigned_per_prio[i] + num_flow_assigned_per_prio_unf[i]
                 << ", Finished/Unf: " << num_flow_assigned_per_prio[i] << "/" <<  num_flow_assigned_per_prio_unf[i] << ")" << std::endl
-                ////<< "FCT (in us) (100% RPCs) (Median, 99th, 99.9th, max) = "
+
+                /*
                 << "FCT (in us) (100% RPCs) (Median, 70th, 80th, 90th, 99th, 99.9th, max) = "
                 << flows_by_prio[i][median]->flow_completion_time * 1000000 << ", "
                 << flows_by_prio[i][tail_70]->flow_completion_time * 1000000 << ", "
@@ -639,6 +640,8 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
                 << flows_by_prio[i][tail_99]->flow_completion_time * 1000000 << ", "
                 << flows_by_prio[i][tail_999]->flow_completion_time * 1000000 << ", "
                 << flows_by_prio[i][total_max]->flow_completion_time * 1000000 << std::endl
+                */
+
                 //<< "Avg FCT (in us) (100% RPCs) = " << avg_delay * 1e6 << std::endl
                 //<< "FCT (in us) (first 50% RPCs) (Median, 99th, 99.9th, max) = "
                 //<< flows_by_prio_cp4[i][median_refined_first_half]->flow_completion_time * 1000000 << ", "
@@ -671,6 +674,8 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
                 << rpcs_mid80_64KB[i][max_mid_80_64KB] * 1e6 << std::endl
                 */
                 ////
+
+                /*
                 << "FCT (in us) (last 50% RPCs) (Median, 99th, 99.9th, max) = "
                 << flows_by_prio_cp2[i][median_refined_last_half]->flow_completion_time * 1000000 << ", "
                 << flows_by_prio_cp2[i][tail_99_refined_last_half]->flow_completion_time * 1000000 << ", "
@@ -684,6 +689,8 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
                 } else {
                     std::cout << std::endl;
                 }
+                */
+
                 //"; total queuing time = " <<
                 //flows_by_prio[i][tail_999]->total_queuing_time * 1e6 << "; avg inter-pkt spacing = " <<
                 //flows_by_prio[i][tail_999]->get_avg_inter_pkt_spacing_in_us() << " us" << std::endl;

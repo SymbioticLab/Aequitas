@@ -9,6 +9,8 @@ For more details, please refer to our SIGCOMM' 22 paper. <!-- TODO: add paper li
 
 # Build
 ```
+git clone https://github.com/SymbioticLab/Aequitas.git
+cd Aequitas
 aclocal
 autoconf
 automake --add-missing

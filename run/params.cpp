@@ -694,7 +694,6 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
     }
     if (params.priority_downgrade) {
         std::cout << "Enable Priority Downgrade." << std::endl;
-        std::cout << "downgrade lat target: " << params.high_prio_lat_target << " us" << std::endl;
         std::cout << "target expires in " << params.target_expiration << " us" << std::endl;
         std::cout << "qd expires in " << params.qd_expiration << " us" << std::endl;
         std::cout << "qd estimated from rtt expires in " << params.rtt_expiration << " us" << std::endl;
@@ -704,10 +703,6 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
         std::cout << "downgrade batch size: " <<  params.downgrade_batch_size << std::endl;
         std::cout << "upgrade batch size: " <<  params.upgrade_batch_size << std::endl;
         std::cout << "expiration count: " <<  params.expiration_count << std::endl;
-        //params.targets.resize(params.weights.size() - 1);
-        //for (uint32_t i = 0; i < params.weights.size() - 1; i++) {
-        //    params.targets[i] = params.high_prio_lat_target * ((double)params.weights[0] / params.weights[i]);
-        //}
     } else {
         std::cout << "Disable Priority Downgrade." << std::endl;
     }
