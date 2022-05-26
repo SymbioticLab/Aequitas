@@ -56,7 +56,6 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
     params.expiration_count = 150;
     params.qd_num_hops = 2;
     params.num_pctl = 10;
-    params.moving_window_size = 1000;
     params.memory_time_duration = 60000;
     params.smart_time_window = 0;
     params.target_pctl = 1000;

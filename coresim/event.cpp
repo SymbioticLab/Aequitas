@@ -417,18 +417,6 @@ void FlowArrivalEvent::process_event() {
 
 
             /*
-            uint32_t sum_misses = 0;
-            for (uint32_t m : qos_h_memory_misses) {
-                sum_misses += m;
-            }
-            double avg_misses = (double)sum_misses / qos_h_memory_misses.size();
-            std::cout << "All QoS_H Host avg misses: " << avg_misses << "; " << sum_misses << " out of "
-                    << qos_h_memory_misses.size() << " windows (size=" << params.moving_window_size << ")" << std::endl;
-            qos_h_memory_misses.clear();
-            */
-
-
-            /*
             ////
             std::cout << "per host avg admit prob: " << std::endl;
             for (int i = 0; i < qos_h_admit_prob_per_host.size(); i++) {

@@ -99,7 +99,6 @@ class DCExpParams {
         std::vector<double> targets;
         std::vector<double> hardcoded_targets;
         uint32_t num_pctl;
-        uint32_t moving_window_size;
         uint32_t track_qosh_dwnds;
         uint32_t memory_time_duration; // in us; for new downgrade prob
         uint32_t smart_time_window;  // set per window time duration based on target per qos
