@@ -679,11 +679,11 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
                 << flows_by_prio_cp2[i][median_refined_last_half]->flow_completion_time * 1000000 << ", "
                 << flows_by_prio_cp2[i][tail_99_refined_last_half]->flow_completion_time * 1000000 << ", "
                 << flows_by_prio_cp2[i][tail_999_refined_last_half]->flow_completion_time * 1000000 << ", "
-                << flows_by_prio_cp2[i][last_half_max]->flow_completion_time * 1000000 << std::endl
+                << flows_by_prio_cp2[i][last_half_max]->flow_completion_time * 1000000 << std::endl;
+                /*
                 << "99.9th (out of 100% RPCs) RPC is RPC[" << flows_by_prio[i][tail_999]->id << "], size = "
                 << flows_by_prio[i][tail_999]->size << "; completion time = "
                 << flows_by_prio[i][tail_999]->flow_completion_time * 1e6;
-                /*
                 if (params.real_nic) {
                     std::cout << "; start time diff = " << (flows_by_prio[i][tail_999]->rnl_start_time - flows_by_prio[i][tail_999]->start_time) * 1e6 << std::endl;
                 } else {
