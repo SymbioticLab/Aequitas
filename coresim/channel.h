@@ -13,7 +13,7 @@ class ChannelRetxTimeoutEvent;
 class AggChannel;
 
 /* Channel: a single direction src-dst pair per QoS */
-// Handles (1) Transport in packet level (2) CC (3) Veritas admission control
+// Handles (1) Transport in packet level (2) CC (3) Aequitas admission control
 // TODO(yiwenzhang): cleanup methods & variables that are no longer in use / needed
 class Channel {
     public:

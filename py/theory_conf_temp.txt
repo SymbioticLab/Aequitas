@@ -35,7 +35,7 @@ num_core_switches: 9
 host_type: 1
 traffic_imbalance: 0
 traffic_pattern: 0
-disable_veritas_cc: 1
+disable_aequitas_cc: 1
 disable_pkt_logging: 1
 disable_cwnd_logging: 1
 disable_dwnd_logging: 1

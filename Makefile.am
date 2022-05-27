@@ -21,7 +21,7 @@ simulator_SOURCES =                              \
 					ext/homa_channel.cpp		 \
 					ext/homa_flow.cpp			 \
 					ext/homa_host.cpp			 \
-					ext/veritas_flow.cpp         \
+					ext/aequitas_flow.cpp         \
 					ext/pfabric_flow.cpp         \
 					ext/pfabric_queue.cpp        \
 					ext/pdq_queue.cpp            \

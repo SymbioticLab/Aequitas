@@ -661,7 +661,7 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
                 << flows_by_prio_cp3[i][tail_999_refined_mid_80]->flow_completion_time * 1000000 << ", "
                 << flows_by_prio_cp3[i][mid_80_max]->flow_completion_time * 1000000 << std::endl
                 //// used only for mixed size exp to measure 32KB & 64KB latency separately
-                /*
+		/*
                 << "32KB RPC FCT (in us) (mid 80% RPCs) (Median, 99th, 99.9th, max) = "
                 << rpcs_mid80_32KB[i][median_mid_80_32KB] * 1e6 << ", "
                 << rpcs_mid80_32KB[i][tail99_mid_80_32KB] * 1e6 << ", "
@@ -672,10 +672,9 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
                 << rpcs_mid80_64KB[i][tail99_mid_80_64KB] * 1e6 << ", "
                 << rpcs_mid80_64KB[i][tail999_mid_80_64KB] * 1e6 << ", "
                 << rpcs_mid80_64KB[i][max_mid_80_64KB] * 1e6 << std::endl
-                */
+		*/
                 ////
 
-                /*
                 << "FCT (in us) (last 50% RPCs) (Median, 99th, 99.9th, max) = "
                 << flows_by_prio_cp2[i][median_refined_last_half]->flow_completion_time * 1000000 << ", "
                 << flows_by_prio_cp2[i][tail_99_refined_last_half]->flow_completion_time * 1000000 << ", "
@@ -684,6 +683,7 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
                 << "99.9th (out of 100% RPCs) RPC is RPC[" << flows_by_prio[i][tail_999]->id << "], size = "
                 << flows_by_prio[i][tail_999]->size << "; completion time = "
                 << flows_by_prio[i][tail_999]->flow_completion_time * 1e6;
+                /*
                 if (params.real_nic) {
                     std::cout << "; start time diff = " << (flows_by_prio[i][tail_999]->rnl_start_time - flows_by_prio[i][tail_999]->start_time) * 1e6 << std::endl;
                 } else {
@@ -827,7 +827,7 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
 
 
     ////if (params.flow_type != QJUMP_FLOW && params.flow_type != D3_FLOW && params.flow_type != PDQ_FLOW) {
-    if (params.flow_type == VERITAS_FLOW) {
+    if (params.flow_type == AEQUITAS_FLOW) {
         std::vector<double> final_avg_qos_dist;
         std::cout << "Final QoS Dist: ";
         std::cout << std::setprecision(1) << std::fixed;
@@ -921,7 +921,7 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
     }
 
 
-    if (params.host_type == 6) { // per host dist is only meaningful to Veritas
+    if (params.host_type == 6) { // per host dist is only meaningful to Aequitas
         // find per host dist:
         std::cout << "Per host distribution:" << std::endl;
         std::vector<std::vector<double>> per_host_dist(params.num_hosts, std::vector<double>(params.weights.size(), 0));
@@ -1398,8 +1398,8 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
             });
 
             std::string cdf_filename = "cdf_prio_" + std::to_string(i) + ".txt";
-            if (params.flow_type == VERITAS_FLOW) {
-                cdf_filename = "veritas_" + cdf_filename;
+            if (params.flow_type == AEQUITAS_FLOW) {
+                cdf_filename = "aequitas_" + cdf_filename;
             } else if (params.flow_type == PFABRIC_FLOW) {
                 cdf_filename = "pfabric_" + cdf_filename;
             } else if (params.flow_type == QJUMP_FLOW) {
@@ -1502,7 +1502,7 @@ void run_experiment(int argc, char **argv, uint32_t exp_type) {
     }
     std::cout << "total priority downgrades: " << num_downgrades << std::endl;
 
-    if (params.flow_type == VERITAS_FLOW) {
+    if (params.flow_type == AEQUITAS_FLOW) {
         for (uint32_t i = 0; i < params.weights.size(); i++) {
             std::cout << "Priority[" << i << "] pkt drops: " << pkt_drops_per_prio[i] << std::endl;
         }

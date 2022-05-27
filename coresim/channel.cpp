@@ -34,7 +34,7 @@ Channel::Channel(uint32_t id, Host *s, Host *d, uint32_t priority, AggChannel *a
     this->dst = d;
     this->priority = priority;
     this->agg_channel = agg_channel;
-    if (!params.disable_veritas_cc) {
+    if (!params.disable_aequitas_cc) {
         this->cwnd_mss = params.initial_cwnd;
     } else {
         this->cwnd_mss = params.max_cwnd;
@@ -515,7 +515,7 @@ void Channel::adjust_cwnd_on_RTO() {
 
 // delay/rtt is in us
 void Channel::report_ack(double delay) {
-    if (params.disable_veritas_cc) {
+    if (params.disable_aequitas_cc) {
         return;
     } else {
         if (!params.disable_cwnd_logging) {
@@ -527,7 +527,7 @@ void Channel::report_ack(double delay) {
 }
 
 void Channel::set_timeout(double time) {
-    if (params.disable_veritas_cc) {
+    if (params.disable_aequitas_cc) {
         return;
     }
     if (last_unacked_seq < end_seq_no) {
@@ -539,7 +539,7 @@ void Channel::set_timeout(double time) {
 
 void Channel::handle_timeout() {
     num_timeouts[priority]++;
-    if (params.disable_veritas_cc) {    // probably unnecessary since 'set_timeout()' has been checked already
+    if (params.disable_aequitas_cc) {    // probably unnecessary since 'set_timeout()' has been checked already
         return;
     } else {
         if (!params.disable_cwnd_logging) {

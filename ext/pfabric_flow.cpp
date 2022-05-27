@@ -49,7 +49,7 @@ void PFabricFlow::start_flow() {
     send_pending_data();
 }
 
-// Copied from VeritasFlow::send_pkts() which modifies the original YAPS'
+// Copied from AequitasFlow::send_pkts() which modifies the original YAPS'
 // Flow::send_pending_data()
 void PFabricFlow::send_pending_data() {
     uint32_t pkts_sent = 0;
@@ -86,7 +86,7 @@ uint32_t PFabricFlow::send_pkts() {
     abort();
 }
 
-// Copied from VeritasFlow::send_with_delay() with changes to setting priority
+// Copied from AequitasFlow::send_with_delay() with changes to setting priority
 // send with some tiny delay so that pkts from the same batch of a flow is easier to be distinguished by the event comparator
 // also starts from first-hop switch queue, and all the way thru dst queue (instead of src queue -> sw queue but skip dst queue in previous design)
 Packet *PFabricFlow::send_with_delay(uint64_t seq, double delay) {
@@ -123,7 +123,7 @@ Packet *PFabricFlow::send_with_delay(uint64_t seq, double delay) {
     return p;
 }
 
-// Copied from VeritasFlow::send() with changes to setting priority.
+// Copied from AequitasFlow::send() with changes to setting priority.
 // Original Flwo::send; include src queue but no dst queue; not currently in use
 Packet *PFabricFlow::send(uint64_t seq) {
     Packet *p = NULL;
@@ -153,7 +153,7 @@ Packet *PFabricFlow::send(uint64_t seq) {
     return p;
 }
 
-// Copied from VeritasFlow::send_ack() with changes to setting priority.
+// Copied from AequitasFlow::send_ack() with changes to setting priority.
 void PFabricFlow::send_ack(uint64_t seq, std::vector<uint64_t> sack_list, double pkt_start_ts) {
     Packet *p = new Ack(this, seq, sack_list, hdr_size, dst, src);  //Acks are dst->src
     p->pf_priority = 0; // Use highest priority for ACK packets.

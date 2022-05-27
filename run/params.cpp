@@ -39,7 +39,7 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
     params.multiplex_constant = 1;
     params.flushing_coefficient = 1;
     params.disable_poisson_arrival = 0;    // default: enable poisson
-    params.disable_veritas_cc = 0;
+    params.disable_aequitas_cc = 0;
     params.traffic_pattern = 0;
     params.cc_delay_target = 10;
     params.high_prio_lat_target = 10;
@@ -154,8 +154,8 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
         else if (key == "disable_poisson_arrival") {
             lineStream >> params.disable_poisson_arrival;
         }
-        else if (key == "disable_veritas_cc") {
-            lineStream >> params.disable_veritas_cc;
+        else if (key == "disable_aequitas_cc") {
+            lineStream >> params.disable_aequitas_cc;
         }
         else if (key == "traffic_pattern") {
             lineStream >> params.traffic_pattern;
@@ -613,7 +613,7 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
     if (params.host_type == 2) {
         std::cout << "use pFabric host" << std::endl;
     } else if (params.host_type == 6) {
-        std::cout << "use Veritas(WFQ) host" << std::endl;
+        std::cout << "use Aequitas(WFQ) host" << std::endl;
     }
     if (params.num_qos_level < 1) {
         std::cout << "please specify valid qos weights " << std::endl;
@@ -634,8 +634,8 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
         }
     }
     std::cout << "Per port queue size: " << params.queue_size << " Bytes" << std::endl;
-    if (params.disable_veritas_cc) {
-        std::cout << "Veritas Flow: disable CC" << std::endl;
+    if (params.disable_aequitas_cc) {
+        std::cout << "Aequitas Flow: disable CC" << std::endl;
     }
     if (params.disable_poisson_arrival) {
         std::cout << "Disable Poisson Arrival; use initial shift instead" << std::endl;

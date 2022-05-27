@@ -63,7 +63,7 @@ class DCExpParams {
         //std::vector<double> dynamic_load;
         //int load_idx = 0;
         uint32_t disable_poisson_arrival;  // disable poisson arrival (default=0; enable); when ON, has initial shift; when OFF, has poisson but no initial shift
-        uint32_t disable_veritas_cc;       // disable cc in veritas flow
+        uint32_t disable_aequitas_cc;       // disable cc in Aequitas flow
         uint32_t flushing_coefficient;
         double cc_delay_target;             // delay target for swift/timely above which multiplicative decrease on cwnd will be performed
         uint32_t traffic_pattern;           // 0: incast; 1: all-to-all

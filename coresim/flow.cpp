@@ -104,7 +104,7 @@ Flow::Flow(uint32_t id, double start_time, uint32_t size, Host *s, Host *d, uint
     Flow(id, start_time, size, s, d) {
     this->flow_priority = flow_priority;
 
-    if (params.flow_type == VERITAS_FLOW && params.priority_downgrade) {
+    if (params.flow_type == AEQUITAS_FLOW && params.priority_downgrade) {
         // Flow now starts a separate Channel by its own (using the same flow ID as the Channel ID),
         // and the Channel links itself to the AggChannel to get admit_prob
         //AggChannel *agg_channel = channels[flow_priority][std::make_pair(src->id, dst->id)];
@@ -186,7 +186,7 @@ void Flow::send_pending_data() {
 // Called by Channel
 // TODO: check whether sack is correctly implemented in the orig simulator
 // since I see some TODOs related to SACK in the orig code
-// NOTE: Veritas override and uses its own "send_pkts()"
+// NOTE: Aequitas override and uses its own "send_pkts()"
 // NOTE: be careful about using this call directly; should use derived send_pkts() from a derived class
 uint32_t Flow::send_pkts() {
     uint32_t pkts_sent = 0;
@@ -220,7 +220,7 @@ uint32_t Flow::send_pkts() {
     return pkts_sent;
 }
 
-// Note: VeritasFlow overrides send() and send_ack()
+// Note: AequitasFlow overrides send() and send_ack()
 Packet *Flow::send(uint64_t seq) {
     Packet *p = NULL;
 
@@ -402,7 +402,7 @@ void Flow::receive_data_pkt(Packet* p) {
 }
 
 void Flow::set_timeout(double time) {
-    if (params.disable_veritas_cc) {
+    if (params.disable_aequitas_cc) {
         return;
     }
     if (last_unacked_seq < size) {
@@ -469,7 +469,7 @@ uint32_t Flow::get_priority(uint64_t seq) {
 
 // No longer used after Channel impl
 void Flow::increase_cwnd() {
-    if (params.disable_veritas_cc) {
+    if (params.disable_aequitas_cc) {
         return;
     }
     cwnd_mss += 1;

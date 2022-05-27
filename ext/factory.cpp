@@ -6,7 +6,7 @@
 #include "../coresim/agg_channel.h"
 #include "../coresim/channel.h"
 #include "../coresim/node.h"
-#include "veritas_flow.h"
+#include "aequitas_flow.h"
 #include "d3_flow.h"
 #include "d3_queue.h"
 #include "homa_channel.h"
@@ -79,8 +79,8 @@ Flow* Factory::get_flow(
         //case NORMAL_FLOW:
         //    return new Flow(id, start_time, size, src, dst);
         //    break;
-        case VERITAS_FLOW:
-            return new VeritasFlow(id, start_time, size, src, dst, flow_priority);
+        case AEQUITAS_FLOW:
+            return new AequitasFlow(id, start_time, size, src, dst, flow_priority);
         case PFABRIC_FLOW:
             return new PFabricFlow(id, start_time, size, src, dst, flow_priority);
         case QJUMP_FLOW:

@@ -18,7 +18,7 @@
 /* Flow types */
 #define NORMAL_FLOW 1
 #define PFABRIC_FLOW 2
-#define VERITAS_FLOW 6
+#define AEQUITAS_FLOW 6
 #define QJUMP_FLOW 7
 #define D3_FLOW 8
 #define PDQ_FLOW 9
