@@ -5,7 +5,7 @@ The simulator is based on [YAPS](https://github.com/NetSys/simulator).
 
 For more details, please refer to our SIGCOMM' 22 paper. <!-- TODO: add paper link after camera-ready -->
 
-<!-- TODO: mention artifact eval version is in the other branch. -->
+For SIGCOMM' 22 artifact evaluation, please refer to the <strong>artifact-eval</strong> branch.
 
 # Build
 ```
