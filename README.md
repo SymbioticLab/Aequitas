@@ -29,7 +29,7 @@ Before launching the simulator, you may want to configure a few parameters in th
 - <strong>qos_ratio</strong>: QoS distribution starting from the highest QoS, separated by comma and should sum up to 100. (e.g., 60,30,10)
 - <strong>hardcoded_targets</strong>: QoS RPC network latency target starting from the highest QoS (excluding the lowest one) (e.g., 15,25)
 - <strong>priority_downgrade</strong>: whether priority downgrade can happen. Must be 1 to have Aequitas admission control.
-- <strong>normalized_lat</strong>: whether latency targets are normalized based on MTU
+- <strong>normalized_lat</strong>: whether latency targets are normalized based on MTU; should be 1 for MTU-based SLOs with mixed-sized RPCs
 - <strong>flow_type, queue_type, host_type</strong>: used to specify different work, including Aequitas and others. See ext/factory.h for more details.
 
 For information on other parameters, please refer to the code or contact the author.
