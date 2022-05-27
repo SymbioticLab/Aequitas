@@ -64,6 +64,8 @@ void read_experiment_parameters(std::string conf_filename, uint32_t exp_type) {
     params.big_switch = 0;
     params.disable_pkt_logging = 0;
     params.only_sw_queue = 0;
+    params.load_balancing = 0;
+    params.preemptive_queue = 0;
     params.test_fairness = 0;
     params.test_size_to_priority = 0;
     params.disable_cwnd_logging = 0;

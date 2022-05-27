@@ -5,10 +5,7 @@
 #include <vector>
 
 /* Queue types */
-#define DROPTAIL_QUEUE 1
 #define PFABRIC_QUEUE 2
-#define PROB_DROP_QUEUE 4
-#define DCTCP_QUEUE 5
 #define WF_QUEUE 6
 #define QJUMP_QUEUE 7
 #define D3_QUEUE 8
@@ -16,30 +13,17 @@
 #define HOMA_QUEUE 10
 
 /* Flow types */
-#define NORMAL_FLOW 1
 #define PFABRIC_FLOW 2
 #define AEQUITAS_FLOW 6
 #define QJUMP_FLOW 7
 #define D3_FLOW 8
 #define PDQ_FLOW 9
 #define HOMA_FLOW 10
-#define VANILLA_TCP_FLOW 42
-#define DCTCP_FLOW 43
-#define CAPABILITY_FLOW 112
-#define MAGIC_FLOW 113
-#define FASTPASS_FLOW 114
-#define IDEAL_FLOW 120
 
 /* Host types */
 #define NORMAL_HOST 1
-#define SCHEDULING_HOST 2
 #define QJUMP_HOST 7
 #define HOMA_HOST 10
-#define CAPABILITY_HOST 12
-#define MAGIC_HOST 13
-#define FASTPASS_HOST 14
-#define FASTPASS_ARBITER 10
-#define IDEAL_HOST 20
 
 class Flow;
 class Host;
