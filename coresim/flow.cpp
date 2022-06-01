@@ -453,9 +453,9 @@ void Flow::cancel_rate_limit_event() {
 }
 
 uint32_t Flow::get_priority(uint64_t seq) {
-    if (params.flow_type == NORMAL_FLOW) {
-        return 1;
-    }
+    //if (params.flow_type == NORMAL_FLOW) {
+    //    return 1;
+    //}
     if(params.deadline && params.schedule_by_deadline)
     {
         return (int)(this->deadline * 1000000);
