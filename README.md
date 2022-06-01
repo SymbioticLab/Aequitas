@@ -6,6 +6,7 @@ For more details and future updates of the simulator, please refer to the master
 # Build
 ```
 git clone https://github.com/SymbioticLab/Aequitas.git
+git checkout artifact-eval
 cd Aequitas
 aclocal
 autoconf
