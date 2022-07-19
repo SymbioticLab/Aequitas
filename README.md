@@ -42,7 +42,7 @@ cd py
 
 
 # Reference
-Please consider citing our paper if you find Justitia related to your research project.
+Please consider citing our paper if you find Aequitas related to your research project.
 ```bibtex
 @inproceedings{aequitas-sigcomm22,
   title={Aequitas: Admission Control for Performance-Critical RPCs in Datacenters},
